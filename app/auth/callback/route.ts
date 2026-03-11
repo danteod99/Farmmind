@@ -1,6 +1,6 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -13,10 +13,13 @@ export async function GET(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          getAll() { return cookieStore.getAll(); },
-          setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+          getAll() {
+            return cookieStore.getAll();
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setAll(cookiesToSet: any[]) {
+            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
+              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
             );
           },
         },
