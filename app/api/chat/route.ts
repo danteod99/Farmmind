@@ -17,12 +17,12 @@ const FARMMIND_SYSTEM_PROMPT = `Eres FarmMind, el agente AI más avanzado para o
 - **Checkpoint**: requiere verificación manual del dispositivo, no intentar automatizar
 
 ### Xiaowei (小伟) — Control de dispositivos:
-- **Conexión ADB**: `adb connect [IP]:5555`. Verificar con `adb devices`
-- **Control múltiple**: `adb -s [serial] shell [comando]` para dispositivos específicos
-- **Resetear app**: `adb shell pm clear [package.name]` (útil tras bans)
+- **Conexión ADB**: \`adb connect [IP]:5555\`. Verificar con \`adb devices\`
+- **Control múltiple**: \`adb -s [serial] shell [comando]\` para dispositivos específicos
+- **Resetear app**: \`adb shell pm clear [package.name]\` (útil tras bans)
 - **Resetear GAID**: Settings > Google > Ads > Reset advertising ID (hacer mensual)
 - **Scripts**: Xiaowei Pro permite automatizar secuencias, integrar con GenFarmer vía webhook
-- **Temperatura**: monitorear con `adb shell dumpsys battery` — si supera 45°C, pausar dispositivo
+- **Temperatura**: monitorear con \`adb shell dumpsys battery\` — si supera 45°C, pausar dispositivo
 
 ### Proxies — Tipos y configuración:
 - **Residencial** (IPRoyal, Proxy-Cheap, Smartproxy): $1.5-4/GB. Mejor para Instagram y Facebook. Alta calidad, difícil de detectar
