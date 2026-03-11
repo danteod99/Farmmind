@@ -1,7 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2 } from "lucide-react";
+import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -16,6 +18,15 @@ interface Conversation {
   id: string;
   title: string;
   created_at: string;
+}
+
+interface UserProfile {
+  plan: "free" | "pro";
+  status: string;
+  messagesThisMonth: number;
+  messagesLimit: number | null;
+  isPro: boolean;
+  canSendMessage: boolean;
 }
 
 const WELCOME_MESSAGE: Message = {
@@ -72,6 +83,66 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("es-CO", { day: "numeric", month: "short" });
 }
 
+function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)" }}>
+      <div className="relative rounded-2xl p-8 max-w-md w-full mx-4 text-center" style={{ background: "var(--surface)", border: "1px solid #7c3aed" }}>
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
+          <X size={18} />
+        </button>
+
+        {/* Icono */}
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}>
+          <Crown size={28} className="text-yellow-300" />
+        </div>
+
+        <h2 className="text-xl font-bold text-white mb-2">Límite alcanzado</h2>
+        <p className="text-sm text-gray-400 mb-6">
+          Usaste tus <strong className="text-white">30 mensajes gratuitos</strong> de este mes.<br />
+          Pasa a Pro para continuar sin límites.
+        </p>
+
+        {/* Plan free vs pro */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="rounded-xl p-4 text-left" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+            <p className="text-xs font-semibold text-gray-400 mb-2">FREE</p>
+            <p className="text-2xl font-bold text-white mb-3">$0</p>
+            <div className="space-y-1.5 text-xs text-gray-400">
+              <p>✓ 30 mensajes/mes</p>
+              <p>✓ Historial básico</p>
+              <p className="text-gray-600">✗ Mensajes ilimitados</p>
+              <p className="text-gray-600">✗ Acceso prioritario</p>
+            </div>
+          </div>
+          <div className="rounded-xl p-4 text-left" style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", border: "1px solid #7c3aed" }}>
+            <div className="flex items-center gap-1 mb-2">
+              <p className="text-xs font-semibold" style={{ color: "#a78bfa" }}>PRO</p>
+              <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#7c3aed20", color: "#a78bfa" }}>Popular</span>
+            </div>
+            <p className="text-2xl font-bold text-white mb-3">$19<span className="text-sm font-normal text-gray-400">/mes</span></p>
+            <div className="space-y-1.5 text-xs text-gray-300">
+              <p>✓ Mensajes ilimitados</p>
+              <p>✓ Historial completo</p>
+              <p>✓ Acceso prioritario</p>
+              <p>✓ Nuevas funciones</p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={onUpgrade}
+          className="w-full py-3 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 transition-all hover:opacity-90"
+          style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}
+        >
+          <Sparkles size={15} />
+          Obtener FarmMind Pro — $19/mes
+        </button>
+        <p className="text-xs text-gray-600 mt-3">Cancela cuando quieras • Pago seguro con Stripe</p>
+      </div>
+    </div>
+  );
+}
+
 function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const handleGoogleLogin = async () => {
@@ -118,6 +189,9 @@ export default function FarmMindChat() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loadingConvs, setLoadingConvs] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradingToStripe, setUpgradingToStripe] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -131,9 +205,31 @@ export default function FarmMindChat() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Cargar lista de conversaciones cuando el usuario está logueado
+  // Check URL params for payment result
   useEffect(() => {
-    if (user) loadConversations();
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "success") {
+      window.history.replaceState({}, "", "/");
+      fetchUserProfile();
+    }
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const res = await fetch("/api/user/profile");
+      if (res.ok) {
+        const data = await res.json();
+        setUserProfile(data);
+      }
+    } catch { /* silencioso */ }
+  };
+
+  useEffect(() => {
+    if (user) {
+      loadConversations();
+      fetchUserProfile();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   useEffect(() => {
@@ -188,6 +284,35 @@ export default function FarmMindChat() {
     setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date() }]);
     setConversationId(null);
     setConversations([]);
+    setUserProfile(null);
+  };
+
+  const handleUpgrade = async () => {
+    setUpgradingToStripe(true);
+    try {
+      const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      alert("Error conectando con Stripe. Intenta más tarde.");
+    } finally {
+      setUpgradingToStripe(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) window.open(data.url, "_blank");
+    } catch {
+      alert("Error abriendo portal de facturación.");
+    }
   };
 
   const saveConversation = useCallback(async (msgs: Message[]) => {
@@ -208,7 +333,7 @@ export default function FarmMindChat() {
       if (convId) {
         await supabase.from("messages").delete().eq("conversation_id", convId);
         await supabase.from("messages").insert(
-          realMessages.map((m) => ({ conversation_id: convId, role: m.role, content: m.content }))
+          realMessages.map((m) => ({ conversation_id: convId, user_id: user.id, role: m.role, content: m.content }))
         );
       }
       setSaveStatus("saved");
@@ -226,11 +351,28 @@ export default function FarmMindChat() {
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText || isStreaming) return;
+
+    // Verificar límite de mensajes
+    if (userProfile && !userProfile.canSendMessage) {
+      setShowUpgrade(true);
+      return;
+    }
+
     const userMessage: Message = { id: Date.now().toString(), role: "user", content: messageText, timestamp: new Date() };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
     setIsStreaming(true);
+
+    // Actualizar contador local optimistamente
+    if (userProfile && !userProfile.isPro) {
+      setUserProfile((prev) => prev ? {
+        ...prev,
+        messagesThisMonth: prev.messagesThisMonth + 1,
+        canSendMessage: prev.messagesThisMonth + 1 < (prev.messagesLimit || 30),
+      } : prev);
+    }
+
     const assistantId = (Date.now() + 1).toString();
     setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "", timestamp: new Date() }]);
     try {
@@ -274,6 +416,12 @@ export default function FarmMindChat() {
 
   const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
   const userAvatar = user.user_metadata?.avatar_url;
+  const isPro = userProfile?.isPro ?? false;
+  const messagesLeft = userProfile
+    ? userProfile.isPro
+      ? null
+      : Math.max(0, (userProfile.messagesLimit || 30) - userProfile.messagesThisMonth)
+    : null;
 
   return (
     <>
@@ -298,6 +446,14 @@ export default function FarmMindChat() {
         .conv-item:hover .conv-delete { opacity: 1; }
         .conv-delete { opacity: 0; transition: opacity 0.2s; }
       `}</style>
+
+      {showUpgrade && (
+        <UpgradeModal
+          onClose={() => setShowUpgrade(false)}
+          onUpgrade={handleUpgrade}
+        />
+      )}
+
       <div className="flex h-screen" style={{ background: "var(--background)" }}>
         {/* Sidebar */}
         <div className="w-64 flex-shrink-0 flex flex-col border-r" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
@@ -306,14 +462,19 @@ export default function FarmMindChat() {
           <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--accent)" }}><Bot size={16} className="text-white" /></div>
-              <div><h1 className="font-bold text-white text-sm">FarmMind</h1><p className="text-xs" style={{ color: "var(--accent-light)" }}>Bot Farm AI Agent</p></div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h1 className="font-bold text-white text-sm">FarmMind</h1>
+                  {isPro && <Crown size={11} className="text-yellow-400" />}
+                </div>
+                <p className="text-xs" style={{ color: "var(--accent-light)" }}>Bot Farm AI Agent</p>
+              </div>
             </div>
             <button onClick={newChat} disabled={isStreaming} title="Nueva conversación" className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors" style={{ background: "var(--surface-2)", color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#a78bfa")} onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}><Plus size={14} /></button>
           </div>
 
           {/* Historial de conversaciones */}
           <div className="flex-1 overflow-y-auto">
-            {/* Conversaciones anteriores */}
             {conversations.length > 0 && (
               <div className="p-3">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Conversaciones</p>
@@ -352,7 +513,6 @@ export default function FarmMindChat() {
               </div>
             )}
 
-            {/* Si no hay conversaciones */}
             {conversations.length === 0 && !loadingConvs && (
               <div className="p-4">
                 <div className="rounded-xl p-3" style={{ background: "var(--surface-2)" }}>
@@ -374,7 +534,6 @@ export default function FarmMindChat() {
               </div>
             )}
 
-            {/* Si hay conversaciones, mostrar acciones rápidas abajo */}
             {conversations.length > 0 && (
               <div className="px-3 pb-3">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Acciones rápidas</p>
@@ -387,6 +546,38 @@ export default function FarmMindChat() {
             )}
           </div>
 
+          {/* Upgrade banner (solo para free) */}
+          {!isPro && userProfile && (
+            <div className="px-3 pb-2">
+              <div className="rounded-xl p-3" style={{ background: "linear-gradient(135deg, #1e1b4b, #2e1065)", border: "1px solid #4c1d95" }}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-xs font-semibold text-purple-300">Plan Free</p>
+                  <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#7c3aed30", color: "#c4b5fd" }}>
+                    {messagesLeft} restantes
+                  </span>
+                </div>
+                {/* Barra de progreso */}
+                <div className="h-1 rounded-full mb-2.5" style={{ background: "#2d2d44" }}>
+                  <div
+                    className="h-1 rounded-full transition-all"
+                    style={{
+                      background: "linear-gradient(90deg, #7c3aed, #a78bfa)",
+                      width: `${Math.min(100, (userProfile.messagesThisMonth / (userProfile.messagesLimit || 30)) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <button
+                  onClick={() => setShowUpgrade(true)}
+                  className="w-full py-1.5 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-all hover:opacity-90"
+                  style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}
+                >
+                  <Crown size={11} className="text-yellow-300" />
+                  Upgrade a Pro — $19/mes
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* User */}
           <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
             {saveStatus === "saving" && <p className="text-xs text-gray-500 mb-2 text-center">Guardando...</p>}
@@ -395,8 +586,15 @@ export default function FarmMindChat() {
               <div className="flex items-center gap-2 min-w-0">
                 {userAvatar ? <img src={userAvatar} alt={userName} className="w-7 h-7 rounded-full flex-shrink-0" /> : <div className="w-7 h-7 rounded-full bg-purple-700 flex items-center justify-center flex-shrink-0"><User size={12} className="text-white" /></div>}
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-white truncate">{userName}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-xs font-medium text-white truncate">{userName}</p>
+                    {isPro && <Crown size={10} className="text-yellow-400 flex-shrink-0" />}
+                  </div>
+                  <p className="text-xs text-gray-500 truncate">
+                    {isPro ? (
+                      <button onClick={handleManageBilling} className="hover:text-purple-400 transition-colors">Gestionar plan Pro ↗</button>
+                    ) : user.email}
+                  </p>
                 </div>
               </div>
               <button onClick={handleLogout} title="Cerrar sesión" className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors" style={{ color: "#64748b" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")} onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}><LogOut size={13} /></button>
@@ -411,7 +609,16 @@ export default function FarmMindChat() {
               <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "var(--accent)" }}><Bot size={16} className="text-white" /></div>
               <div><h2 className="font-semibold text-white text-sm">FarmMind</h2><div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-xs text-gray-400">Agente activo</span></div></div>
             </div>
-            <span className="text-xs px-3 py-1 rounded-full font-medium" style={{ background: "var(--surface-2)", color: "var(--accent-light)" }}>🤖 Fase 1 — Chat Expert</span>
+            <div className="flex items-center gap-2">
+              {isPro ? (
+                <span className="text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1" style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", color: "#c4b5fd", border: "1px solid #7c3aed" }}>
+                  <Crown size={11} className="text-yellow-400" /> Pro
+                </span>
+              ) : (
+                <span className="text-xs px-3 py-1 rounded-full font-medium" style={{ background: "var(--surface-2)", color: "var(--accent-light)" }}>🤖 Fase 1 — Chat Expert</span>
+              )}
+              {upgradingToStripe && <div className="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />}
+            </div>
           </div>
           <div className="flex-1 overflow-y-auto p-6 space-y-5">
             {messages.map((msg) => (
@@ -434,10 +641,42 @@ export default function FarmMindChat() {
             ))}
             <div ref={messagesEndRef} />
           </div>
+
+          {/* Input Area */}
           <div className="p-4 border-t" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            {/* Alerta de límite próximo */}
+            {!isPro && messagesLeft !== null && messagesLeft <= 5 && messagesLeft > 0 && (
+              <div className="mb-3 px-3 py-2 rounded-xl flex items-center justify-between text-xs" style={{ background: "#2e1065", border: "1px solid #7c3aed" }}>
+                <span className="text-purple-300">⚠️ Solo te quedan <strong>{messagesLeft} mensajes</strong> este mes</span>
+                <button onClick={() => setShowUpgrade(true)} className="text-yellow-400 font-semibold hover:underline ml-2">Upgrade →</button>
+              </div>
+            )}
+            {/* Bloqueado */}
+            {!isPro && messagesLeft === 0 && (
+              <div className="mb-3 px-3 py-2 rounded-xl flex items-center justify-between text-xs" style={{ background: "#2e1065", border: "1px solid #7c3aed" }}>
+                <span className="text-purple-300">🔒 Límite mensual alcanzado</span>
+                <button onClick={() => setShowUpgrade(true)} className="text-yellow-400 font-semibold hover:underline ml-2">Upgrade a Pro →</button>
+              </div>
+            )}
             <div className="flex items-end gap-3 rounded-2xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Pregúntame algo o pídeme ejecutar una acción en tu farm..." rows={1} className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none" style={{ maxHeight: "120px" }} />
-              <button onClick={() => sendMessage()} disabled={!input.trim() || isStreaming} className="w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0" style={{ background: input.trim() && !isStreaming ? "var(--accent)" : "var(--border)", cursor: input.trim() && !isStreaming ? "pointer" : "not-allowed" }}><Send size={15} className="text-white" /></button>
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={messagesLeft === 0 && !isPro ? "Límite alcanzado — Upgrade a Pro para continuar..." : "Pregúntame algo o pídeme ejecutar una acción en tu farm..."}
+                disabled={messagesLeft === 0 && !isPro}
+                rows={1}
+                className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
+                style={{ maxHeight: "120px", cursor: messagesLeft === 0 && !isPro ? "not-allowed" : "text" }}
+              />
+              <button
+                onClick={() => sendMessage()}
+                disabled={!input.trim() || isStreaming || (messagesLeft === 0 && !isPro)}
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0"
+                style={{ background: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "var(--accent)" : "var(--border)", cursor: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "pointer" : "not-allowed" }}
+              >
+                <Send size={15} className="text-white" />
+              </button>
             </div>
             <p className="text-center text-xs text-gray-600 mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
           </div>
