@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check } from "lucide-react";
+import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut } from "lucide-react";
+import { supabase } from "@/app/lib/supabase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Message {
   id: string;
@@ -24,43 +26,25 @@ const QUICK_ACTIONS = [
   "¿Cómo configuro el warmup de cuentas nuevas?",
 ];
 
-// Markdown renderer
 function renderMarkdown(content: string): string {
   let html = content;
-
-  // Code blocks
   html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
     const escaped = code.trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     return `<div class="code-block"><span class="code-lang">${lang || "code"}</span><pre>${escaped}</pre></div>`;
   });
-
-  // Inline code
   html = html.replace(/`([^`\n]+)`/g, '<code class="inline-code">$1</code>');
-
-  // Headers
   html = html.replace(/^### (.+)$/gm, '<p class="msg-h3">$1</p>');
   html = html.replace(/^## (.+)$/gm, '<p class="msg-h2">$1</p>');
   html = html.replace(/^# (.+)$/gm, '<p class="msg-h1">$1</p>');
-
-  // Bold + italic
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-
-  // Bullet lists
   html = html.replace(/^[-•] (.+)$/gm, "<li>$1</li>");
   html = html.replace(/(<li>.*?<\/li>\n?)+/g, (match) => `<ul>${match}</ul>`);
-
-  // Numbered lists
   html = html.replace(/^\d+\. (.+)$/gm, '<li class="numbered">$1</li>');
   html = html.replace(/(<li class="numbered">.*?<\/li>\n?)+/g, (match) => `<ol>${match}</ol>`);
-
-  // Horizontal rule
   html = html.replace(/^---$/gm, "<hr />");
-
-  // Line breaks
   html = html.replace(/\n\n/g, "<br /><br />");
   html = html.replace(/\n/g, "<br />");
-
   return html;
 }
 
@@ -72,12 +56,7 @@ function CopyButton({ text }: { text: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <button
-      onClick={handleCopy}
-      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded"
-      style={{ color: "#64748b" }}
-      title="Copiar"
-    >
+    <button onClick={handleCopy} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded" style={{ color: "#64748b" }} title="Copiar">
       {copied ? <Check size={13} /> : <Copy size={13} />}
     </button>
   );
@@ -87,59 +66,118 @@ function formatTime(date: Date): string {
   return date.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
 }
 
+function LoginScreen() {
+  const [loading, setLoading] = useState(false);
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
+  return (
+    <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
+      <div className="rounded-2xl p-10 text-center max-w-sm w-full mx-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: "var(--accent)" }}>
+          <Bot size={32} className="text-white" />
+        </div>
+        <h1 className="text-2xl font-bold text-white mb-2">FarmMind AI</h1>
+        <p className="text-sm text-gray-400 mb-8">Tu agente AI para granjas de bots</p>
+        <button onClick={handleGoogleLogin} disabled={loading} className="w-full flex items-center justify-center gap-3 py-3 px-5 rounded-xl font-medium text-sm transition-all" style={{ background: loading ? "var(--surface-2)" : "white", color: "#1a1a2e", cursor: loading ? "not-allowed" : "pointer" }}>
+          {loading ? <span className="text-gray-500">Redirigiendo...</span> : (
+            <>
+              <svg width="18" height="18" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+              Iniciar sesión con Google
+            </>
+          )}
+        </button>
+        <p className="text-xs text-gray-600 mt-6">Solo para miembros de Artificial Humans</p>
+      </div>
+    </div>
+  );
+}
+
 export default function FarmMindChat() {
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoadingAuth(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date() }]);
+    setConversationId(null);
+  };
+
+  const saveConversation = useCallback(async (msgs: Message[]) => {
+    if (!user) return;
+    setSaveStatus("saving");
+    try {
+      const realMessages = msgs.filter((m) => m.id !== "welcome");
+      if (realMessages.length === 0) return;
+      let convId = conversationId;
+      if (!convId) {
+        const { data } = await supabase.from("conversations").insert({ user_id: user.id, title: realMessages[0]?.content.slice(0, 60) || "Nueva conversación" }).select("id").single();
+        convId = data?.id;
+        setConversationId(convId);
+      }
+      if (convId) {
+        await supabase.from("messages").delete().eq("conversation_id", convId);
+        await supabase.from("messages").insert(realMessages.map((m) => ({ conversation_id: convId, role: m.role, content: m.content })));
+      }
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
+    } catch { setSaveStatus("idle"); }
+  }, [user, conversationId]);
+
   const newChat = useCallback(() => {
     if (isStreaming) return;
     setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date() }]);
     setInput("");
+    setConversationId(null);
   }, [isStreaming]);
 
   const sendMessage = async (text?: string) => {
     const messageText = text || input.trim();
     if (!messageText || isStreaming) return;
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: messageText,
-      timestamp: new Date(),
-    };
-
+    const userMessage: Message = { id: Date.now().toString(), role: "user", content: messageText, timestamp: new Date() };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
     setIsStreaming(true);
-
     const assistantId = (Date.now() + 1).toString();
-    setMessages((prev) => [
-      ...prev,
-      { id: assistantId, role: "assistant", content: "", timestamp: new Date() },
-    ]);
-
+    setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "", timestamp: new Date() }]);
     try {
-      const apiMessages = updatedMessages
-        .filter((m) => m.id !== "welcome")
-        .map((m) => ({ role: m.role, content: m.content }));
-
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: apiMessages }),
-      });
-
+      const apiMessages = updatedMessages.filter((m) => m.id !== "welcome").map((m) => ({ role: m.role, content: m.content }));
+      const response = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ messages: apiMessages }) });
       const reader = response.body!.getReader();
       const decoder = new TextDecoder();
       let fullContent = "";
-
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -148,36 +186,33 @@ export default function FarmMindChat() {
           if (line.startsWith("data: ")) {
             const data = line.slice(6);
             if (data === "[DONE]") break;
-            try {
-              fullContent += JSON.parse(data).text;
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId ? { ...m, content: fullContent } : m
-                )
-              );
-            } catch {}
+            try { fullContent += JSON.parse(data).text; setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m)); } catch {}
           }
         }
       }
+      const finalMessages = [...updatedMessages, { id: assistantId, role: "assistant" as const, content: fullContent, timestamp: new Date() }];
+      if (user) saveConversation(finalMessages);
     } catch {
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantId
-            ? { ...m, content: "❌ Error conectando con la API. Verifica tu ANTHROPIC_API_KEY." }
-            : m
-        )
-      );
-    } finally {
-      setIsStreaming(false);
-    }
+      setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: "❌ Error conectando con la API. Verifica tu ANTHROPIC_API_KEY." } : m));
+    } finally { setIsStreaming(false); }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
+
+  if (loadingAuth) {
+    return (
+      <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
+        <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) return <LoginScreen />;
+
+  const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
+  const userAvatar = user.user_metadata?.avatar_url;
 
   return (
     <>
@@ -200,39 +235,15 @@ export default function FarmMindChat() {
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
       `}</style>
-
       <div className="flex h-screen" style={{ background: "var(--background)" }}>
-        {/* Sidebar */}
-        <div className="w-64 flex-shrink-0 flex flex-col border-r"
-          style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-
-          {/* Logo + New Chat */}
-          <div className="p-4 border-b flex items-center justify-between"
-            style={{ borderColor: "var(--border)" }}>
+        <div className="w-64 flex-shrink-0 flex flex-col border-r" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center"
-                style={{ background: "var(--accent)" }}>
-                <Bot size={16} className="text-white" />
-              </div>
-              <div>
-                <h1 className="font-bold text-white text-sm">FarmMind</h1>
-                <p className="text-xs" style={{ color: "var(--accent-light)" }}>Bot Farm AI Agent</p>
-              </div>
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--accent)" }}><Bot size={16} className="text-white" /></div>
+              <div><h1 className="font-bold text-white text-sm">FarmMind</h1><p className="text-xs" style={{ color: "var(--accent-light)" }}>Bot Farm AI Agent</p></div>
             </div>
-            <button
-              onClick={newChat}
-              disabled={isStreaming}
-              title="Nueva conversación"
-              className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-              style={{ background: "var(--surface-2)", color: "#94a3b8" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#a78bfa")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}
-            >
-              <Plus size={14} />
-            </button>
+            <button onClick={newChat} disabled={isStreaming} title="Nueva conversación" className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors" style={{ background: "var(--surface-2)", color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#a78bfa")} onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}><Plus size={14} /></button>
           </div>
-
-          {/* Status */}
           <div className="p-4">
             <div className="rounded-xl p-3" style={{ background: "var(--surface-2)" }}>
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Estado</p>
@@ -243,126 +254,64 @@ export default function FarmMindChat() {
               </div>
             </div>
           </div>
-
-          {/* Quick actions */}
           <div className="p-4 flex-1">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Acciones rápidas</p>
             <div className="space-y-1">
               {QUICK_ACTIONS.map((action, i) => (
-                <button key={i} onClick={() => sendMessage(action)}
-                  className="w-full text-left text-xs p-2.5 rounded-lg transition-colors"
-                  style={{ color: "#94a3b8" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>
-                  {action}
-                </button>
+                <button key={i} onClick={() => sendMessage(action)} className="w-full text-left text-xs p-2.5 rounded-lg transition-colors" style={{ color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{action}</button>
               ))}
             </div>
           </div>
-
-          {/* User */}
           <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-purple-700 flex items-center justify-center">
-                <User size={12} className="text-white" />
+            {saveStatus === "saving" && <p className="text-xs text-gray-500 mb-2 text-center">Guardando...</p>}
+            {saveStatus === "saved" && <p className="text-xs text-green-500 mb-2 text-center">Guardado ✓</p>}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                {userAvatar ? <img src={userAvatar} alt={userName} className="w-7 h-7 rounded-full flex-shrink-0" /> : <div className="w-7 h-7 rounded-full bg-purple-700 flex items-center justify-center flex-shrink-0"><User size={12} className="text-white" /></div>}
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white truncate">{userName}</p>
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-medium text-white">Dante</p>
-                <p className="text-xs text-gray-500">Plan Starter</p>
-              </div>
+              <button onClick={handleLogout} title="Cerrar sesión" className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors" style={{ color: "#64748b" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")} onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}><LogOut size={13} /></button>
             </div>
           </div>
         </div>
-
-        {/* Chat */}
         <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="px-6 py-4 border-b flex items-center justify-between"
-            style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+          <div className="px-6 py-4 border-b flex items-center justify-between" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                style={{ background: "var(--accent)" }}>
-                <Bot size={16} className="text-white" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-white text-sm">FarmMind</h2>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                  <span className="text-xs text-gray-400">Agente activo</span>
-                </div>
-              </div>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "var(--accent)" }}><Bot size={16} className="text-white" /></div>
+              <div><h2 className="font-semibold text-white text-sm">FarmMind</h2><div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-xs text-gray-400">Agente activo</span></div></div>
             </div>
-            <span className="text-xs px-3 py-1 rounded-full font-medium"
-              style={{ background: "var(--surface-2)", color: "var(--accent-light)" }}>
-              🤖 Fase 1 — Chat Expert
-            </span>
+            <span className="text-xs px-3 py-1 rounded-full font-medium" style={{ background: "var(--surface-2)", color: "var(--accent-light)" }}>🤖 Fase 1 — Chat Expert</span>
           </div>
-
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-5">
             {messages.map((msg) => (
-              <div key={msg.id}
-                className={`flex gap-3 group ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center"
-                  style={{ background: "var(--accent)" }}>
-                  {msg.role === "user"
-                    ? <User size={14} className="text-white" />
-                    : <Bot size={14} className="text-white" />}
+              <div key={msg.id} className={`flex gap-3 group ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
+                <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center" style={{ background: "var(--accent)" }}>
+                  {msg.role === "user" ? <User size={14} className="text-white" /> : <Bot size={14} className="text-white" />}
                 </div>
                 <div className="flex flex-col gap-1 max-w-2xl" style={{ alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
-                  <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "rounded-tr-sm" : "rounded-tl-sm"}`}
-                    style={msg.role === "user"
-                      ? { background: "var(--accent)", color: "white" }
-                      : { background: "var(--surface-2)", color: "var(--foreground)", border: "1px solid var(--border)" }}>
+                  <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "rounded-tr-sm" : "rounded-tl-sm"}`} style={msg.role === "user" ? { background: "var(--accent)", color: "white" } : { background: "var(--surface-2)", color: "var(--foreground)", border: "1px solid var(--border)" }}>
                     {msg.content === "" && isStreaming ? (
-                      <div className="flex items-center gap-1.5 py-1">
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" />
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" />
-                      </div>
-                    ) : (
-                      <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />
-                    )}
+                      <div className="flex items-center gap-1.5 py-1"><div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" /><div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" /><div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" /></div>
+                    ) : <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />}
                   </div>
                   <div className="flex items-center gap-2 px-1">
                     <span className="text-xs text-gray-600">{formatTime(msg.timestamp)}</span>
-                    {msg.role === "assistant" && msg.content && (
-                      <CopyButton text={msg.content} />
-                    )}
+                    {msg.role === "assistant" && msg.content && <CopyButton text={msg.content} />}
                   </div>
                 </div>
               </div>
             ))}
             <div ref={messagesEndRef} />
           </div>
-
-          {/* Input */}
-          <div className="p-4 border-t"
-            style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-            <div className="flex items-end gap-3 rounded-2xl p-3"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Pregúntame algo o pídeme ejecutar una acción en tu farm..."
-                rows={1}
-                className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
-                style={{ maxHeight: "120px" }}
-              />
-              <button onClick={() => sendMessage()}
-                disabled={!input.trim() || isStreaming}
-                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0"
-                style={{
-                  background: input.trim() && !isStreaming ? "var(--accent)" : "var(--border)",
-                  cursor: input.trim() && !isStreaming ? "pointer" : "not-allowed",
-                }}>
-                <Send size={15} className="text-white" />
-              </button>
+          <div className="p-4 border-t" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+            <div className="flex items-end gap-3 rounded-2xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+              <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Pregúntame algo o pídeme ejecutar una acción en tu farm..." rows={1} className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none" style={{ maxHeight: "120px" }} />
+              <button onClick={() => sendMessage()} disabled={!input.trim() || isStreaming} className="w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0" style={{ background: input.trim() && !isStreaming ? "var(--accent)" : "var(--border)", cursor: input.trim() && !isStreaming ? "pointer" : "not-allowed" }}><Send size={15} className="text-white" /></button>
             </div>
-            <p className="text-center text-xs text-gray-600 mt-2">
-              Enter para enviar · Shift+Enter para nueva línea
-            </p>
+            <p className="text-center text-xs text-gray-600 mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
           </div>
         </div>
       </div>
@@ -370,23 +319,13 @@ export default function FarmMindChat() {
   );
 }
 
-function StatusItem({ icon, label, status }: {
-  icon: React.ReactNode;
-  label: string;
-  status: "online" | "pending" | "offline";
-}) {
+function StatusItem({ icon, label, status }: { icon: React.ReactNode; label: string; status: "online" | "pending" | "offline" }) {
   const colors = { online: "#4ade80", pending: "#facc15", offline: "#f87171" };
   const labels = { online: "Conectado", pending: "Pendiente", offline: "Offline" };
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2 text-gray-400">
-        {icon}
-        <span className="text-xs">{label}</span>
-      </div>
-      <div className="flex items-center gap-1">
-        <div className="w-1.5 h-1.5 rounded-full" style={{ background: colors[status] }} />
-        <span className="text-xs" style={{ color: colors[status] }}>{labels[status]}</span>
-      </div>
+      <div className="flex items-center gap-2 text-gray-400">{icon}<span className="text-xs">{label}</span></div>
+      <div className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full" style={{ background: colors[status] }} /><span className="text-xs" style={{ color: colors[status] }}>{labels[status]}</span></div>
     </div>
   );
 }
