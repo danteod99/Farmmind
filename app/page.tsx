@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut } from "lucide-react";
+import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2 } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -12,19 +12,18 @@ interface Message {
   timestamp: Date;
 }
 
+interface Conversation {
+  id: string;
+  title: string;
+  created_at: string;
+}
+
 const WELCOME_MESSAGE: Message = {
   id: "welcome",
   role: "assistant",
   content: "¡Hola! Soy **FarmMind**, tu agente AI para granjas de bots. 🤖\n\nPuedo ayudarte con GenFarmer, Xiaowei, proxies y anti-detección. También puedo ejecutar acciones directamente en tus herramientas.\n\n¿Qué necesitas hoy?",
   timestamp: new Date(),
 };
-
-const QUICK_ACTIONS = [
-  "¿Cuánto delay usar en GenFarmer para Instagram?",
-  "Mis cuentas están siendo baneadas, ¿qué hago?",
-  "¿Qué proxies son mejores para TikTok?",
-  "¿Cómo configuro el warmup de cuentas nuevas?",
-];
 
 function renderMarkdown(content: string): string {
   let html = content;
@@ -50,11 +49,7 @@ function renderMarkdown(content: string): string {
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const handleCopy = () => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   return (
     <button onClick={handleCopy} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded" style={{ color: "#64748b" }} title="Copiar">
       {copied ? <Check size={13} /> : <Copy size={13} />}
@@ -64,6 +59,17 @@ function CopyButton({ text }: { text: string }) {
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return "Hoy";
+  if (days === 1) return "Ayer";
+  if (days < 7) return `Hace ${days} días`;
+  return date.toLocaleDateString("es-CO", { day: "numeric", month: "short" });
 }
 
 function LoginScreen() {
@@ -110,6 +116,8 @@ export default function FarmMindChat() {
   const [loadingAuth, setLoadingAuth] = useState(true);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [loadingConvs, setLoadingConvs] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -123,15 +131,63 @@ export default function FarmMindChat() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Cargar lista de conversaciones cuando el usuario está logueado
+  useEffect(() => {
+    if (user) loadConversations();
+  }, [user]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const loadConversations = async () => {
+    setLoadingConvs(true);
+    const { data } = await supabase
+      .from("conversations")
+      .select("id, title, created_at")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    if (data) setConversations(data);
+    setLoadingConvs(false);
+  };
+
+  const loadConversation = async (conv: Conversation) => {
+    if (isStreaming) return;
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conv.id)
+      .order("created_at", { ascending: true });
+
+    if (data && data.length > 0) {
+      const loaded: Message[] = data.map((m) => ({
+        id: m.id,
+        role: m.role as "user" | "assistant",
+        content: m.content,
+        timestamp: new Date(m.created_at),
+      }));
+      setMessages(loaded);
+      setConversationId(conv.id);
+    }
+  };
+
+  const deleteConversation = async (e: React.MouseEvent, convId: string) => {
+    e.stopPropagation();
+    await supabase.from("messages").delete().eq("conversation_id", convId);
+    await supabase.from("conversations").delete().eq("id", convId);
+    setConversations((prev) => prev.filter((c) => c.id !== convId));
+    if (conversationId === convId) {
+      setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date() }]);
+      setConversationId(null);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setMessages([{ ...WELCOME_MESSAGE, timestamp: new Date() }]);
     setConversationId(null);
+    setConversations([]);
   };
 
   const saveConversation = useCallback(async (msgs: Message[]) => {
@@ -142,13 +198,18 @@ export default function FarmMindChat() {
       if (realMessages.length === 0) return;
       let convId = conversationId;
       if (!convId) {
-        const { data } = await supabase.from("conversations").insert({ user_id: user.id, title: realMessages[0]?.content.slice(0, 60) || "Nueva conversación" }).select("id").single();
-        convId = data?.id;
+        const { data } = await supabase.from("conversations")
+          .insert({ user_id: user.id, title: realMessages[0]?.content.slice(0, 60) || "Nueva conversación" })
+          .select("id, title, created_at").single();
+        convId = data?.id ?? null;
         setConversationId(convId);
+        if (data) setConversations((prev) => [data, ...prev]);
       }
       if (convId) {
         await supabase.from("messages").delete().eq("conversation_id", convId);
-        await supabase.from("messages").insert(realMessages.map((m) => ({ conversation_id: convId, role: m.role, content: m.content })));
+        await supabase.from("messages").insert(
+          realMessages.map((m) => ({ conversation_id: convId, role: m.role, content: m.content }))
+        );
       }
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 2000);
@@ -234,9 +295,14 @@ export default function FarmMindChat() {
         .typing-dot:nth-child(2) { animation-delay: 0.2s; }
         .typing-dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes blink { 0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+        .conv-item:hover .conv-delete { opacity: 1; }
+        .conv-delete { opacity: 0; transition: opacity 0.2s; }
       `}</style>
       <div className="flex h-screen" style={{ background: "var(--background)" }}>
+        {/* Sidebar */}
         <div className="w-64 flex-shrink-0 flex flex-col border-r" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+
+          {/* Logo + New Chat */}
           <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--accent)" }}><Bot size={16} className="text-white" /></div>
@@ -244,24 +310,84 @@ export default function FarmMindChat() {
             </div>
             <button onClick={newChat} disabled={isStreaming} title="Nueva conversación" className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors" style={{ background: "var(--surface-2)", color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#a78bfa")} onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}><Plus size={14} /></button>
           </div>
-          <div className="p-4">
-            <div className="rounded-xl p-3" style={{ background: "var(--surface-2)" }}>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Estado</p>
-              <div className="space-y-2">
-                <StatusItem icon={<Zap size={12} />} label="Claude API" status="online" />
-                <StatusItem icon={<Shield size={12} />} label="GenFarmer" status="pending" />
-                <StatusItem icon={<Cpu size={12} />} label="Proxies" status="pending" />
+
+          {/* Historial de conversaciones */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Conversaciones anteriores */}
+            {conversations.length > 0 && (
+              <div className="p-3">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Conversaciones</p>
+                <div className="space-y-0.5">
+                  {conversations.map((conv) => (
+                    <div
+                      key={conv.id}
+                      onClick={() => loadConversation(conv)}
+                      className="conv-item flex items-center gap-2 p-2 rounded-lg cursor-pointer group"
+                      style={{
+                        background: conversationId === conv.id ? "var(--surface-2)" : "transparent",
+                        border: conversationId === conv.id ? "1px solid var(--border)" : "1px solid transparent",
+                      }}
+                      onMouseEnter={(e) => { if (conversationId !== conv.id) e.currentTarget.style.background = "var(--surface-2)"; }}
+                      onMouseLeave={(e) => { if (conversationId !== conv.id) e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <MessageSquare size={11} className="flex-shrink-0 text-gray-500" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-gray-300 truncate">{conv.title}</p>
+                        <p className="text-xs text-gray-600">{formatDate(conv.created_at)}</p>
+                      </div>
+                      <button
+                        onClick={(e) => deleteConversation(e, conv.id)}
+                        className="conv-delete w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
+                        style={{ color: "#64748b" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+                        title="Eliminar"
+                      >
+                        <Trash2 size={10} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {loadingConvs && <p className="text-xs text-gray-600 text-center py-2">Cargando...</p>}
               </div>
-            </div>
+            )}
+
+            {/* Si no hay conversaciones */}
+            {conversations.length === 0 && !loadingConvs && (
+              <div className="p-4">
+                <div className="rounded-xl p-3" style={{ background: "var(--surface-2)" }}>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Estado</p>
+                  <div className="space-y-2">
+                    <StatusItem icon={<Zap size={12} />} label="Claude API" status="online" />
+                    <StatusItem icon={<Shield size={12} />} label="GenFarmer" status="pending" />
+                    <StatusItem icon={<Cpu size={12} />} label="Proxies" status="pending" />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Acciones rápidas</p>
+                  <div className="space-y-1">
+                    {["¿Cuánto delay usar en GenFarmer?", "Mis cuentas están siendo baneadas", "¿Qué proxies para TikTok?"].map((action, i) => (
+                      <button key={i} onClick={() => sendMessage(action)} className="w-full text-left text-xs p-2 rounded-lg transition-colors" style={{ color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{action}</button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Si hay conversaciones, mostrar acciones rápidas abajo */}
+            {conversations.length > 0 && (
+              <div className="px-3 pb-3">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Acciones rápidas</p>
+                <div className="space-y-0.5">
+                  {["¿Cuánto delay en GenFarmer?", "Cuentas baneadas, ¿qué hago?", "Proxies para TikTok"].map((action, i) => (
+                    <button key={i} onClick={() => { newChat(); setTimeout(() => sendMessage(action), 100); }} className="w-full text-left text-xs p-2 rounded-lg transition-colors" style={{ color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{action}</button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="p-4 flex-1">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Acciones rápidas</p>
-            <div className="space-y-1">
-              {QUICK_ACTIONS.map((action, i) => (
-                <button key={i} onClick={() => sendMessage(action)} className="w-full text-left text-xs p-2.5 rounded-lg transition-colors" style={{ color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{action}</button>
-              ))}
-            </div>
-          </div>
+
+          {/* User */}
           <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
             {saveStatus === "saving" && <p className="text-xs text-gray-500 mb-2 text-center">Guardando...</p>}
             {saveStatus === "saved" && <p className="text-xs text-green-500 mb-2 text-center">Guardado ✓</p>}
@@ -277,6 +403,8 @@ export default function FarmMindChat() {
             </div>
           </div>
         </div>
+
+        {/* Chat */}
         <div className="flex-1 flex flex-col">
           <div className="px-6 py-4 border-b flex items-center justify-between" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
             <div className="flex items-center gap-3">
