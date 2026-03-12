@@ -6,6 +6,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
+import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Message {
@@ -162,8 +163,9 @@ function LoginScreen() {
       <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "420px", margin: "24px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "28px", padding: "48px 40px" }}>
 
         {/* Logo mark */}
-        <div style={{ width: "60px", height: "60px", borderRadius: "18px", background: "linear-gradient(135deg, #7c3aed, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", boxShadow: "0 0 32px #7c3aed30" }}>
-          <Bot size={28} color="white" />
+        <div style={{ position: "relative", width: "64px", height: "64px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px" }}>
+          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #7c3aed60, transparent 70%)", filter: "blur(10px)" }} />
+          <FarmMindLogo size={52} />
         </div>
 
         {/* Headline */}
@@ -490,8 +492,9 @@ export default function FarmMindChat() {
           <div className="p-4 border-b" style={{ borderColor: "var(--border)" }}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 0 16px #7c3aed30" }}>
-                  <Bot size={17} className="text-white" />
+                <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ position: "absolute", inset: "-2px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50, transparent 70%)", filter: "blur(5px)" }} />
+                  <FarmMindLogo size={30} />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -671,8 +674,9 @@ export default function FarmMindChat() {
           {/* Chat header */}
           <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <div style={{ width: "38px", height: "38px", borderRadius: "14px", background: "linear-gradient(135deg, #7c3aed, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 14px #7c3aed25" }}>
-                <Bot size={17} color="white" />
+              <div style={{ position: "relative", width: "38px", height: "38px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50, transparent 70%)", filter: "blur(5px)" }} />
+                <FarmMindLogo size={32} />
               </div>
               <div>
                 <h2 style={{ fontSize: "15px", fontWeight: 800, color: "white", letterSpacing: "-0.3px" }}>FarmMind</h2>

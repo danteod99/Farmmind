@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import {
-  Bot, LogOut, ArrowLeft, DollarSign, Zap, CheckCircle,
+  LogOut, ArrowLeft, DollarSign, Zap,
   Clock, ExternalLink, Copy, Check, ShoppingCart, TrendingUp, AlertCircle
 } from "lucide-react";
+import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
 const PRESET_AMOUNTS = [11, 20, 25, 50, 100, 200];
 const MIN_AMOUNT = 11;
@@ -119,46 +120,65 @@ export default function FundsPage() {
 
   return (
     <>
-      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } body { background: #07070e; color: #f0efff; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; } a { text-decoration: none; color: inherit; } @keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }`}</style>
+      <style>{`
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #07070e; color: #f0efff; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        a { text-decoration: none; color: inherit; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+        @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 0 0 #34d39940; } 50% { box-shadow: 0 0 0 6px transparent; } }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
 
-        {/* Navbar */}
-        <nav style={{ background: "#0d0d18", borderBottom: "1px solid #1e1e30", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center" }}><Bot size={16} color="white" /></div>
-              <span style={{ fontWeight: 700, color: "white", fontSize: "14px" }}>FarmMind</span>
+        {/* Glassmorphism Navbar */}
+        <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(124,58,237,0.15)", padding: "0 28px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
+            <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(6px)" }} />
+                <FarmMindLogo size={34} />
+              </div>
             </Link>
-            <div style={{ width: "1px", height: "20px", background: "#2d2d44" }} />
-            <div style={{ display: "flex", gap: "4px" }}>
+            <div style={{ width: "1px", height: "22px", background: "rgba(124,58,237,0.3)" }} />
+            <div style={{ display: "flex", gap: "2px" }}>
               {[
                 { href: "/smm", label: "Dashboard" },
                 { href: "/smm/services", label: "Servicios" },
                 { href: "/smm/orders", label: "Mis pedidos" },
                 { href: "/smm/funds", label: "Recargar", active: true },
               ].map((item) => (
-                <Link key={item.href} href={item.href} style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#a78bfa" : "#94a3b8", background: item.active ? "#7c3aed20" : "transparent" }}>{item.label}</Link>
+                <Link key={item.href} href={item.href} style={{ padding: "7px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#c4b5fd" : "#64748b", background: item.active ? "rgba(124,58,237,0.18)" : "transparent", border: item.active ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent", transition: "all 0.15s" }}>{item.label}</Link>
               ))}
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{ padding: "6px 14px", borderRadius: "8px", background: "#34d39920", border: "1px solid #34d39940" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 16px", borderRadius: "10px", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)" }}>
+              <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", animation: "pulse-glow 2s ease-in-out infinite" }} />
               <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
             </div>
-            <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}><LogOut size={16} /></button>
+            <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "8px", color: "#64748b", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><LogOut size={15} /></button>
           </div>
         </nav>
 
-        <div style={{ maxWidth: "960px", margin: "0 auto", padding: "32px 24px" }}>
-
-          {/* Header */}
-          <div style={{ marginBottom: "28px" }}>
-            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#64748b", marginBottom: "12px" }}>
-              <ArrowLeft size={14} /> Volver al dashboard
+        {/* Hero Section */}
+        <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #0e0125 0%, #1b0545 30%, #0c0120 70%, #07070e 100%)", padding: "48px 28px 40px", animation: "fade-in 0.6s ease-out" }}>
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "-60px", right: "10%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed30, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+          <div style={{ maxWidth: "960px", margin: "0 auto", position: "relative" }}>
+            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#7c3aed", marginBottom: "16px", opacity: 0.8 }}>
+              <ArrowLeft size={13} /> Volver al dashboard
             </Link>
-            <h1 style={{ fontSize: "24px", fontWeight: 700, color: "white" }}>Recargar saldo</h1>
-            <p style={{ color: "#64748b", fontSize: "14px", marginTop: "4px" }}>Agrega fondos a tu cuenta con crypto — acreditación automática</p>
+            <h1 style={{ fontSize: "40px", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #a78bfa 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "12px" }}>
+              Recargar saldo
+            </h1>
+            <p style={{ fontSize: "16px", color: "#94a3b8", maxWidth: "480px", lineHeight: 1.6 }}>
+              Agrega fondos a tu cuenta con crypto — acreditación automática en minutos.
+            </p>
           </div>
+        </div>
+
+        <div style={{ maxWidth: "960px", margin: "0 auto", padding: "32px 28px" }}>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "24px", alignItems: "start" }}>
 

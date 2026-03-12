@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import {
-  Bot, LogOut, RefreshCw, Clock, Zap, CheckCircle, AlertCircle, Loader,
+  LogOut, RefreshCw, Clock, Zap, CheckCircle, AlertCircle, Loader,
   ShoppingCart, ArrowLeft, ExternalLink, Search, Filter
 } from "lucide-react";
+import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
 interface Order {
   id: string;
@@ -100,8 +101,10 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center" style={{ background: "#07070e" }}>
-        <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
+      <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center", background: "#07070e", flexDirection: "column", gap: "16px" }}>
+        <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "3px solid #7c3aed30", borderTopColor: "#7c3aed", animation: "spin 0.8s linear infinite" }} />
+        <p style={{ color: "#5a6480", fontSize: "13px", fontWeight: 500 }}>Cargando pedidos...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     );
   }
@@ -109,87 +112,107 @@ export default function OrdersPage() {
   return (
     <>
       <style>{`
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #07070e; color: #f0efff; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #07070e; color: #f0efff; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
         a { text-decoration: none; color: inherit; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #2d2d44; border-radius: 4px; }
-        .order-row:hover { background: #16162a !important; }
+        ::-webkit-scrollbar-thumb { background: #2a2a42; border-radius: 99px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .order-row:hover { background: #110c1e !important; }
+        .nav-link:hover { color: #c4b5fd !important; }
+        .stat-card { transition: transform 0.2s ease; }
+        .stat-card:hover { transform: translateY(-3px); }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
 
         {/* Navbar */}
-        <nav style={{ background: "#0d0d18", borderBottom: "1px solid #1e1e30", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Bot size={16} color="white" />
+        <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid #1a1a2e", padding: "0 28px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+            <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(6px)" }} />
+                <FarmMindLogo size={34} />
               </div>
-              <span style={{ fontWeight: 700, color: "white", fontSize: "14px" }}>FarmMind</span>
             </Link>
-            <div style={{ width: "1px", height: "20px", background: "#2d2d44" }} />
-            <div style={{ display: "flex", gap: "4px" }}>
+            <div style={{ width: "1px", height: "22px", background: "#1e1e30" }} />
+            <div style={{ display: "flex", gap: "2px" }}>
               {[
-                { href: "/smm", label: "Dashboard", active: false },
-                { href: "/smm/services", label: "Servicios", active: false },
-                { href: "/smm/orders", label: "Mis pedidos", active: true },
-                { href: "/smm/funds", label: "Recargar", active: false },
+                { href: "/smm", label: "Dashboard" },
+                { href: "/smm/services", label: "Servicios" },
+                { href: "/smm/orders", label: "Pedidos", active: true },
+                { href: "/smm/funds", label: "Recargar" },
               ].map((item) => (
-                <Link key={item.href} href={item.href} style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#a78bfa" : "#94a3b8", background: item.active ? "#7c3aed20" : "transparent" }}>
+                <Link key={item.href} href={item.href} className="nav-link"
+                  style={{ padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s", fontWeight: item.active ? 700 : 500, color: item.active ? "#c4b5fd" : "#5a6480", background: item.active ? "#7c3aed20" : "transparent", border: `1px solid ${item.active ? "#7c3aed40" : "transparent"}` }}>
                   {item.label}
                 </Link>
               ))}
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{ padding: "6px 12px", borderRadius: "8px", background: "#7c3aed20", border: "1px solid #7c3aed40" }}>
-              <span style={{ fontSize: "13px", color: "#a78bfa", fontWeight: 600 }}>${balance.toFixed(2)} USD</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px" }}>
+              <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399" }} />
+              <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
             </div>
-            <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
-              <LogOut size={16} />
+            <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
+              style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <LogOut size={14} />
             </button>
           </div>
         </nav>
 
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px" }}>
-
-          {/* Header */}
-          <div style={{ marginBottom: "28px" }}>
-            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#64748b", marginBottom: "12px" }}>
-              <ArrowLeft size={14} /> Volver al dashboard
+        {/* Hero */}
+        <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #0e0125 0%, #1b0545 35%, #0c0120 65%, #07070e 100%)", borderBottom: "1px solid #2d1060", padding: "44px 28px 36px" }}>
+          <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+            <div style={{ position: "absolute", top: "-80px", right: "5%", width: "320px", height: "320px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed45 0%, transparent 65%)", filter: "blur(60px)" }} />
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(#7c3aed08 1px, transparent 1px), linear-gradient(90deg, #7c3aed08 1px, transparent 1px)", backgroundSize: "60px 60px", maskImage: "radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)" }} />
+          </div>
+          <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#8b5cf6", fontWeight: 600, marginBottom: "18px", padding: "5px 12px", borderRadius: "8px", background: "#7c3aed18", border: "1px solid #7c3aed30" }}>
+              <ArrowLeft size={12} /> Dashboard
             </Link>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
               <div>
-                <h1 style={{ fontSize: "24px", fontWeight: 700, color: "white" }}>Mis pedidos</h1>
-                <p style={{ color: "#64748b", fontSize: "14px", marginTop: "4px" }}>Historial completo y estado en tiempo real</p>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 12px", borderRadius: "20px", background: "#7c3aed25", border: "1px solid #7c3aed50", marginBottom: "12px" }}>
+                  <ShoppingCart size={11} color="#a78bfa" />
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#a78bfa", letterSpacing: "0.8px", textTransform: "uppercase" }}>Historial</span>
+                </div>
+                <h1 style={{ fontSize: "38px", fontWeight: 800, color: "white", letterSpacing: "-1px", lineHeight: "1.05", marginBottom: "8px" }}>
+                  Mis pedidos<br />
+                  <span style={{ background: "linear-gradient(90deg, #e9d5ff, #a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>en tiempo real.</span>
+                </h1>
+                <p style={{ fontSize: "14px", color: "#8892a4" }}>Estado actualizado · haz clic en una fila para ver detalles</p>
               </div>
-              <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                <Link href="/smm/services"
-                  style={{ padding: "9px 18px", borderRadius: "10px", background: "#7c3aed", color: "white", fontSize: "13px", fontWeight: 600, display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <Link href="/smm/services" style={{ padding: "10px 20px", borderRadius: "12px", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white", fontSize: "13px", fontWeight: 700, display: "flex", alignItems: "center", gap: "7px", boxShadow: "0 0 20px #7c3aed40" }}>
                   <ShoppingCart size={14} /> Nuevo pedido
                 </Link>
                 <button onClick={() => fetchOrders(true)} disabled={refreshing}
-                  style={{ padding: "9px 14px", borderRadius: "10px", border: "1px solid #1e1e30", background: "transparent", color: "#94a3b8", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
-                  <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
+                  style={{ padding: "10px 16px", borderRadius: "12px", border: "1px solid #2a2a42", background: "transparent", color: "#a78bfa", fontSize: "13px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", fontFamily: "inherit" }}>
+                  <RefreshCw size={13} style={{ animation: refreshing ? "spin 0.8s linear infinite" : "none" }} />
                   {refreshing ? "Actualizando..." : "Actualizar"}
                 </button>
               </div>
             </div>
           </div>
+        </div>
+
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px" }}>
 
           {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", marginBottom: "24px" }}>
             {[
-              { label: "Total pedidos", value: stats.total, color: "#a78bfa" },
-              { label: "Activos", value: stats.active, color: "#fbbf24" },
-              { label: "Completados", value: stats.completed, color: "#34d399" },
-              { label: "Total gastado", value: `$${stats.spent.toFixed(2)}`, color: "#60a5fa" },
+              { label: "Total pedidos", value: stats.total, color: "#a78bfa", border: "#a78bfa30" },
+              { label: "Activos", value: stats.active, color: "#fbbf24", border: "#fbbf2430" },
+              { label: "Completados", value: stats.completed, color: "#34d399", border: "#34d39930" },
+              { label: "Total gastado", value: `$${stats.spent.toFixed(2)}`, color: "#60a5fa", border: "#60a5fa30" },
             ].map((s) => (
-              <div key={s.label} style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "16px 20px" }}>
-                <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "6px", textTransform: "uppercase", fontWeight: 600, letterSpacing: "0.05em" }}>{s.label}</p>
-                <p style={{ fontSize: "22px", fontWeight: 700, color: s.color }}>{s.value}</p>
+              <div key={s.label} className="stat-card" style={{ background: "#0d0d18", border: `1px solid ${s.border}`, borderRadius: "18px", padding: "18px 20px", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: 0, right: 0, width: "70px", height: "70px", background: `radial-gradient(circle at top right, ${s.color}18, transparent)` }} />
+                <p style={{ fontSize: "10px", color: "#5a6480", marginBottom: "10px", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.7px" }}>{s.label}</p>
+                <p style={{ fontSize: "26px", fontWeight: 800, color: s.color, letterSpacing: "-0.5px" }}>{s.value}</p>
               </div>
             ))}
           </div>
