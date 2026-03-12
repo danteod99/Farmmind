@@ -3,7 +3,8 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles } from "lucide-react";
+import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles, ShoppingCart } from "lucide-react";
+import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
@@ -471,6 +472,22 @@ export default function FarmMindChat() {
               </div>
             </div>
             <button onClick={newChat} disabled={isStreaming} title="Nueva conversación" className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors" style={{ background: "var(--surface-2)", color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#a78bfa")} onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}><Plus size={14} /></button>
+          </div>
+
+          {/* Nav: Panel SMM */}
+          <div className="px-3 pt-3 pb-1">
+            <Link href="/smm"
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl transition-all group"
+              style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", border: "1px solid #7c3aed50" }}>
+              <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#7c3aed" }}>
+                <ShoppingCart size={12} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-white leading-none">Panel SMM</p>
+                <p className="text-xs mt-0.5" style={{ color: "#a78bfa" }}>Servicios & pedidos</p>
+              </div>
+              <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold" style={{ background: "#7c3aed30", color: "#a78bfa" }}>→</span>
+            </Link>
           </div>
 
           {/* Historial de conversaciones */}
