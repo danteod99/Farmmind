@@ -245,6 +245,20 @@ export default function ServicesPage() {
         .search-input:focus { border-color: #7c3aed70 !important; box-shadow: 0 0 0 3px #7c3aed15 !important; }
         .toggle-btn:hover { border-color: #7c3aed !important; background: #7c3aed18 !important; }
         .whatsapp-btn:hover { background: #20bd5a !important; box-shadow: 0 4px 20px #25d36650 !important; }
+
+        @media (max-width: 768px) {
+          .svc-nav-links { display: none !important; }
+          .svc-hero { padding: 40px 20px 32px !important; }
+          .svc-hero h1 { font-size: 28px !important; }
+          .svc-cat-pills { gap: 6px !important; flex-wrap: wrap; }
+          .svc-grid { grid-template-columns: 1fr !important; }
+          .svc-premium-grid { grid-template-columns: 1fr !important; }
+          .svc-content { padding: 20px 16px !important; }
+          nav { padding: 0 16px !important; }
+        }
+        @media (max-width: 480px) {
+          .svc-hero h1 { font-size: 22px !important; }
+        }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
@@ -267,7 +281,7 @@ export default function ServicesPage() {
 
             <div style={{ width: "1px", height: "22px", background: "#1e1e30" }} />
 
-            <div style={{ display: "flex", gap: "2px" }}>
+            <div className="svc-nav-links" style={{ display: "flex", gap: "2px" }}>
               {[
                 { href: "/smm", label: "Dashboard" },
                 { href: "/smm/services", label: "Servicios", active: true },
@@ -302,7 +316,7 @@ export default function ServicesPage() {
         </nav>
 
         {/* ━━━ HERO BANNER ━━━ */}
-        <div style={{
+        <div className="svc-hero" style={{
           position: "relative", overflow: "hidden",
           background: "linear-gradient(160deg, #0e0125 0%, #1b0545 35%, #0c0120 65%, #07070e 100%)",
           borderBottom: "1px solid #2d1060",
@@ -370,7 +384,7 @@ export default function ServicesPage() {
         </div>
 
         {/* ━━━ MAIN CONTENT ━━━ */}
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "36px 24px" }}>
+        <div className="svc-content" style={{ maxWidth: "1200px", margin: "0 auto", padding: "36px 24px" }}>
 
           {/* Search bar */}
           <div style={{ display: "flex", gap: "12px", marginBottom: "40px" }}>
@@ -410,7 +424,7 @@ export default function ServicesPage() {
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: "20px" }}>
+            <div className="svc-premium-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(330px, 1fr))", gap: "20px" }}>
               {PREMIUM_ACCOUNTS.map((acc) => (
                 <div key={acc.id} className="premium-card"
                   style={{ background: "#0d0d18", border: `1px solid ${acc.border}`, borderRadius: "22px", overflow: "hidden", cursor: "pointer" }}
@@ -500,7 +514,7 @@ export default function ServicesPage() {
                 <p style={{ fontSize: "13px" }}>Prueba con otro término o categoría</p>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
+              <div className="svc-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
                 {filtered.map((service) => {
                   const cost1k = parseFloat(service.rate);
                   const platformColor = getPlatformColor(service.category);
@@ -692,6 +706,21 @@ export default function ServicesPage() {
           </div>
         </div>
       )}
+
+      {/* ── Floating AI button ── */}
+      <Link href="/" style={{
+        position: "fixed", bottom: "24px", right: "24px", zIndex: 60,
+        display: "flex", alignItems: "center", gap: "10px",
+        padding: "12px 20px", borderRadius: "100px",
+        background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
+        boxShadow: "0 0 0 1px #7c3aed80, 0 8px 32px #7c3aed50",
+        color: "white", fontWeight: 700, fontSize: "14px",
+        textDecoration: "none",
+        animation: "pulse-glow 2.5s ease-in-out infinite",
+      }}>
+        <FarmMindLogo size={22} />
+        <span>Hablar con AI</span>
+      </Link>
     </>
   );
 }

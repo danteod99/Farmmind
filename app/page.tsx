@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles, ShoppingCart } from "lucide-react";
+import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles, ShoppingCart, Menu } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
@@ -402,6 +402,7 @@ export default function FarmMindChat() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradingToStripe, setUpgradingToStripe] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -652,6 +653,39 @@ export default function FarmMindChat() {
         .conv-item:hover .conv-delete { opacity: 1; }
         .conv-delete { opacity: 0; transition: opacity 0.2s; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Mobile responsive ── */
+        .sidebar-panel {
+          transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+        }
+        .mobile-menu-btn { display: none; }
+        .sidebar-overlay { display: none; }
+
+        @media (max-width: 768px) {
+          .sidebar-panel {
+            position: fixed !important;
+            top: 0; left: 0; bottom: 0;
+            z-index: 100;
+            transform: translateX(-100%);
+            width: 260px !important;
+            box-shadow: 8px 0 40px rgba(0,0,0,0.6);
+          }
+          .sidebar-panel.open {
+            transform: translateX(0);
+          }
+          .sidebar-overlay {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 99;
+            backdrop-filter: blur(2px);
+          }
+          .mobile-menu-btn { display: flex !important; }
+          .chat-messages { padding: 16px 14px !important; }
+          .chat-input-area { padding: 12px 14px !important; }
+          .chat-header { padding: 12px 16px !important; }
+        }
       `}</style>
 
       {showUpgrade && (
@@ -662,8 +696,14 @@ export default function FarmMindChat() {
       )}
 
       <div className="flex h-screen" style={{ background: "var(--bg)" }}>
+
+        {/* Mobile overlay backdrop */}
+        {sidebarOpen && (
+          <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />
+        )}
+
         {/* Sidebar */}
-        <div className="w-64 flex-shrink-0 flex flex-col border-r" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
+        <div className={`sidebar-panel w-64 flex-shrink-0 flex flex-col border-r${sidebarOpen ? " open" : ""}`} style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
 
           {/* Logo + New Chat */}
           <div className="p-4 border-b" style={{ borderColor: "var(--border)" }}>
@@ -751,15 +791,7 @@ export default function FarmMindChat() {
 
             {conversations.length === 0 && !loadingConvs && (
               <div className="p-3">
-                <div className="rounded-2xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                  <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>Estado</p>
-                  <div className="space-y-2">
-                    <StatusItem icon={<Zap size={12} />} label="Claude API" status="online" />
-                    <StatusItem icon={<Shield size={12} />} label="GenFarmer" status="pending" />
-                    <StatusItem icon={<Cpu size={12} />} label="Proxies" status="pending" />
-                  </div>
-                </div>
-                <div className="mt-4">
+                <div className="mt-0">
                   <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", paddingLeft: "4px" }}>Acciones rápidas</p>
                   <div className="space-y-0.5">
                     {["¿Cuánto delay usar en GenFarmer?", "Mis cuentas están siendo baneadas", "¿Qué proxies para TikTok?"].map((action, i) => (
@@ -849,8 +881,15 @@ export default function FarmMindChat() {
         {/* Chat */}
         <div className="flex-1 flex flex-col" style={{ overflow: "hidden" }}>
           {/* Chat header */}
-          <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+          <div className="chat-header" style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              {/* Hamburger — solo mobile */}
+              <button
+                className="mobile-menu-btn"
+                onClick={() => setSidebarOpen(true)}
+                style={{ display: "none", width: "34px", height: "34px", alignItems: "center", justifyContent: "center", borderRadius: "10px", background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-2)", cursor: "pointer" }}>
+                <Menu size={16} />
+              </button>
               <div style={{ position: "relative", width: "38px", height: "38px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50, transparent 70%)", filter: "blur(5px)" }} />
                 <FarmMindLogo size={32} />
@@ -876,7 +915,7 @@ export default function FarmMindChat() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto" style={{ padding: "28px 28px", display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div className="chat-messages flex-1 overflow-y-auto" style={{ padding: "28px 28px", display: "flex", flexDirection: "column", gap: "20px" }}>
             {messages.map((msg) => (
               <div key={msg.id} style={{ display: "flex", gap: "12px", flexDirection: msg.role === "user" ? "row-reverse" : "row" }} className="group">
                 <div style={{ width: "32px", height: "32px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "var(--surface-3)" : "linear-gradient(135deg, #7c3aed, #4f46e5)" }}>
@@ -912,7 +951,7 @@ export default function FarmMindChat() {
           </div>
 
           {/* Input Area */}
-          <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
+          <div className="chat-input-area" style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
             {!isPro && messagesLeft !== null && messagesLeft <= 5 && messagesLeft > 0 && (
               <div style={{ marginBottom: "12px", padding: "9px 14px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#130a2c", border: "1px solid #7c3aed50" }}>
                 <span style={{ fontSize: "12px", color: "#c4b5fd" }}>⚠️ Solo te quedan <strong style={{ color: "white" }}>{messagesLeft} mensajes</strong> este mes</span>
