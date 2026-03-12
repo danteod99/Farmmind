@@ -85,3 +85,48 @@ a { text-decoration: none; color: inherit; }
 
 /* ── Spin ── */
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Mobile Responsive Utilities ── */
+@media (max-width: 768px) {
+  /* Navbars: hide nav links on mobile, keep logo + right actions */
+  .nav-links { display: none !important; }
+  .nav-compact { gap: 8px !important; padding: 0 16px !important; }
+
+  /* Hero sections */
+  .hero-section { padding: 32px 16px 28px !important; }
+  .hero-title { font-size: 32px !important; }
+  .hero-subtitle { font-size: 14px !important; }
+
+  /* 2-col grids → single column */
+  .grid-2col { grid-template-columns: 1fr !important; }
+  .grid-3col { grid-template-columns: 1fr 1fr !important; }
+
+  /* Stat cards row → 2-col */
+  .stat-row { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+
+  /* Tables: make scrollable horizontally */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-scroll table { min-width: 560px; }
+
+  /* Content padding */
+  .page-content { padding: 20px 16px !important; }
+
+  /* Funds page 2-col layout → stack */
+  .funds-layout { grid-template-columns: 1fr !important; }
+
+  /* Hide balance chip text on very small screens */
+  .balance-text { display: none; }
+
+  /* Filter pills: allow scroll */
+  .pills-row { overflow-x: auto; flex-wrap: nowrap !important; padding-bottom: 4px; }
+  .pills-row::-webkit-scrollbar { height: 0; }
+
+  /* Service cards grid */
+  .services-grid { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 480px) {
+  .grid-3col { grid-template-columns: 1fr !important; }
+  .stat-row { grid-template-columns: 1fr !important; }
+  .hero-title { font-size: 26px !important; }
+}

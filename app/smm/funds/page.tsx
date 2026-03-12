@@ -128,6 +128,15 @@ export default function FundsPage() {
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
         @keyframes pulse-glow { 0%,100% { box-shadow: 0 0 0 0 #34d39940; } 50% { box-shadow: 0 0 0 6px transparent; } }
         @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+          .funds-nav-links { display: none !important; }
+          .funds-hero { padding: 28px 16px 24px !important; }
+          .funds-hero h1 { font-size: 28px !important; }
+          .funds-layout { grid-template-columns: 1fr !important; }
+          .funds-content { padding: 20px 16px !important; }
+          .funds-preset-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
       `}</style>
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
 
@@ -141,7 +150,7 @@ export default function FundsPage() {
               </div>
             </Link>
             <div style={{ width: "1px", height: "22px", background: "rgba(124,58,237,0.3)" }} />
-            <div style={{ display: "flex", gap: "2px" }}>
+            <div className="funds-nav-links" style={{ display: "flex", gap: "2px" }}>
               {[
                 { href: "/smm", label: "Dashboard" },
                 { href: "/smm/services", label: "Servicios" },
@@ -162,7 +171,7 @@ export default function FundsPage() {
         </nav>
 
         {/* Hero Section */}
-        <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #0e0125 0%, #1b0545 30%, #0c0120 70%, #07070e 100%)", padding: "48px 28px 40px", animation: "fade-in 0.6s ease-out" }}>
+        <div className="funds-hero" style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #0e0125 0%, #1b0545 30%, #0c0120 70%, #07070e 100%)", padding: "48px 28px 40px", animation: "fade-in 0.6s ease-out" }}>
           <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
           <div style={{ position: "absolute", top: "-60px", right: "10%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed30, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
           <div style={{ maxWidth: "960px", margin: "0 auto", position: "relative" }}>
@@ -178,9 +187,9 @@ export default function FundsPage() {
           </div>
         </div>
 
-        <div style={{ maxWidth: "960px", margin: "0 auto", padding: "32px 28px" }}>
+        <div className="funds-content" style={{ maxWidth: "960px", margin: "0 auto", padding: "32px 28px" }}>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "24px", alignItems: "start" }}>
+          <div className="funds-layout" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "24px", alignItems: "start" }}>
 
             {/* Left: Form or Payment */}
             <div>
@@ -202,7 +211,7 @@ export default function FundsPage() {
                   {/* Montos predefinidos */}
                   <div style={{ marginBottom: "24px" }}>
                     <p style={{ fontSize: "13px", fontWeight: 600, color: "#94a3b8", marginBottom: "12px" }}>Selecciona el monto a recargar</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "12px" }}>
+                    <div className="funds-preset-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "12px" }}>
                       {PRESET_AMOUNTS.map((a) => {
                         const active = !useCustom && amount === a;
                         return (

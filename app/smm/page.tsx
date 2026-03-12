@@ -103,6 +103,22 @@ export default function SMMDashboard() {
         .action-link { transition: all 0.15s ease; }
         .action-link:hover { transform: translateY(-3px); box-shadow: 0 12px 40px #00000060 !important; }
         .row-hover:hover { background: #110c20 !important; }
+
+        @media (max-width: 768px) {
+          .smm-nav-links { display: none !important; }
+          .smm-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
+          .smm-hero { padding: 28px 16px 24px !important; }
+          .smm-hero h1 { font-size: 28px !important; letter-spacing: -0.5px !important; }
+          .smm-hero-row { flex-direction: column !important; gap: 16px !important; }
+          .smm-content { padding: 20px 16px !important; }
+          .smm-orders-table { overflow-x: auto; }
+          .smm-orders-table table { min-width: 480px; }
+          .smm-quick-actions { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .smm-stats-grid { grid-template-columns: 1fr !important; }
+          .smm-nav-balance span { display: none; }
+        }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
@@ -123,7 +139,7 @@ export default function SMMDashboard() {
               </div>
             </Link>
             <div style={{ width: "1px", height: "22px", background: "#1e1e30" }} />
-            <div style={{ display: "flex", gap: "2px" }}>
+            <div className="smm-nav-links" style={{ display: "flex", gap: "2px" }}>
               {[
                 { href: "/smm", label: "Dashboard", active: true },
                 { href: "/smm/services", label: "Servicios" },
@@ -156,7 +172,7 @@ export default function SMMDashboard() {
           background: "linear-gradient(160deg, #0e0125 0%, #1b0545 35%, #0c0120 65%, #07070e 100%)",
           borderBottom: "1px solid #2d1060",
           padding: "52px 28px 48px",
-        }}>
+        }} className="smm-hero">
           {/* Background decoration */}
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
             <div style={{ position: "absolute", top: "-80px", right: "5%", width: "380px", height: "380px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50 0%, transparent 65%)", filter: "blur(60px)" }} />
@@ -165,7 +181,7 @@ export default function SMMDashboard() {
           </div>
 
           <div style={{ maxWidth: "1100px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "20px" }}>
+            <div className="smm-hero-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "20px" }}>
               <div>
                 {/* Label chip */}
                 <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", borderRadius: "20px", background: "linear-gradient(135deg, #7c3aed25, #a855f715)", border: "1px solid #7c3aed50", marginBottom: "16px" }}>
@@ -197,10 +213,10 @@ export default function SMMDashboard() {
           </div>
         </div>
 
-        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "36px 24px" }}>
+        <div className="smm-content" style={{ maxWidth: "1100px", margin: "0 auto", padding: "36px 24px" }}>
 
           {/* ━━━ STATS GRID ━━━ */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "28px" }}>
+          <div className="smm-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "28px" }}>
             {[
               {
                 icon: <DollarSign size={20} />, label: "Tu balance",
