@@ -103,6 +103,9 @@ export default function ServicesPage() {
   const [orderError, setOrderError] = useState<string | null>(null);
   const [showAllJAP, setShowAllJAP] = useState(false);
   const [accountModal, setAccountModal] = useState<typeof PREMIUM_ACCOUNTS[0] | null>(null);
+  const [buyingAccount, setBuyingAccount] = useState(false);
+  const [buySuccess, setBuySuccess] = useState(false);
+  const [buyError, setBuyError] = useState<string | null>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -194,6 +197,38 @@ export default function ServicesPage() {
       setOrderError("Error de conexión. Intenta de nuevo.");
     } finally {
       setPlacing(false);
+    }
+  };
+
+  const buyAccount = async () => {
+    if (!accountModal) return;
+    setBuyingAccount(true); setBuyError(null);
+    try {
+      const res = await fetch("/api/smm/buy-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          accountId: accountModal.id,
+          accountTitle: accountModal.title,
+          price: accountModal.price,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBuyError(data.error || "Error al procesar la compra");
+      } else {
+        setBuySuccess(true);
+        setBalance((prev) => Math.max(0, prev - accountModal.price));
+        setTimeout(() => {
+          setAccountModal(null);
+          setBuySuccess(false);
+          setBuyError(null);
+        }, 3000);
+      }
+    } catch {
+      setBuyError("Error de conexión. Intenta de nuevo.");
+    } finally {
+      setBuyingAccount(false);
     }
   };
 
@@ -471,9 +506,9 @@ export default function ServicesPage() {
                       ))}
                     </div>
 
-                    <button onClick={() => setAccountModal(acc)} className="whatsapp-btn"
-                      style={{ width: "100%", padding: "12px", borderRadius: "12px", border: "none", background: "#25d366", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "0 4px 20px #25d36635", transition: "all 0.15s", fontFamily: "inherit" }}>
-                      <MessageCircle size={15} /> Comprar por WhatsApp
+                    <button onClick={() => { setAccountModal(acc); setBuySuccess(false); setBuyError(null); }} className="buy-btn"
+                      style={{ width: "100%", padding: "12px", borderRadius: "12px", border: "none", background: `linear-gradient(135deg, ${acc.color}, ${acc.color}cc)`, color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: `0 4px 20px ${acc.color}40`, transition: "all 0.15s", fontFamily: "inherit" }}>
+                      <ShoppingCart size={15} /> Comprar ahora — ${acc.price} USD
                     </button>
                   </div>
                 </div>
@@ -684,23 +719,55 @@ export default function ServicesPage() {
                 ))}
               </div>
 
-              <div style={{ background: "#f59e0b10", border: "1px solid #f59e0b30", borderRadius: "12px", padding: "13px 16px", marginBottom: "20px" }}>
-                <p style={{ fontSize: "12px", color: "#f59e0b", fontWeight: 700, marginBottom: "4px" }}>¿Cómo funciona?</p>
+              {/* Balance + cost */}
+              <div style={{ background: "#07070e", borderRadius: "12px", padding: "14px 16px", marginBottom: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "13px", color: "#8892a4" }}>Precio</span>
+                  <span style={{ fontSize: "15px", fontWeight: 800, color: accountModal.color }}>${accountModal.price} USD</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "13px", color: "#8892a4" }}>Tu saldo</span>
+                  <span style={{ fontSize: "15px", fontWeight: 700, color: balance >= accountModal.price ? "#34d399" : "#f87171" }}>${balance.toFixed(2)} USD</span>
+                </div>
+                {balance < accountModal.price && (
+                  <div style={{ marginTop: "10px", padding: "8px 12px", borderRadius: "8px", background: "#f8717110", border: "1px solid #f8717130", fontSize: "12px", color: "#f87171" }}>
+                    ⚠️ Saldo insuficiente. Necesitas ${(accountModal.price - balance).toFixed(2)} más.{" "}
+                    <Link href="/smm/funds" style={{ color: "#f87171", fontWeight: 700 }}>Recargar →</Link>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ background: "#007ABF10", border: "1px solid #007ABF30", borderRadius: "12px", padding: "13px 16px", marginBottom: "18px" }}>
+                <p style={{ fontSize: "12px", color: "#56B4E0", fontWeight: 700, marginBottom: "4px" }}>⚡ Entrega en menos de 24h</p>
                 <p style={{ fontSize: "12px", color: "#8892a4", lineHeight: "1.6" }}>
-                  Al hacer clic en el botón se abrirá WhatsApp con un mensaje predefinido. Nuestro equipo te responderá y procesará tu pedido en menos de 24 horas.
+                  El pago se descuenta de tu saldo inmediatamente. Recibirás los accesos por email o vía soporte.
                 </p>
               </div>
 
+              {buyError && (
+                <div style={{ background: "#f8717115", border: "1px solid #f8717140", borderRadius: "10px", padding: "10px 14px", marginBottom: "12px", fontSize: "13px", color: "#f87171" }}>
+                  {buyError}
+                </div>
+              )}
+              {buySuccess && (
+                <div style={{ background: "#34d39915", border: "1px solid #34d39940", borderRadius: "10px", padding: "10px 14px", marginBottom: "12px", fontSize: "13px", color: "#34d399", display: "flex", alignItems: "center", gap: "8px" }}>
+                  ✅ ¡Compra realizada! Procesaremos tu pedido en menos de 24h.
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: "10px" }}>
-                <button onClick={() => setAccountModal(null)}
+                <button onClick={() => { setAccountModal(null); setBuySuccess(false); setBuyError(null); }}
                   style={{ flex: 1, padding: "13px", borderRadius: "12px", border: "1px solid #2a2a42", background: "transparent", color: "#8892a4", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                   Cancelar
                 </button>
-                <a href={`https://wa.me/18496867266?text=${encodeURIComponent(accountModal.whatsapp)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  style={{ flex: 2, padding: "13px", borderRadius: "12px", border: "none", background: "#25d366", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "0 4px 20px #25d36640", textDecoration: "none" }}>
-                  <MessageCircle size={15} /> Abrir WhatsApp
-                </a>
+                <button onClick={buyAccount}
+                  disabled={buyingAccount || balance < accountModal.price || buySuccess}
+                  style={{ flex: 2, padding: "13px", borderRadius: "12px", border: "none", background: buySuccess ? "#34d39920" : (balance >= accountModal.price ? `linear-gradient(135deg, ${accountModal.color}, ${accountModal.color}cc)` : "#1a1a2e"), color: buySuccess ? "#34d399" : (balance >= accountModal.price ? "white" : "#5a6480"), fontSize: "14px", fontWeight: 700, cursor: buyingAccount || balance < accountModal.price ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", boxShadow: balance >= accountModal.price && !buySuccess ? `0 4px 20px ${accountModal.color}40` : "none" }}>
+                  {buyingAccount
+                    ? <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid #ffffff50", borderTopColor: "white", animation: "spin 0.6s linear infinite" }} /> Procesando...</>
+                    : buySuccess ? "✓ Comprado" : <><ShoppingCart size={15} /> Confirmar compra — ${accountModal.price}</>
+                  }
+                </button>
               </div>
             </div>
           </div>

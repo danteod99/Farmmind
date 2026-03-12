@@ -1,8 +1,18 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
+
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 const FARMMIND_SYSTEM_PROMPT = `Eres TRUST MIND, el agente AI más avanzado para operadores de granjas de bots (BoxPhoneFarm). Eres el asistente técnico de confianza para la comunidad Artificial Humans.
 
@@ -53,6 +63,12 @@ const FARMMIND_SYSTEM_PROMPT = `Eres TRUST MIND, el agente AI más avanzado para
 - **Ban de cuenta**: Permanente en la mayoría de casos. Nueva cuenta = nuevo dispositivo + nuevo proxy + nueva SIM + nuevo email
 - **Ban de dispositivo**: Formato de fábrica + cambiar IMEI (requiere root) o reemplazar dispositivo
 
+## Panel SMM (Growth Dashboard):
+- Puedes ayudar al usuario a buscar servicios, consultar su saldo y ejecutar pedidos SMM directamente.
+- Antes de ejecutar un pedido, SIEMPRE confirma: servicio, link, cantidad y costo estimado.
+- Usa las herramientas disponibles para buscar servicios disponibles, consultar saldo y crear pedidos.
+- Formato de confirmación: "Voy a crear el siguiente pedido:\n- Servicio: [nombre]\n- Link: [url]\n- Cantidad: [n]\n- Costo: $[x]\n¿Confirmas? (s/n)"
+
 ## Estilo de comunicación:
 - Español directo y técnico, como un colega experto
 - Siempre dar números concretos, no rangos vagos
@@ -68,30 +84,345 @@ const FARMMIND_SYSTEM_PROMPT = `Eres TRUST MIND, el agente AI más avanzado para
 
 Responde siempre con información técnica precisa, pasos accionables y datos concretos.`;
 
+// Tool definitions for SMM operations
+const SMM_TOOLS: Anthropic.Tool[] = [
+  {
+    name: "get_smm_balance",
+    description: "Obtiene el saldo disponible del usuario en el panel SMM (Growth Dashboard). Úsalo cuando el usuario pregunte por su saldo o antes de colocar un pedido.",
+    input_schema: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "search_smm_services",
+    description: "Busca servicios SMM disponibles por nombre, categoría o plataforma (Instagram, TikTok, YouTube, etc.). Devuelve una lista de servicios con su ID, nombre, precio por 1000 y límites.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "Término de búsqueda: nombre del servicio, plataforma o categoría. Ejemplo: 'Instagram followers', 'TikTok likes', 'YouTube views'",
+        },
+        limit: {
+          type: "number",
+          description: "Número máximo de resultados a retornar. Por defecto 5.",
+        },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "place_smm_order",
+    description: "Coloca un pedido SMM. SOLO usar después de que el usuario confirme explícitamente con 's', 'si', 'sí', 'yes' o 'confirmo'. Requiere service_id, link y quantity.",
+    input_schema: {
+      type: "object",
+      properties: {
+        service_id: {
+          type: "number",
+          description: "ID numérico del servicio SMM (obtenido de search_smm_services)",
+        },
+        service_name: {
+          type: "string",
+          description: "Nombre descriptivo del servicio",
+        },
+        category: {
+          type: "string",
+          description: "Categoría del servicio (ej: Instagram, TikTok)",
+        },
+        link: {
+          type: "string",
+          description: "URL del perfil o publicación objetivo",
+        },
+        quantity: {
+          type: "number",
+          description: "Cantidad a ordenar (debe estar entre el mínimo y máximo del servicio)",
+        },
+        rate: {
+          type: "string",
+          description: "Precio por 1000 unidades (obtenido de search_smm_services)",
+        },
+      },
+      required: ["service_id", "service_name", "category", "link", "quantity", "rate"],
+    },
+  },
+];
+
+// Execute a tool call server-side
+async function executeTool(
+  toolName: string,
+  toolInput: Record<string, unknown>,
+  userId: string
+): Promise<string> {
+  const admin = getSupabaseAdmin();
+
+  if (toolName === "get_smm_balance") {
+    const { data } = await admin
+      .from("smm_balances")
+      .select("balance")
+      .eq("user_id", userId)
+      .single();
+    const balance = data?.balance || 0;
+    return JSON.stringify({ balance, formatted: `$${balance.toFixed(2)} USD` });
+  }
+
+  if (toolName === "search_smm_services") {
+    const query = (toolInput.query as string).toLowerCase();
+    const limit = (toolInput.limit as number) || 5;
+
+    // Fetch services from our API (includes markup)
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://farmmind-livid.vercel.app";
+    try {
+      // We fetch internal services — use getServices from jap lib directly
+      const { getServices } = await import("@/app/lib/jap");
+      const MARKUP = 3.0;
+      const rawServices = await getServices();
+      const services = rawServices.map((s) => ({
+        ...s,
+        rate: (parseFloat(s.rate) * MARKUP).toFixed(2),
+      }));
+
+      const filtered = services
+        .filter((s) =>
+          s.name.toLowerCase().includes(query) ||
+          s.category.toLowerCase().includes(query)
+        )
+        .slice(0, limit);
+
+      if (filtered.length === 0) {
+        return JSON.stringify({ services: [], message: `No se encontraron servicios para "${toolInput.query}"` });
+      }
+
+      return JSON.stringify({
+        services: filtered.map((s) => ({
+          id: s.service,
+          name: s.name,
+          category: s.category,
+          rate_per_1k: s.rate,
+          min: s.min,
+          max: s.max,
+        })),
+        count: filtered.length,
+      });
+    } catch (err) {
+      console.error("search_smm_services error:", err);
+      void baseUrl;
+      return JSON.stringify({ error: "Error obteniendo servicios", services: [] });
+    }
+  }
+
+  if (toolName === "place_smm_order") {
+    const { service_id, service_name, category, link, quantity, rate } = toolInput as {
+      service_id: number;
+      service_name: string;
+      category: string;
+      link: string;
+      quantity: number;
+      rate: string;
+    };
+
+    // Check balance first
+    const { data: balanceData } = await admin
+      .from("smm_balances")
+      .select("balance")
+      .eq("user_id", userId)
+      .single();
+
+    const userBalance = balanceData?.balance || 0;
+    const orderCost = (parseFloat(rate) / 1000) * quantity;
+
+    if (userBalance < orderCost) {
+      return JSON.stringify({
+        error: `Saldo insuficiente. Necesitas $${orderCost.toFixed(4)}, tienes $${userBalance.toFixed(4)}`,
+        success: false,
+      });
+    }
+
+    // Place order via JAP
+    try {
+      const { addOrder } = await import("@/app/lib/jap");
+      const japResult = await addOrder({ service: service_id, link, quantity });
+
+      if (japResult.error) {
+        return JSON.stringify({ error: japResult.error, success: false });
+      }
+
+      // Save to DB
+      await admin.from("smm_orders").insert({
+        user_id: userId,
+        jap_order_id: japResult.order,
+        service_id: String(service_id),
+        service_name,
+        category,
+        link,
+        quantity,
+        rate: parseFloat(rate),
+        charge: orderCost,
+        status: "pending",
+      });
+
+      // Deduct balance
+      await admin.from("smm_balances").upsert({
+        user_id: userId,
+        balance: userBalance - orderCost,
+        updated_at: new Date().toISOString(),
+      });
+
+      return JSON.stringify({
+        success: true,
+        order_id: japResult.order,
+        cost: orderCost.toFixed(4),
+        new_balance: (userBalance - orderCost).toFixed(4),
+        message: `Pedido #${japResult.order} creado exitosamente. Costo: $${orderCost.toFixed(4)}. Saldo restante: $${(userBalance - orderCost).toFixed(4)}`,
+      });
+    } catch (err) {
+      console.error("place_smm_order error:", err);
+      return JSON.stringify({ error: "Error al procesar el pedido en el panel", success: false });
+    }
+  }
+
+  return JSON.stringify({ error: `Tool ${toolName} no reconocida` });
+}
+
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
 
-    const stream = await client.messages.stream({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2048,
-      system: FARMMIND_SYSTEM_PROMPT,
-      messages: messages,
-    });
+    // Get authenticated user for tool execution
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() { return cookieStore.getAll(); },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setAll(cookiesToSet: any[]) {
+            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
+              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
+            );
+          },
+        },
+      }
+    );
+
+    const { data: { user } } = await supabase.auth.getUser();
+    const userId = user?.id;
 
     const encoder = new TextEncoder();
+
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const chunk of stream) {
-            if (
-              chunk.type === "content_block_delta" &&
-              chunk.delta.type === "text_delta"
-            ) {
-              const data = JSON.stringify({ text: chunk.delta.text });
-              controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          // Build current messages array (may grow with tool results)
+          let currentMessages = [...messages];
+          let continueLoop = true;
+
+          while (continueLoop) {
+            // Only use tools if user is authenticated
+            const streamParams: Anthropic.MessageStreamParams = {
+              model: "claude-sonnet-4-6",
+              max_tokens: 2048,
+              system: FARMMIND_SYSTEM_PROMPT,
+              messages: currentMessages,
+              ...(userId ? { tools: SMM_TOOLS } : {}),
+            };
+
+            const stream = client.messages.stream(streamParams);
+            let hasToolUse = false;
+            const toolUseBlocks: Anthropic.ToolUseBlock[] = [];
+            let currentToolBlock: Partial<Anthropic.ToolUseBlock> & { input_json: string } | null = null;
+
+            for await (const chunk of stream) {
+              // Stream text deltas to client
+              if (
+                chunk.type === "content_block_delta" &&
+                chunk.delta.type === "text_delta"
+              ) {
+                const data = JSON.stringify({ text: chunk.delta.text });
+                controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+              }
+
+              // Collect tool use blocks
+              if (chunk.type === "content_block_start" && chunk.content_block.type === "tool_use") {
+                hasToolUse = true;
+                currentToolBlock = {
+                  type: "tool_use",
+                  id: chunk.content_block.id,
+                  name: chunk.content_block.name,
+                  input: {},
+                  input_json: "",
+                };
+              }
+
+              if (
+                chunk.type === "content_block_delta" &&
+                chunk.delta.type === "input_json_delta" &&
+                currentToolBlock
+              ) {
+                currentToolBlock.input_json += chunk.delta.partial_json;
+              }
+
+              if (chunk.type === "content_block_stop" && currentToolBlock) {
+                try {
+                  currentToolBlock.input = JSON.parse(currentToolBlock.input_json || "{}");
+                } catch {
+                  currentToolBlock.input = {};
+                }
+                toolUseBlocks.push(currentToolBlock as Anthropic.ToolUseBlock);
+                currentToolBlock = null;
+              }
+            }
+
+            // Get the final message to check stop_reason
+            const finalMessage = await stream.finalMessage();
+
+            if (hasToolUse && toolUseBlocks.length > 0 && userId) {
+              // Execute each tool
+              const toolResults: Anthropic.ToolResultBlockParam[] = [];
+
+              for (const toolBlock of toolUseBlocks) {
+                // Notify client that a tool is being used
+                const toolMsg = JSON.stringify({
+                  text: `\n\n*⚙️ Ejecutando herramienta: ${toolBlock.name}...*\n\n`,
+                });
+                controller.enqueue(encoder.encode(`data: ${toolMsg}\n\n`));
+
+                const result = await executeTool(
+                  toolBlock.name,
+                  toolBlock.input as Record<string, unknown>,
+                  userId
+                );
+
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolBlock.id,
+                  content: result,
+                });
+              }
+
+              // Add assistant message with tool use to conversation
+              currentMessages = [
+                ...currentMessages,
+                {
+                  role: "assistant" as const,
+                  content: finalMessage.content,
+                },
+                {
+                  role: "user" as const,
+                  content: toolResults,
+                },
+              ];
+
+              // Continue loop to get Claude's response to tool results
+              continueLoop = true;
+            } else {
+              // No tool use — done
+              continueLoop = false;
             }
           }
+
           controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
           controller.close();
         } catch (error) {

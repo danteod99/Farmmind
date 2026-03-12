@@ -351,6 +351,23 @@ export default function OrdersPage() {
           )}
         </div>
       </div>
+
+      {/* ── Floating AI button ── */}
+      <Link href="/" style={{
+        position: "fixed", bottom: "24px", right: "24px", zIndex: 60,
+        display: "flex", alignItems: "center", gap: "10px",
+        padding: "12px 20px", borderRadius: "100px",
+        background: "linear-gradient(135deg, #007ABF, #005FA4)",
+        boxShadow: "0 0 0 1px #007ABF80, 0 8px 32px #007ABF50",
+        color: "white", fontWeight: 700, fontSize: "14px",
+        textDecoration: "none",
+        animation: "pulse-glow 2.5s ease-in-out infinite",
+      }}>
+        <FarmMindLogo size={22} />
+        <span>Hablar con AI</span>
+      </Link>
+
+      <style>{`@keyframes pulse-glow { 0%,100% { box-shadow: 0 0 0 1px #007ABF80, 0 8px 32px #007ABF50; } 50% { box-shadow: 0 0 0 1px #007ABFcc, 0 8px 48px #007ABF80; } }`}</style>
     </>
   );
 }

@@ -403,6 +403,10 @@ export default function TrustMindChat() {
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradingToStripe, setUpgradingToStripe] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -851,24 +855,18 @@ export default function TrustMindChat() {
             {saveStatus === "saving" && <p style={{ fontSize: "11px", color: "var(--text-3)", textAlign: "center", marginBottom: "8px" }}>Guardando...</p>}
             {saveStatus === "saved" && <p style={{ fontSize: "11px", color: "var(--green)", textAlign: "center", marginBottom: "8px" }}>Guardado ✓</p>}
             <div className="flex items-center justify-between gap-2 rounded-2xl p-2" style={{ background: "var(--surface-2)" }}>
-              <div className="flex items-center gap-2 min-w-0">
-                {userAvatar ? <img src={userAvatar} alt={userName} style={{ width: "28px", height: "28px", borderRadius: "50%", flexShrink: 0 }} /> : <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#007ABF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><User size={12} color="white" /></div>}
+              <button onClick={() => { setProfileName(userName); setShowProfile(true); }} className="flex items-center gap-2 min-w-0" style={{ background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left" }}>
+                {userAvatar ? <img src={userAvatar} alt={userName} style={{ width: "28px", height: "28px", borderRadius: "50%", flexShrink: 0, border: "2px solid #007ABF50" }} /> : <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#007ABF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><User size={12} color="white" /></div>}
                 <div className="min-w-0">
                   <div className="flex items-center gap-1">
                     <p style={{ fontSize: "12px", fontWeight: 700, color: "white" }} className="truncate">{userName}</p>
                     {isPro && <Crown size={10} className="text-yellow-400 flex-shrink-0" />}
                   </div>
                   <p style={{ fontSize: "10px", color: "var(--text-3)" }} className="truncate">
-                    {isPro ? (
-                      <button onClick={handleManageBilling} style={{ color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = "#56B4E0"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; }}>
-                        Plan Pro ↗
-                      </button>
-                    ) : user.email}
+                    {isPro ? `Plan Pro · ${user.email}` : user.email}
                   </p>
                 </div>
-              </div>
+              </button>
               <button onClick={handleLogout} title="Cerrar sesión" style={{ width: "28px", height: "28px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "var(--text-3)" }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = "#f87171"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; }}>
@@ -991,6 +989,109 @@ export default function TrustMindChat() {
           </div>
         </div>
       </div>
+
+      {/* ━━━ PROFILE MODAL ━━━ */}
+      {showProfile && user && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowProfile(false); }}>
+          <div style={{ background: "#0d0d18", border: "1px solid #2a2a42", borderRadius: "24px", width: "100%", maxWidth: "440px", overflow: "hidden", boxShadow: "0 24px 80px #00000090" }}>
+
+            {/* Header */}
+            <div style={{ background: "linear-gradient(135deg, #001020, #000C18)", borderBottom: "1px solid #1e1e30", padding: "24px 24px 20px", position: "relative" }}>
+              <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "180px", height: "180px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF25, transparent 70%)", filter: "blur(20px)", pointerEvents: "none" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  {userAvatar
+                    ? <img src={userAvatar} alt={userName} style={{ width: "56px", height: "56px", borderRadius: "50%", border: "3px solid #007ABF50" }} />
+                    : <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "linear-gradient(135deg, #007ABF, #005F96)", display: "flex", alignItems: "center", justifyContent: "center" }}><User size={24} color="white" /></div>
+                  }
+                  <div>
+                    <h3 style={{ fontSize: "18px", fontWeight: 800, color: "white", letterSpacing: "-0.3px" }}>{userName}</h3>
+                    <p style={{ fontSize: "12px", color: "#56B4E0", marginTop: "2px" }}>{user.email}</p>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", marginTop: "6px", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "20px", background: isPro ? "linear-gradient(135deg, #001528, #000E1C)" : "#1a1a2e", color: isPro ? "#88D0F0" : "#56B4E0", border: `1px solid ${isPro ? "#007ABF50" : "#2a2a42"}` }}>
+                      {isPro && <Crown size={9} style={{ color: "#fbbf24" }} />}
+                      {isPro ? "Plan Pro" : "Plan Free"}
+                    </span>
+                  </div>
+                </div>
+                <button onClick={() => setShowProfile(false)} style={{ background: "#1a1a2e", border: "1px solid #2a2a42", borderRadius: "8px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#64748b", flexShrink: 0 }}>
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div style={{ padding: "22px 24px" }}>
+
+              {/* Edit display name */}
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ fontSize: "12px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "8px", letterSpacing: "0.2px" }}>Nombre visible</label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <input
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    style={{ flex: 1, background: "#07070e", border: "1px solid #1e1e30", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "14px", outline: "none", fontFamily: "inherit" }}
+                    placeholder="Tu nombre..."
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!profileName.trim()) return;
+                      setProfileSaving(true);
+                      await supabase.auth.updateUser({ data: { full_name: profileName.trim() } });
+                      setProfileSaving(false);
+                      setProfileSaved(true);
+                      setTimeout(() => setProfileSaved(false), 2000);
+                    }}
+                    disabled={profileSaving || !profileName.trim()}
+                    style={{ padding: "10px 16px", borderRadius: "10px", border: "none", background: profileSaved ? "#34d39920" : "linear-gradient(135deg, #007ABF, #005F96)", color: profileSaved ? "#34d399" : "white", fontSize: "13px", fontWeight: 700, cursor: profileSaving ? "not-allowed" : "pointer", flexShrink: 0, fontFamily: "inherit", minWidth: "80px" }}>
+                    {profileSaving ? "..." : profileSaved ? "✓ Guardado" : "Guardar"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Account info */}
+              <div style={{ background: "#07070e", borderRadius: "14px", padding: "16px", marginBottom: "20px" }}>
+                <p style={{ fontSize: "11px", fontWeight: 700, color: "#5a6480", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "12px" }}>Información de cuenta</p>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "13px", color: "#8892a4" }}>Email</span>
+                  <span style={{ fontSize: "13px", color: "#e2e8f0", fontWeight: 600 }}>{user.email}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "13px", color: "#8892a4" }}>Plan actual</span>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: isPro ? "#88D0F0" : "#56B4E0" }}>{isPro ? "Pro ✓" : "Free"}</span>
+                </div>
+                {userProfile && (
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ fontSize: "13px", color: "#8892a4" }}>Mensajes este mes</span>
+                    <span style={{ fontSize: "13px", color: "white", fontWeight: 600 }}>{userProfile.messagesThisMonth} / {isPro ? "∞" : userProfile.messagesLimit || 30}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Links */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                <Link href="/smm" onClick={() => setShowProfile(false)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "12px", background: "#1a1a2e", border: "1px solid #2a2a42", color: "#88D0F0", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+                  <span>🚀 Growth Dashboard (SMM)</span>
+                  <span style={{ color: "#5a6480" }}>→</span>
+                </Link>
+                {!isPro && (
+                  <button
+                    onClick={() => { setShowProfile(false); }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "12px", background: "linear-gradient(135deg, #001528, #000E1C)", border: "1px solid #007ABF40", color: "#fbbf24", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}>
+                    <span><Crown size={12} style={{ display: "inline", marginRight: "6px", color: "#fbbf24" }} />Upgrade a Pro — $19/mes</span>
+                    <span style={{ color: "#007ABF" }}>→</span>
+                  </button>
+                )}
+                <button
+                  onClick={async () => { setShowProfile(false); await supabase.auth.signOut(); }}
+                  style={{ display: "flex", alignItems: "center", gap: "8px", padding: "12px 14px", borderRadius: "12px", background: "transparent", border: "1px solid #1e1e30", color: "#f87171", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", width: "100%", justifyContent: "center" }}>
+                  <LogOut size={13} /> Cerrar sesión
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
