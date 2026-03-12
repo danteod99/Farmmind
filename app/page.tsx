@@ -154,15 +154,38 @@ function LoginScreen() {
     });
   };
   return (
-    <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
-      <div className="rounded-2xl p-10 text-center max-w-sm w-full mx-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6" style={{ background: "var(--accent)" }}>
-          <Bot size={32} className="text-white" />
+    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+      {/* Background glow blobs */}
+      <div style={{ position: "absolute", width: "700px", height: "700px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed12 0%, transparent 65%)", top: "-200px", left: "-200px", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #4f46e50a 0%, transparent 65%)", bottom: "-100px", right: "-100px", pointerEvents: "none" }} />
+
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "420px", margin: "24px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "28px", padding: "48px 40px" }}>
+
+        {/* Logo mark */}
+        <div style={{ width: "60px", height: "60px", borderRadius: "18px", background: "linear-gradient(135deg, #7c3aed, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px", boxShadow: "0 0 32px #7c3aed30" }}>
+          <Bot size={28} color="white" />
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">FarmMind AI</h1>
-        <p className="text-sm text-gray-400 mb-8">Tu agente AI para granjas de bots</p>
-        <button onClick={handleGoogleLogin} disabled={loading} className="w-full flex items-center justify-center gap-3 py-3 px-5 rounded-xl font-medium text-sm transition-all" style={{ background: loading ? "var(--surface-2)" : "white", color: "#1a1a2e", cursor: loading ? "not-allowed" : "pointer" }}>
-          {loading ? <span className="text-gray-500">Redirigiendo...</span> : (
+
+        {/* Headline */}
+        <h1 style={{ fontSize: "34px", fontWeight: 800, color: "white", lineHeight: "1.05", letterSpacing: "-0.8px", marginBottom: "10px" }}>
+          FarmMind AI
+        </h1>
+        <p style={{ fontSize: "14px", color: "var(--text-3)", lineHeight: "1.6", marginBottom: "36px" }}>
+          Tu agente AI para granjas de bots.<br />
+          <span style={{ color: "var(--accent-light)" }}>Artificial Humans</span> members only.
+        </p>
+
+        {/* Google button */}
+        <button
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 20px", borderRadius: "14px", background: loading ? "var(--surface-2)" : "white", color: "#111", fontSize: "14px", fontWeight: 700, border: "none", cursor: loading ? "not-allowed" : "pointer", transition: "opacity 0.2s", letterSpacing: "-0.1px" }}
+          onMouseEnter={(e) => { if (!loading) e.currentTarget.style.opacity = "0.92"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+        >
+          {loading ? (
+            <><div style={{ width: "16px", height: "16px", border: "2px solid #94a3b8", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /><span style={{ color: "#64748b" }}>Redirigiendo...</span></>
+          ) : (
             <>
               <svg width="18" height="18" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -170,11 +193,18 @@ function LoginScreen() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Iniciar sesión con Google
+              Continuar con Google
             </>
           )}
         </button>
-        <p className="text-xs text-gray-600 mt-6">Solo para miembros de Artificial Humans</p>
+
+        {/* Status badge */}
+        <div style={{ marginTop: "28px", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
+          <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d39960" }} />
+          <span style={{ fontSize: "11px", color: "var(--text-3)", fontWeight: 500, letterSpacing: "0.2px" }}>Agente activo · Claude API</span>
+        </div>
+
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
     </div>
   );
@@ -427,25 +457,22 @@ export default function FarmMindChat() {
   return (
     <>
       <style>{`
-        .code-block { background: #0d0d14; border: 1px solid #2d2d44; border-radius: 8px; margin: 8px 0; overflow: hidden; }
-        .code-lang { display: block; background: #1a1a2e; color: #7c3aed; font-size: 11px; font-family: monospace; padding: 4px 12px; border-bottom: 1px solid #2d2d44; }
-        .code-block pre { margin: 0; padding: 12px; font-family: 'Menlo', 'Monaco', monospace; font-size: 12px; color: #e2e8f0; overflow-x: auto; white-space: pre; }
-        .inline-code { background: #1e1b4b; padding: 1px 6px; border-radius: 4px; color: #a78bfa; font-size: 0.85em; font-family: monospace; }
-        .msg-h1 { font-size: 1.1em; font-weight: 700; color: #f1f5f9; margin: 8px 0 4px; }
-        .msg-h2 { font-size: 1em; font-weight: 700; color: #e2e8f0; margin: 6px 0 3px; border-bottom: 1px solid #2d2d44; padding-bottom: 3px; }
-        .msg-h3 { font-size: 0.95em; font-weight: 600; color: #a78bfa; margin: 4px 0 2px; }
-        ul { padding-left: 16px; margin: 4px 0; }
-        ol { padding-left: 16px; margin: 4px 0; }
-        li { margin: 2px 0; color: #cbd5e1; }
+        .code-block { background: #070710; border: 1px solid #1e1e30; border-radius: 10px; margin: 10px 0; overflow: hidden; }
+        .code-lang { display: block; background: #0d0d18; color: #a78bfa; font-size: 11px; font-family: monospace; padding: 5px 14px; border-bottom: 1px solid #1e1e30; font-weight: 600; letter-spacing: 0.5px; }
+        .code-block pre { margin: 0; padding: 14px; font-family: 'Menlo', 'Monaco', monospace; font-size: 12px; color: #e2e8f0; overflow-x: auto; white-space: pre; }
+        .inline-code { background: #1e1e38; padding: 2px 7px; border-radius: 5px; color: #a78bfa; font-size: 0.85em; font-family: monospace; }
+        .msg-h1 { font-size: 1.15em; font-weight: 800; color: #f0efff; margin: 10px 0 5px; letter-spacing: -0.3px; }
+        .msg-h2 { font-size: 1.02em; font-weight: 700; color: #e2e8f0; margin: 8px 0 4px; border-bottom: 1px solid #1e1e30; padding-bottom: 4px; }
+        .msg-h3 { font-size: 0.95em; font-weight: 700; color: #a78bfa; margin: 6px 0 3px; }
+        ul { padding-left: 18px; margin: 5px 0; }
+        ol { padding-left: 18px; margin: 5px 0; }
+        li { margin: 3px 0; color: #c8d3e8; }
         li.numbered { list-style: decimal; }
-        hr { border: none; border-top: 1px solid #2d2d44; margin: 8px 0; }
-        strong { color: #f1f5f9; font-weight: 600; }
-        .typing-dot { animation: blink 1.4s infinite both; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes blink { 0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+        hr { border: none; border-top: 1px solid #1e1e30; margin: 10px 0; }
+        strong { color: #f0efff; font-weight: 700; }
         .conv-item:hover .conv-delete { opacity: 1; }
         .conv-delete { opacity: 0; transition: opacity 0.2s; }
+        @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
       {showUpgrade && (
@@ -455,38 +482,50 @@ export default function FarmMindChat() {
         />
       )}
 
-      <div className="flex h-screen" style={{ background: "var(--background)" }}>
+      <div className="flex h-screen" style={{ background: "var(--bg)" }}>
         {/* Sidebar */}
         <div className="w-64 flex-shrink-0 flex flex-col border-r" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
 
           {/* Logo + New Chat */}
-          <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--accent)" }}><Bot size={16} className="text-white" /></div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h1 className="font-bold text-white text-sm">FarmMind</h1>
-                  {isPro && <Crown size={11} className="text-yellow-400" />}
+          <div className="p-4 border-b" style={{ borderColor: "var(--border)" }}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 0 16px #7c3aed30" }}>
+                  <Bot size={17} className="text-white" />
                 </div>
-                <p className="text-xs" style={{ color: "var(--accent-light)" }}>Bot Farm AI Agent</p>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h1 style={{ fontWeight: 800, color: "white", fontSize: "15px", letterSpacing: "-0.3px" }}>FarmMind</h1>
+                    {isPro && <Crown size={11} className="text-yellow-400" />}
+                  </div>
+                  <p style={{ fontSize: "11px", color: "var(--accent-light)", fontWeight: 500 }}>Bot Farm AI Agent</p>
+                </div>
               </div>
+              <button onClick={newChat} disabled={isStreaming} title="Nueva conversación"
+                className="w-7 h-7 rounded-xl flex items-center justify-center transition-colors flex-shrink-0"
+                style={{ background: "var(--surface-2)", color: "var(--text-3)", border: "1px solid var(--border)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "#a78bfa"; e.currentTarget.style.borderColor = "#7c3aed50"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
+                <Plus size={13} />
+              </button>
             </div>
-            <button onClick={newChat} disabled={isStreaming} title="Nueva conversación" className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors" style={{ background: "var(--surface-2)", color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#a78bfa")} onMouseLeave={(e) => (e.currentTarget.style.color = "#94a3b8")}><Plus size={14} /></button>
           </div>
 
           {/* Nav: Panel SMM */}
           <div className="px-3 pt-3 pb-1">
             <Link href="/smm"
-              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl transition-all group"
-              style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", border: "1px solid #7c3aed50" }}>
-              <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "#7c3aed" }}>
-                <ShoppingCart size={12} className="text-white" />
+              className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-2xl transition-all"
+              style={{ background: "linear-gradient(135deg, #1a0f3a, #150f2e)", border: "1px solid #7c3aed40" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#7c3aed80"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#7c3aed40"; }}>
+              <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}>
+                <ShoppingCart size={13} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-white leading-none">Panel SMM</p>
-                <p className="text-xs mt-0.5" style={{ color: "#a78bfa" }}>Servicios & pedidos</p>
+                <p style={{ fontSize: "12px", fontWeight: 700, color: "white", letterSpacing: "-0.1px" }}>Panel SMM</p>
+                <p style={{ fontSize: "10px", color: "#8b5cf6", marginTop: "1px" }}>Servicios & pedidos</p>
               </div>
-              <span className="text-xs px-1.5 py-0.5 rounded-md font-semibold" style={{ background: "#7c3aed30", color: "#a78bfa" }}>→</span>
+              <span style={{ fontSize: "12px", color: "#7c3aed" }}>›</span>
             </Link>
           </div>
 
@@ -494,13 +533,13 @@ export default function FarmMindChat() {
           <div className="flex-1 overflow-y-auto">
             {conversations.length > 0 && (
               <div className="p-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Conversaciones</p>
+                <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", paddingLeft: "4px" }}>Conversaciones</p>
                 <div className="space-y-0.5">
                   {conversations.map((conv) => (
                     <div
                       key={conv.id}
                       onClick={() => loadConversation(conv)}
-                      className="conv-item flex items-center gap-2 p-2 rounded-lg cursor-pointer group"
+                      className="conv-item flex items-center gap-2 p-2 rounded-xl cursor-pointer group"
                       style={{
                         background: conversationId === conv.id ? "var(--surface-2)" : "transparent",
                         border: conversationId === conv.id ? "1px solid var(--border)" : "1px solid transparent",
@@ -508,17 +547,17 @@ export default function FarmMindChat() {
                       onMouseEnter={(e) => { if (conversationId !== conv.id) e.currentTarget.style.background = "var(--surface-2)"; }}
                       onMouseLeave={(e) => { if (conversationId !== conv.id) e.currentTarget.style.background = "transparent"; }}
                     >
-                      <MessageSquare size={11} className="flex-shrink-0 text-gray-500" />
+                      <MessageSquare size={11} style={{ flexShrink: 0, color: "var(--text-3)" }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-300 truncate">{conv.title}</p>
-                        <p className="text-xs text-gray-600">{formatDate(conv.created_at)}</p>
+                        <p style={{ fontSize: "12px", color: "#c8d3e8", fontWeight: 500 }} className="truncate">{conv.title}</p>
+                        <p style={{ fontSize: "10px", color: "var(--text-3)" }}>{formatDate(conv.created_at)}</p>
                       </div>
                       <button
                         onClick={(e) => deleteConversation(e, conv.id)}
-                        className="conv-delete w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
-                        style={{ color: "#64748b" }}
+                        className="conv-delete w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ color: "var(--text-3)" }}
                         onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-3)")}
                         title="Eliminar"
                       >
                         <Trash2 size={10} />
@@ -526,14 +565,14 @@ export default function FarmMindChat() {
                     </div>
                   ))}
                 </div>
-                {loadingConvs && <p className="text-xs text-gray-600 text-center py-2">Cargando...</p>}
+                {loadingConvs && <p style={{ fontSize: "11px", color: "var(--text-3)", textAlign: "center", paddingTop: "8px" }}>Cargando...</p>}
               </div>
             )}
 
             {conversations.length === 0 && !loadingConvs && (
-              <div className="p-4">
-                <div className="rounded-xl p-3" style={{ background: "var(--surface-2)" }}>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Estado</p>
+              <div className="p-3">
+                <div className="rounded-2xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                  <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "10px" }}>Estado</p>
                   <div className="space-y-2">
                     <StatusItem icon={<Zap size={12} />} label="Claude API" status="online" />
                     <StatusItem icon={<Shield size={12} />} label="GenFarmer" status="pending" />
@@ -541,10 +580,10 @@ export default function FarmMindChat() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Acciones rápidas</p>
-                  <div className="space-y-1">
+                  <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", paddingLeft: "4px" }}>Acciones rápidas</p>
+                  <div className="space-y-0.5">
                     {["¿Cuánto delay usar en GenFarmer?", "Mis cuentas están siendo baneadas", "¿Qué proxies para TikTok?"].map((action, i) => (
-                      <button key={i} onClick={() => sendMessage(action)} className="w-full text-left text-xs p-2 rounded-lg transition-colors" style={{ color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{action}</button>
+                      <button key={i} onClick={() => sendMessage(action)} className="w-full text-left p-2 rounded-xl transition-colors" style={{ fontSize: "12px", color: "var(--text-2)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{action}</button>
                     ))}
                   </div>
                 </div>
@@ -553,10 +592,10 @@ export default function FarmMindChat() {
 
             {conversations.length > 0 && (
               <div className="px-3 pb-3">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 px-1">Acciones rápidas</p>
+                <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px", paddingLeft: "4px" }}>Acciones rápidas</p>
                 <div className="space-y-0.5">
                   {["¿Cuánto delay en GenFarmer?", "Cuentas baneadas, ¿qué hago?", "Proxies para TikTok"].map((action, i) => (
-                    <button key={i} onClick={() => { newChat(); setTimeout(() => sendMessage(action), 100); }} className="w-full text-left text-xs p-2 rounded-lg transition-colors" style={{ color: "#94a3b8" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{action}</button>
+                    <button key={i} onClick={() => { newChat(); setTimeout(() => sendMessage(action), 100); }} className="w-full text-left p-2 rounded-xl transition-colors" style={{ fontSize: "12px", color: "var(--text-2)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>{action}</button>
                   ))}
                 </div>
               </div>
@@ -566,15 +605,14 @@ export default function FarmMindChat() {
           {/* Upgrade banner (solo para free) */}
           {!isPro && userProfile && (
             <div className="px-3 pb-2">
-              <div className="rounded-xl p-3" style={{ background: "linear-gradient(135deg, #1e1b4b, #2e1065)", border: "1px solid #4c1d95" }}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs font-semibold text-purple-300">Plan Free</p>
-                  <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#7c3aed30", color: "#c4b5fd" }}>
+              <div className="rounded-2xl p-3" style={{ background: "linear-gradient(135deg, #130d2e, #1a0e38)", border: "1px solid #3b1d6e" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <p style={{ fontSize: "11px", fontWeight: 700, color: "#c4b5fd" }}>Plan Free</p>
+                  <span style={{ fontSize: "10px", padding: "2px 7px", borderRadius: "20px", background: "#7c3aed25", color: "#a78bfa", fontWeight: 600 }}>
                     {messagesLeft} restantes
                   </span>
                 </div>
-                {/* Barra de progreso */}
-                <div className="h-1 rounded-full mb-2.5" style={{ background: "#2d2d44" }}>
+                <div className="h-1 rounded-full mb-2.5" style={{ background: "var(--border-2)" }}>
                   <div
                     className="h-1 rounded-full transition-all"
                     style={{
@@ -585,8 +623,9 @@ export default function FarmMindChat() {
                 </div>
                 <button
                   onClick={() => setShowUpgrade(true)}
-                  className="w-full py-1.5 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-1.5 transition-all hover:opacity-90"
-                  style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}
+                  style={{ width: "100%", padding: "8px 0", borderRadius: "10px", fontSize: "12px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.9"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                 >
                   <Crown size={11} className="text-yellow-300" />
                   Upgrade a Pro — $19/mes
@@ -596,61 +635,93 @@ export default function FarmMindChat() {
           )}
 
           {/* User */}
-          <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
-            {saveStatus === "saving" && <p className="text-xs text-gray-500 mb-2 text-center">Guardando...</p>}
-            {saveStatus === "saved" && <p className="text-xs text-green-500 mb-2 text-center">Guardado ✓</p>}
-            <div className="flex items-center justify-between gap-2">
+          <div className="p-3 border-t" style={{ borderColor: "var(--border)" }}>
+            {saveStatus === "saving" && <p style={{ fontSize: "11px", color: "var(--text-3)", textAlign: "center", marginBottom: "8px" }}>Guardando...</p>}
+            {saveStatus === "saved" && <p style={{ fontSize: "11px", color: "var(--green)", textAlign: "center", marginBottom: "8px" }}>Guardado ✓</p>}
+            <div className="flex items-center justify-between gap-2 rounded-2xl p-2" style={{ background: "var(--surface-2)" }}>
               <div className="flex items-center gap-2 min-w-0">
-                {userAvatar ? <img src={userAvatar} alt={userName} className="w-7 h-7 rounded-full flex-shrink-0" /> : <div className="w-7 h-7 rounded-full bg-purple-700 flex items-center justify-center flex-shrink-0"><User size={12} className="text-white" /></div>}
+                {userAvatar ? <img src={userAvatar} alt={userName} style={{ width: "28px", height: "28px", borderRadius: "50%", flexShrink: 0 }} /> : <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><User size={12} color="white" /></div>}
                 <div className="min-w-0">
                   <div className="flex items-center gap-1">
-                    <p className="text-xs font-medium text-white truncate">{userName}</p>
+                    <p style={{ fontSize: "12px", fontWeight: 700, color: "white" }} className="truncate">{userName}</p>
                     {isPro && <Crown size={10} className="text-yellow-400 flex-shrink-0" />}
                   </div>
-                  <p className="text-xs text-gray-500 truncate">
+                  <p style={{ fontSize: "10px", color: "var(--text-3)" }} className="truncate">
                     {isPro ? (
-                      <button onClick={handleManageBilling} className="hover:text-purple-400 transition-colors">Gestionar plan Pro ↗</button>
+                      <button onClick={handleManageBilling} style={{ color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = "#a78bfa"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; }}>
+                        Plan Pro ↗
+                      </button>
                     ) : user.email}
                   </p>
                 </div>
               </div>
-              <button onClick={handleLogout} title="Cerrar sesión" className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors" style={{ color: "#64748b" }} onMouseEnter={(e) => (e.currentTarget.style.color = "#f87171")} onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}><LogOut size={13} /></button>
+              <button onClick={handleLogout} title="Cerrar sesión" style={{ width: "28px", height: "28px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "var(--text-3)" }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "#f87171"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; }}>
+                <LogOut size={13} />
+              </button>
             </div>
           </div>
         </div>
 
         {/* Chat */}
-        <div className="flex-1 flex flex-col">
-          <div className="px-6 py-4 border-b flex items-center justify-between" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: "var(--accent)" }}><Bot size={16} className="text-white" /></div>
-              <div><h2 className="font-semibold text-white text-sm">FarmMind</h2><div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-400" /><span className="text-xs text-gray-400">Agente activo</span></div></div>
+        <div className="flex-1 flex flex-col" style={{ overflow: "hidden" }}>
+          {/* Chat header */}
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid var(--border)", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ width: "38px", height: "38px", borderRadius: "14px", background: "linear-gradient(135deg, #7c3aed, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 14px #7c3aed25" }}>
+                <Bot size={17} color="white" />
+              </div>
+              <div>
+                <h2 style={{ fontSize: "15px", fontWeight: 800, color: "white", letterSpacing: "-0.3px" }}>FarmMind</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d39960" }} />
+                  <span style={{ fontSize: "11px", color: "var(--text-3)", fontWeight: 500 }}>Agente activo</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               {isPro ? (
-                <span className="text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1" style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", color: "#c4b5fd", border: "1px solid #7c3aed" }}>
-                  <Crown size={11} className="text-yellow-400" /> Pro
+                <span style={{ fontSize: "11px", padding: "4px 12px", borderRadius: "20px", fontWeight: 700, background: "linear-gradient(135deg, #1a0f3a, #110a26)", color: "#c4b5fd", border: "1px solid #7c3aed50", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <Crown size={10} className="text-yellow-400" /> Pro
                 </span>
               ) : (
-                <span className="text-xs px-3 py-1 rounded-full font-medium" style={{ background: "var(--surface-2)", color: "var(--accent-light)" }}>🤖 Fase 1 — Chat Expert</span>
+                <span style={{ fontSize: "11px", padding: "4px 12px", borderRadius: "20px", fontWeight: 600, background: "var(--surface-2)", color: "var(--accent-light)", border: "1px solid var(--border)" }}>🤖 Fase 1</span>
               )}
-              {upgradingToStripe && <div className="w-4 h-4 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />}
+              {upgradingToStripe && <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid #7c3aed", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} />}
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto" style={{ padding: "28px 28px", display: "flex", flexDirection: "column", gap: "20px" }}>
             {messages.map((msg) => (
-              <div key={msg.id} className={`flex gap-3 group ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}>
-                <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center" style={{ background: "var(--accent)" }}>
-                  {msg.role === "user" ? <User size={14} className="text-white" /> : <Bot size={14} className="text-white" />}
+              <div key={msg.id} style={{ display: "flex", gap: "12px", flexDirection: msg.role === "user" ? "row-reverse" : "row" }} className="group">
+                <div style={{ width: "32px", height: "32px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "var(--surface-3)" : "linear-gradient(135deg, #7c3aed, #4f46e5)" }}>
+                  {msg.role === "user" ? <User size={14} color="#a78bfa" /> : <Bot size={14} color="white" />}
                 </div>
-                <div className="flex flex-col gap-1 max-w-2xl" style={{ alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
-                  <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user" ? "rounded-tr-sm" : "rounded-tl-sm"}`} style={msg.role === "user" ? { background: "var(--accent)", color: "white" } : { background: "var(--surface-2)", color: "var(--foreground)", border: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxWidth: "min(680px, 75%)", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
+                  <div style={{
+                    borderRadius: msg.role === "user" ? "20px 6px 20px 20px" : "6px 20px 20px 20px",
+                    padding: "12px 16px",
+                    fontSize: "14px",
+                    lineHeight: "1.65",
+                    ...(msg.role === "user"
+                      ? { background: "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white" }
+                      : { background: "var(--surface-2)", color: "var(--foreground)", border: "1px solid var(--border)" }
+                    )
+                  }}>
                     {msg.content === "" && isStreaming ? (
-                      <div className="flex items-center gap-1.5 py-1"><div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" /><div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" /><div className="w-1.5 h-1.5 rounded-full bg-purple-400 typing-dot" /></div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "4px 0" }}>
+                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#a78bfa" }} className="typing-dot" />
+                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#a78bfa" }} className="typing-dot" />
+                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#a78bfa" }} className="typing-dot" />
+                      </div>
                     ) : <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />}
                   </div>
-                  <div className="flex items-center gap-2 px-1">
-                    <span className="text-xs text-gray-600">{formatTime(msg.timestamp)}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "0 4px" }}>
+                    <span style={{ fontSize: "10px", color: "var(--text-3)" }}>{formatTime(msg.timestamp)}</span>
                     {msg.role === "assistant" && msg.content && <CopyButton text={msg.content} />}
                   </div>
                 </div>
@@ -660,42 +731,43 @@ export default function FarmMindChat() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 border-t" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-            {/* Alerta de límite próximo */}
+          <div style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
             {!isPro && messagesLeft !== null && messagesLeft <= 5 && messagesLeft > 0 && (
-              <div className="mb-3 px-3 py-2 rounded-xl flex items-center justify-between text-xs" style={{ background: "#2e1065", border: "1px solid #7c3aed" }}>
-                <span className="text-purple-300">⚠️ Solo te quedan <strong>{messagesLeft} mensajes</strong> este mes</span>
-                <button onClick={() => setShowUpgrade(true)} className="text-yellow-400 font-semibold hover:underline ml-2">Upgrade →</button>
+              <div style={{ marginBottom: "12px", padding: "9px 14px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#130a2c", border: "1px solid #7c3aed50" }}>
+                <span style={{ fontSize: "12px", color: "#c4b5fd" }}>⚠️ Solo te quedan <strong style={{ color: "white" }}>{messagesLeft} mensajes</strong> este mes</span>
+                <button onClick={() => setShowUpgrade(true)} style={{ fontSize: "11px", color: "#fbbf24", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>Upgrade →</button>
               </div>
             )}
-            {/* Bloqueado */}
             {!isPro && messagesLeft === 0 && (
-              <div className="mb-3 px-3 py-2 rounded-xl flex items-center justify-between text-xs" style={{ background: "#2e1065", border: "1px solid #7c3aed" }}>
-                <span className="text-purple-300">🔒 Límite mensual alcanzado</span>
-                <button onClick={() => setShowUpgrade(true)} className="text-yellow-400 font-semibold hover:underline ml-2">Upgrade a Pro →</button>
+              <div style={{ marginBottom: "12px", padding: "9px 14px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#130a2c", border: "1px solid #7c3aed50" }}>
+                <span style={{ fontSize: "12px", color: "#c4b5fd" }}>🔒 Límite mensual alcanzado</span>
+                <button onClick={() => setShowUpgrade(true)} style={{ fontSize: "11px", color: "#fbbf24", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>Upgrade a Pro →</button>
               </div>
             )}
-            <div className="flex items-end gap-3 rounded-2xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "10px", borderRadius: "20px", padding: "10px 12px", background: "var(--surface-2)", border: "1px solid var(--border-2)" }}>
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={messagesLeft === 0 && !isPro ? "Límite alcanzado — Upgrade a Pro para continuar..." : "Pregúntame algo o pídeme ejecutar una acción en tu farm..."}
+                placeholder={messagesLeft === 0 && !isPro ? "Límite alcanzado — Upgrade a Pro..." : "Pregúntame algo sobre tu farm..."}
                 disabled={messagesLeft === 0 && !isPro}
                 rows={1}
-                className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 resize-none outline-none"
-                style={{ maxHeight: "120px", cursor: messagesLeft === 0 && !isPro ? "not-allowed" : "text" }}
+                style={{ flex: 1, background: "transparent", fontSize: "14px", color: "white", resize: "none", outline: "none", border: "none", maxHeight: "120px", cursor: messagesLeft === 0 && !isPro ? "not-allowed" : "text", fontFamily: "inherit" }}
               />
               <button
                 onClick={() => sendMessage()}
                 disabled={!input.trim() || isStreaming || (messagesLeft === 0 && !isPro)}
-                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all flex-shrink-0"
-                style={{ background: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "var(--accent)" : "var(--border)", cursor: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "pointer" : "not-allowed" }}
+                style={{
+                  width: "36px", height: "36px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "none",
+                  background: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "var(--border)",
+                  cursor: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "pointer" : "not-allowed",
+                  transition: "background 0.15s",
+                }}
               >
-                <Send size={15} className="text-white" />
+                <Send size={14} color="white" />
               </button>
             </div>
-            <p className="text-center text-xs text-gray-600 mt-2">Enter para enviar · Shift+Enter para nueva línea</p>
+            <p style={{ textAlign: "center", fontSize: "11px", color: "var(--text-3)", marginTop: "8px" }}>Enter para enviar · Shift+Enter nueva línea</p>
           </div>
         </div>
       </div>

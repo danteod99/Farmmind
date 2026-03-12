@@ -111,7 +111,7 @@ export default function FundsPage() {
   };
 
   if (loading) return (
-    <div style={{ height: "100vh", background: "#0a0a0f", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ height: "100vh", background: "#07070e", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid #7c3aed", borderTopColor: "transparent", animation: "spin 0.8s linear infinite" }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
@@ -119,11 +119,11 @@ export default function FundsPage() {
 
   return (
     <>
-      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } body { background: #0a0a0f; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; } a { text-decoration: none; color: inherit; } @keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }`}</style>
-      <div style={{ minHeight: "100vh", background: "#0a0a0f" }}>
+      <style>{`* { box-sizing: border-box; margin: 0; padding: 0; } body { background: #07070e; color: #f0efff; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; } a { text-decoration: none; color: inherit; } @keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }`}</style>
+      <div style={{ minHeight: "100vh", background: "#07070e" }}>
 
         {/* Navbar */}
-        <nav style={{ background: "#111118", borderBottom: "1px solid #2d2d44", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 20 }}>
+        <nav style={{ background: "#0d0d18", borderBottom: "1px solid #1e1e30", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center" }}><Bot size={16} color="white" /></div>
@@ -165,7 +165,7 @@ export default function FundsPage() {
             {/* Left: Form or Payment */}
             <div>
               {!payment ? (
-                <div style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "20px", padding: "28px" }}>
+                <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "20px", padding: "28px" }}>
 
                   {/* Balance actual */}
                   <div style={{ background: "linear-gradient(135deg, #0f2027, #1a1040)", border: "1px solid #34d39930", borderRadius: "14px", padding: "20px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -236,7 +236,7 @@ export default function FundsPage() {
 
                   {/* Resumen */}
                   {finalAmount > 0 && (
-                    <div style={{ background: "#0a0a0f", borderRadius: "10px", padding: "14px", marginBottom: "18px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ background: "#07070e", borderRadius: "10px", padding: "14px", marginBottom: "18px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
                         <p style={{ fontSize: "12px", color: "#64748b" }}>Vas a recargar</p>
                         <p style={{ fontSize: "22px", fontWeight: 700, color: "white" }}>${finalAmount.toFixed(2)} <span style={{ fontSize: "13px", color: "#64748b" }}>USD</span></p>
@@ -262,7 +262,7 @@ export default function FundsPage() {
                 </div>
               ) : (
                 /* Payment created — show address */
-                <div style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "20px", padding: "28px" }}>
+                <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "20px", padding: "28px" }}>
                   <div style={{ textAlign: "center", marginBottom: "24px" }}>
                     <div style={{ width: "56px", height: "56px", borderRadius: "16px", background: "#34d39920", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
                       <Clock size={26} color="#34d399" />
@@ -281,7 +281,7 @@ export default function FundsPage() {
                   {/* Address */}
                   <div style={{ marginBottom: "16px" }}>
                     <p style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "8px" }}>Dirección de pago</p>
-                    <div style={{ background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+                    <div style={{ background: "#07070e", border: "1px solid #1e1e30", borderRadius: "10px", padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
                       <p style={{ fontSize: "12px", color: "#e2e8f0", fontFamily: "monospace", wordBreak: "break-all", flex: 1 }}>{payment.pay_address}</p>
                       <button onClick={copyAddress} style={{ flexShrink: 0, background: copied ? "#34d39920" : "#7c3aed20", border: "none", borderRadius: "8px", padding: "8px", cursor: "pointer", color: copied ? "#34d399" : "#a78bfa" }}>
                         {copied ? <Check size={14} /> : <Copy size={14} />}
@@ -302,7 +302,7 @@ export default function FundsPage() {
                     </a>
                   )}
                   <button onClick={() => setPayment(null)}
-                    style={{ width: "100%", padding: "11px", borderRadius: "12px", border: "1px solid #2d2d44", background: "transparent", color: "#94a3b8", fontSize: "13px", cursor: "pointer" }}>
+                    style={{ width: "100%", padding: "11px", borderRadius: "12px", border: "1px solid #1e1e30", background: "transparent", color: "#94a3b8", fontSize: "13px", cursor: "pointer" }}>
                     ← Crear otro pago
                   </button>
                 </div>
@@ -313,7 +313,7 @@ export default function FundsPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
 
               {/* How it works */}
-              <div style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "16px", padding: "20px" }}>
+              <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", padding: "20px" }}>
                 <p style={{ fontSize: "13px", fontWeight: 700, color: "white", marginBottom: "14px" }}>¿Cómo funciona?</p>
                 {[
                   { n: "1", text: "Elige el monto y el método de pago" },
@@ -331,7 +331,7 @@ export default function FundsPage() {
               </div>
 
               {/* Quick stats */}
-              <div style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "16px", padding: "20px" }}>
+              <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", padding: "20px" }}>
                 <p style={{ fontSize: "13px", fontWeight: 700, color: "white", marginBottom: "14px" }}>Tu cuenta</p>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
                   <span style={{ fontSize: "13px", color: "#64748b" }}>Balance actual</span>
@@ -353,8 +353,8 @@ export default function FundsPage() {
 
               {/* Recent transactions */}
               {transactions.length > 0 && (
-                <div style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "16px", overflow: "hidden" }}>
-                  <div style={{ padding: "16px 20px", borderBottom: "1px solid #2d2d44", display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", overflow: "hidden" }}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: "8px" }}>
                     <TrendingUp size={14} color="#64748b" />
                     <p style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>Historial de recargas</p>
                   </div>

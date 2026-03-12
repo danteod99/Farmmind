@@ -205,7 +205,7 @@ export default function ServicesPage() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center" style={{ background: "#0a0a0f" }}>
+      <div className="flex h-screen items-center justify-center" style={{ background: "#07070e" }}>
         <div className="w-8 h-8 rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
       </div>
     );
@@ -215,7 +215,7 @@ export default function ServicesPage() {
     <>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0a0a0f; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        body { background: #07070e; color: #f0efff; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
         a { text-decoration: none; color: inherit; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -224,10 +224,10 @@ export default function ServicesPage() {
         .order-btn:hover { background: #6d28d9 !important; }
       `}</style>
 
-      <div style={{ minHeight: "100vh", background: "#0a0a0f" }}>
+      <div style={{ minHeight: "100vh", background: "#07070e" }}>
 
         {/* Navbar */}
-        <nav style={{ background: "#111118", borderBottom: "1px solid #2d2d44", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 20 }}>
+        <nav style={{ background: "#0d0d18", borderBottom: "1px solid #1e1e30", padding: "0 24px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
             <Link href="/" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div style={{ width: "32px", height: "32px", borderRadius: "10px", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -291,11 +291,11 @@ export default function ServicesPage() {
               <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
               <input value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar servicio..."
-                style={{ width: "100%", background: "#111118", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 12px 10px 36px", color: "white", fontSize: "14px", outline: "none" }} />
+                style={{ width: "100%", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "10px", padding: "10px 12px 10px 36px", color: "white", fontSize: "14px", outline: "none" }} />
             </div>
             <div style={{ position: "relative" }}>
               <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}
-                style={{ appearance: "none", background: "#111118", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 36px 10px 14px", color: "white", fontSize: "14px", cursor: "pointer", outline: "none" }}>
+                style={{ appearance: "none", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "10px", padding: "10px 36px 10px 14px", color: "white", fontSize: "14px", cursor: "pointer", outline: "none" }}>
                 {categories.map((c) => (
                   <option key={c} value={c}>{c === "all" ? "Todas las categorías" : c}</option>
                 ))}
@@ -316,7 +316,7 @@ export default function ServicesPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
               {PREMIUM_ACCOUNTS.map((acc) => (
                 <div key={acc.id}
-                  style={{ background: "#111118", border: `1px solid ${acc.border}`, borderRadius: "16px", padding: "20px", transition: "all 0.15s", cursor: "pointer" }}
+                  style={{ background: "#0d0d18", border: `1px solid ${acc.border}`, borderRadius: "16px", padding: "20px", transition: "all 0.15s", cursor: "pointer" }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = acc.color; (e.currentTarget as HTMLDivElement).style.background = acc.bg; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = acc.border; (e.currentTarget as HTMLDivElement).style.background = "#111118"; }}>
 
@@ -369,7 +369,7 @@ export default function ServicesPage() {
               {!search && selectedCategory === "all" && (
                 <button
                   onClick={() => setShowAllJAP(!showAllJAP)}
-                  style={{ padding: "6px 14px", borderRadius: "8px", border: "1px solid #2d2d44", background: "transparent", color: "#a78bfa", fontSize: "12px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+                  style={{ padding: "6px 14px", borderRadius: "8px", border: "1px solid #1e1e30", background: "transparent", color: "#a78bfa", fontSize: "12px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
                   <ChevronDown size={13} style={{ transform: showAllJAP ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
                   {showAllJAP ? "Ver menos" : `Ver todos (${services.length})`}
                 </button>
@@ -389,7 +389,7 @@ export default function ServicesPage() {
                   const cost1k = parseFloat(service.rate);
                   return (
                     <div key={service.service} className="service-card"
-                      style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "16px", padding: "20px", transition: "all 0.15s", cursor: "default" }}>
+                      style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", padding: "20px", transition: "all 0.15s", cursor: "default" }}>
                       {/* Category + badges */}
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
                         <span style={{ fontSize: "11px", fontWeight: 600, color: "#7c3aed", background: "#7c3aed15", padding: "3px 8px", borderRadius: "6px" }}>
@@ -447,7 +447,7 @@ export default function ServicesPage() {
       {/* Order Modal */}
       {modal && (
         <div style={{ position: "fixed", inset: 0, background: "#00000090", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-          <div style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "20px", width: "100%", maxWidth: "480px", padding: "28px" }}>
+          <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "20px", width: "100%", maxWidth: "480px", padding: "28px" }}>
 
             {/* Modal header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
@@ -467,7 +467,7 @@ export default function ServicesPage() {
                 { label: "Mínimo", value: parseInt(modal.service.min).toLocaleString(), sub: "unidades" },
                 { label: "Máximo", value: parseInt(modal.service.max).toLocaleString(), sub: "unidades" },
               ].map((item) => (
-                <div key={item.label} style={{ background: "#0a0a0f", borderRadius: "10px", padding: "12px", textAlign: "center" }}>
+                <div key={item.label} style={{ background: "#07070e", borderRadius: "10px", padding: "12px", textAlign: "center" }}>
                   <p style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>{item.value}</p>
                   <p style={{ fontSize: "10px", color: "#64748b", marginTop: "2px" }}>{item.label} · {item.sub}</p>
                 </div>
@@ -481,7 +481,7 @@ export default function ServicesPage() {
               </label>
               <input value={modal.link} onChange={(e) => setModal({ ...modal, link: e.target.value })}
                 placeholder="https://instagram.com/usuario"
-                style={{ width: "100%", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "14px", outline: "none" }} />
+                style={{ width: "100%", background: "#07070e", border: "1px solid #1e1e30", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "14px", outline: "none" }} />
             </div>
             <div style={{ marginBottom: "20px" }}>
               <label style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", display: "block", marginBottom: "6px" }}>
@@ -493,7 +493,7 @@ export default function ServicesPage() {
                 max={parseInt(modal.service.max)}
                 value={modal.quantity}
                 onChange={(e) => setModal({ ...modal, quantity: parseInt(e.target.value) || 0 })}
-                style={{ width: "100%", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "14px", outline: "none" }} />
+                style={{ width: "100%", background: "#07070e", border: "1px solid #1e1e30", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "14px", outline: "none" }} />
             </div>
 
             {/* Cost summary */}
@@ -525,7 +525,7 @@ export default function ServicesPage() {
             {/* Actions */}
             <div style={{ display: "flex", gap: "10px" }}>
               <button onClick={() => setModal(null)}
-                style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #2d2d44", background: "transparent", color: "#94a3b8", fontSize: "14px", fontWeight: 500, cursor: "pointer" }}>
+                style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #1e1e30", background: "transparent", color: "#94a3b8", fontSize: "14px", fontWeight: 500, cursor: "pointer" }}>
                 Cancelar
               </button>
               <button onClick={placeOrder} disabled={placing}
@@ -545,7 +545,7 @@ export default function ServicesPage() {
       {/* Account Modal */}
       {accountModal && (
         <div style={{ position: "fixed", inset: 0, background: "#00000090", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-          <div style={{ background: "#111118", border: `1px solid ${accountModal.border}`, borderRadius: "20px", width: "100%", maxWidth: "440px", padding: "28px" }}>
+          <div style={{ background: "#0d0d18", border: `1px solid ${accountModal.border}`, borderRadius: "20px", width: "100%", maxWidth: "440px", padding: "28px" }}>
 
             {/* Header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
@@ -586,7 +586,7 @@ export default function ServicesPage() {
             {/* Actions */}
             <div style={{ display: "flex", gap: "10px" }}>
               <button onClick={() => setAccountModal(null)}
-                style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #2d2d44", background: "transparent", color: "#94a3b8", fontSize: "14px", fontWeight: 500, cursor: "pointer" }}>
+                style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #1e1e30", background: "transparent", color: "#94a3b8", fontSize: "14px", fontWeight: 500, cursor: "pointer" }}>
                 Cancelar
               </button>
               <a
