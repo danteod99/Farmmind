@@ -389,7 +389,7 @@ function LoginScreen() {
   );
 }
 
-export default function TRUST MINDChat() {
+export default function TrustMindChat() {
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
