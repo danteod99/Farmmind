@@ -880,7 +880,7 @@ export default function FarmMindChat() {
             {messages.map((msg) => (
               <div key={msg.id} style={{ display: "flex", gap: "12px", flexDirection: msg.role === "user" ? "row-reverse" : "row" }} className="group">
                 <div style={{ width: "32px", height: "32px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "var(--surface-3)" : "linear-gradient(135deg, #7c3aed, #4f46e5)" }}>
-                  {msg.role === "user" ? <User size={14} color="#a78bfa" /> : <Bot size={14} color="white" />}
+                  {msg.role === "user" ? <User size={14} color="#a78bfa" /> : <FarmMindLogo size={16} />}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxWidth: "min(680px, 75%)", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
                   <div style={{

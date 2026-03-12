@@ -24,7 +24,15 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autenticado" }, { status: 401 });
 
-    const services = await getServices();
+    // Markup sobre precio de JAP: 200% de ganancia = precio × 3
+    const MARKUP_MULTIPLIER = 3.0;
+
+    const rawServices = await getServices();
+    const services = rawServices.map((s) => ({
+      ...s,
+      rate: (parseFloat(s.rate) * MARKUP_MULTIPLIER).toFixed(2),
+    }));
+
     return Response.json({ services });
   } catch (error) {
     console.error("SMM services error:", error);
