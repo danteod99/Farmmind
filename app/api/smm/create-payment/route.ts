@@ -45,10 +45,10 @@ export async function POST(req: Request) {
       return Response.json({ error: "Pagos crypto no configurados aún. Contacta al administrador." }, { status: 503 });
     }
 
-    const origin = req.headers.get("origin") || "https://farmmind-livid.vercel.app";
+    const origin = "https://farmmind-livid.vercel.app";
 
-    // Crear pago en NOWPayments
-    const npRes = await fetch("https://api.nowpayments.io/v1/invoice", {
+    // Usar /v1/payment para obtener dirección crypto directa
+    const npRes = await fetch("https://api.nowpayments.io/v1/payment", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -61,10 +61,6 @@ export async function POST(req: Request) {
         order_id: `farmmind_${user.id}_${Date.now()}`,
         order_description: `Recarga FarmMind SMM - $${amount} USD`,
         ipn_callback_url: `${origin}/api/smm/payment-webhook`,
-        success_url: `${origin}/smm/funds?status=success`,
-        cancel_url: `${origin}/smm/funds?status=cancel`,
-        is_fixed_rate: false,
-        is_fee_paid_by_user: false,
       }),
     });
 
@@ -82,7 +78,7 @@ export async function POST(req: Request) {
     const admin = getSupabaseAdmin();
     await admin.from("smm_transactions").insert({
       user_id: user.id,
-      payment_id: npData.id?.toString() || npData.invoice_id?.toString(),
+      payment_id: npData.payment_id?.toString(),
       amount: parseFloat(amount),
       currency: currency,
       status: "waiting",
@@ -90,11 +86,11 @@ export async function POST(req: Request) {
     });
 
     return Response.json({
-      payment_url: npData.invoice_url || null,
-      payment_id: npData.id || npData.invoice_id,
+      payment_url: null,
+      payment_id: npData.payment_id,
       pay_address: npData.pay_address || "",
       pay_amount: npData.pay_amount || amount,
-      pay_currency: currency,
+      pay_currency: npData.pay_currency || currency,
       amount_usd: parseFloat(amount),
     });
 
