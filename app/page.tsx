@@ -294,7 +294,7 @@ function LoginScreen() {
           {[
             { emoji: "🤖", title: "Agente para GenFarmer", desc: "Configuración de delays, rotación de cuentas, estrategias anti-detección específicas para cada plataforma.", color: "#007ABF" },
             { emoji: "🌐", title: "Gestión de proxies", desc: "Análisis de proveedores, rotación óptima, detección de IPs quemadas y recomendaciones por plataforma.", color: "#005FA4" },
-            { emoji: "📦", title: "Panel SMM integrado", desc: "Pide seguidores, likes, views y más en +15 plataformas directamente desde TRUST MIND. Pagos con crypto.", color: "#0891b2" },
+            { emoji: "📦", title: "Growth Dashboard integrado", desc: "Pide seguidores, likes, views y más en +15 plataformas directamente desde TRUST MIND. Pagos con crypto.", color: "#0891b2" },
             { emoji: "🛡️", title: "Anti-detección", desc: "Fingerprinting, user-agent rotation, patrones de comportamiento humano para máxima supervivencia de cuentas.", color: "#059669" },
             { emoji: "📊", title: "Análisis en tiempo real", desc: "Métricas de éxito, tasa de baneo, rendimiento por plataforma y alertas automáticas de anomalías.", color: "#d97706" },
             { emoji: "⚡", title: "Respuestas al instante", desc: "Powered by Claude (Anthropic). Historial de conversaciones guardado. Aprende de tu granja específica.", color: "#db2777" },
@@ -327,7 +327,7 @@ function LoginScreen() {
                 <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
               </div>
               <div style={{ borderTop: "1px solid #1e1e30", paddingTop: "20px" }}>
-                {["30 mensajes / mes", "Historial básico", "Acceso al Panel SMM", "Soporte de comunidad"].map((f) => (
+                {["30 mensajes / mes", "Historial básico", "Acceso al Growth Dashboard", "Soporte de comunidad"].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                     <span style={{ color: "#34d399", fontSize: "14px" }}>✓</span>
                     <span style={{ fontSize: "13px", color: "#94a3b8" }}>{f}</span>
@@ -731,7 +731,7 @@ export default function TrustMindChat() {
             </div>
           </div>
 
-          {/* Nav: Panel SMM */}
+          {/* Nav: Growth Dashboard */}
           <div className="px-3 pt-3 pb-1">
             <Link href="/smm"
               className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-2xl transition-all"
@@ -742,7 +742,7 @@ export default function TrustMindChat() {
                 <ShoppingCart size={13} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p style={{ fontSize: "12px", fontWeight: 700, color: "white", letterSpacing: "-0.1px" }}>Panel SMM</p>
+                <p style={{ fontSize: "12px", fontWeight: 700, color: "white", letterSpacing: "-0.1px" }}>Growth Dashboard</p>
                 <p style={{ fontSize: "10px", color: "#1E90D4", marginTop: "1px" }}>Servicios & pedidos</p>
               </div>
               <span style={{ fontSize: "12px", color: "#007ABF" }}>›</span>
