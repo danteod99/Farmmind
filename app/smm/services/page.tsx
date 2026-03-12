@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
@@ -106,8 +106,22 @@ export default function ServicesPage() {
   const [buyingAccount, setBuyingAccount] = useState(false);
   const [buySuccess, setBuySuccess] = useState(false);
   const [buyError, setBuyError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"services" | "cuentas">("services");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -143,7 +157,8 @@ export default function ServicesPage() {
 
   const filtered = useMemo(() => {
     let list = services.filter((s) => {
-      const matchCat = selectedCategory === "all" || s.category === selectedCategory;
+      // Fix: use contains match so "Instagram" pill matches "Instagram - Followers", etc.
+      const matchCat = selectedCategory === "all" || s.category.toLowerCase().includes(selectedCategory.toLowerCase());
       const matchSearch = !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.category.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
     });
@@ -158,6 +173,15 @@ export default function ServicesPage() {
     }
     return list;
   }, [services, selectedCategory, search, showAllJAP]);
+
+  // Search suggestions: top 8 matching service names
+  const suggestions = useMemo(() => {
+    if (!search || search.length < 2) return [];
+    const q = search.toLowerCase();
+    return services
+      .filter((s) => s.name.toLowerCase().includes(q) || s.category.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [services, search]);
 
   const openModal = (service: Service) => {
     setOrderError(null); setOrderSuccess(null);
@@ -421,30 +445,95 @@ export default function ServicesPage() {
         {/* ━━━ MAIN CONTENT ━━━ */}
         <div className="svc-content" style={{ maxWidth: "1200px", margin: "0 auto", padding: "36px 24px" }}>
 
-          {/* Search bar */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "40px" }}>
-            <div style={{ flex: 1, position: "relative" }}>
-              <Search size={16} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480" }} />
-              <input
-                className="search-input"
-                value={search} onChange={(e) => { setSearch(e.target.value); if (e.target.value.trim()) { setSelectedCategory("all"); setShowAllJAP(true); } }}
-                placeholder="Buscar por nombre, plataforma, tipo..."
-                style={{ width: "100%", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "13px 14px 13px 44px", color: "white", fontSize: "14px", outline: "none", transition: "all 0.15s", fontFamily: "inherit" }}
-              />
-            </div>
-            <div style={{ position: "relative" }}>
-              <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}
-                style={{ appearance: "none", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "13px 44px 13px 16px", color: "white", fontSize: "14px", cursor: "pointer", outline: "none", minWidth: "200px", fontFamily: "inherit" }}>
-                {categories.map((c) => (
-                  <option key={c} value={c}>{c === "all" ? "Todas las categorías" : c}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480", pointerEvents: "none" }} />
-            </div>
+          {/* ── TABS ── */}
+          <div style={{ display: "flex", gap: "4px", marginBottom: "32px", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", padding: "5px" }}>
+            {[
+              { id: "services", label: "⚡ Servicios SMM", count: services.length },
+              { id: "cuentas", label: "👑 Cuentas Premium", count: PREMIUM_ACCOUNTS.length },
+            ].map((tab) => (
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as "services" | "cuentas")}
+                style={{ flex: 1, padding: "11px 20px", borderRadius: "12px", border: "none", background: activeTab === tab.id ? "linear-gradient(135deg, #007ABF, #005F96)" : "transparent", color: activeTab === tab.id ? "white" : "#5a6480", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: activeTab === tab.id ? "0 4px 20px #007ABF40" : "none" }}>
+                {tab.label}
+                <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "20px", background: activeTab === tab.id ? "#ffffff20" : "#1a1a2e", fontWeight: 600 }}>
+                  {tab.id === "services" ? services.length.toLocaleString() : tab.count}
+                </span>
+              </button>
+            ))}
           </div>
 
-          {/* ━━━ CUENTAS PREMIUM ━━━ */}
-          <section style={{ marginBottom: "52px" }}>
+          {/* ── SEARCH BAR (only for services tab) ── */}
+          {activeTab === "services" && (
+            <div style={{ display: "flex", gap: "12px", marginBottom: "32px" }}>
+              <div ref={searchRef} style={{ flex: 1, position: "relative" }}>
+                <Search size={16} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480", zIndex: 1 }} />
+                <input
+                  className="search-input"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setShowSuggestions(true);
+                    if (e.target.value.trim()) { setSelectedCategory("all"); setShowAllJAP(true); }
+                    else { setShowAllJAP(false); }
+                  }}
+                  onFocus={() => { if (search.length >= 2) setShowSuggestions(true); }}
+                  placeholder="Buscar servicios... ej: Instagram followers, TikTok likes"
+                  style={{ width: "100%", background: "#0d0d18", border: `1px solid ${showSuggestions && suggestions.length > 0 ? "#007ABF50" : "#1e1e30"}`, borderRadius: showSuggestions && suggestions.length > 0 ? "14px 14px 0 0" : "14px", padding: "13px 40px 13px 44px", color: "white", fontSize: "14px", outline: "none", transition: "all 0.15s", fontFamily: "inherit" }}
+                />
+                {search && (
+                  <button onClick={() => { setSearch(""); setShowSuggestions(false); setShowAllJAP(false); setSelectedCategory("all"); }}
+                    style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#5a6480", cursor: "pointer", padding: "4px", display: "flex" }}>
+                    <X size={14} />
+                  </button>
+                )}
+                {/* ── SUGGESTIONS DROPDOWN ── */}
+                {showSuggestions && suggestions.length > 0 && (
+                  <div style={{ position: "absolute", top: "100%", left: 0, right: 0, background: "#0d0d18", border: "1px solid #007ABF50", borderTop: "none", borderRadius: "0 0 14px 14px", zIndex: 50, overflow: "hidden", boxShadow: "0 16px 40px #00000060" }}>
+                    {suggestions.map((svc, i) => {
+                      const color = getPlatformColor(svc.category);
+                      return (
+                        <button key={svc.service}
+                          onClick={() => {
+                            setSearch(svc.name);
+                            setShowSuggestions(false);
+                            setShowAllJAP(true);
+                            openModal(svc);
+                          }}
+                          style={{ width: "100%", padding: "11px 16px", background: "transparent", border: "none", borderBottom: i < suggestions.length - 1 ? "1px solid #1a1a2e" : "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", fontFamily: "inherit", textAlign: "left" }}
+                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#141428"; }}
+                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+                            <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: `${color}18`, border: `1px solid ${color}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <Search size={11} color={color} />
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <p style={{ fontSize: "13px", color: "white", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{svc.name}</p>
+                              <p style={{ fontSize: "11px", color: color, marginTop: "1px" }}>{svc.category}</p>
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <p style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${parseFloat(svc.rate).toFixed(4)}<span style={{ fontSize: "9px", color: "#5a6480" }}>/1K</span></p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+              <div style={{ position: "relative" }}>
+                <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setSearch(""); setShowSuggestions(false); }}
+                  style={{ appearance: "none", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "13px 44px 13px 16px", color: selectedCategory === "all" ? "#5a6480" : "white", fontSize: "14px", cursor: "pointer", outline: "none", minWidth: "220px", fontFamily: "inherit" }}>
+                  <option value="all">Todas las categorías</option>
+                  {["Instagram", "TikTok", "YouTube", "Facebook", "Twitter", "Telegram", "Spotify", "Discord", "Twitch", "Kick", "Pinterest", "LinkedIn", "Snapchat"].map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480", pointerEvents: "none" }} />
+              </div>
+            </div>
+          )}
+
+          {/* ━━━ CUENTAS PREMIUM TAB ━━━ */}
+          {activeTab === "cuentas" && <section style={{ marginBottom: "52px" }}>
             {/* Section header */}
             <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg, #f59e0b, #d97706)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px #f59e0b50", flexShrink: 0 }}>
@@ -514,10 +603,10 @@ export default function ServicesPage() {
                 </div>
               ))}
             </div>
-          </section>
+          </section>}
 
           {/* ━━━ SERVICIOS JAP ━━━ */}
-          <section>
+          {activeTab === "services" && <section>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                 <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg, #007ABF, #005F96)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px #007ABF50", animation: "pulse-glow 3s ease infinite", flexShrink: 0 }}>
@@ -603,7 +692,7 @@ export default function ServicesPage() {
                 })}
               </div>
             )}
-          </section>
+          </section>}
         </div>
       </div>
 
