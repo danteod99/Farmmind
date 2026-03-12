@@ -110,7 +110,9 @@ export default function ServicesPage() {
       ]);
       if (servRes.ok) {
         const data = await servRes.json();
-        setServices(Array.isArray(data) ? data : []);
+        // API returns { services: [...] } — extract the array
+        const list = Array.isArray(data) ? data : (Array.isArray(data.services) ? data.services : []);
+        setServices(list);
       }
       if (ordRes.ok) {
         const data = await ordRes.json();
