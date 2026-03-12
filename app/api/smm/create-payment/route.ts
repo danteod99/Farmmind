@@ -33,8 +33,8 @@ export async function POST(req: Request) {
 
     const { amount, currency } = await req.json();
 
-    if (!amount || amount < 1 || amount > 500) {
-      return Response.json({ error: "Monto inválido (mínimo $1, máximo $500)" }, { status: 400 });
+    if (!amount || amount < 11 || amount > 500) {
+      return Response.json({ error: "Monto inválido (mínimo $11, máximo $500)" }, { status: 400 });
     }
     if (!currency) {
       return Response.json({ error: "Selecciona un método de pago" }, { status: 400 });

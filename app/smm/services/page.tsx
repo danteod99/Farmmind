@@ -8,7 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import {
   Search, Bot, LogOut, ShoppingCart, ChevronDown, X, Zap, CheckCircle,
-  DollarSign, Users, ArrowLeft, Star, Package
+  DollarSign, Users, ArrowLeft, Package, MessageCircle, Crown
 } from "lucide-react";
 
 interface Service {
@@ -32,6 +32,49 @@ interface OrderModal {
 
 const POPULAR_CATEGORIES = ["Instagram", "TikTok", "YouTube", "Twitter", "Facebook", "Telegram", "Spotify"];
 
+// Categorías curadas de JAP — solo mostramos servicios de estas categorías (top 10)
+const FEATURED_CATEGORIES = ["Instagram", "TikTok", "YouTube"];
+
+// Cuentas Premium propias (no son de JAP)
+const PREMIUM_ACCOUNTS = [
+  {
+    id: "yt-monetized",
+    title: "Cuenta YouTube Monetizada",
+    description: "Canal con más de 1,000 suscriptores y 4,000 horas de watch time. Lista para monetización AdSense.",
+    price: 35,
+    icon: "▶",
+    color: "#ff0000",
+    bg: "#ff000015",
+    border: "#ff000030",
+    badges: ["1K+ Subs", "4K Horas", "AdSense Ready"],
+    whatsapp: "Hola, quiero comprar una Cuenta YouTube Monetizada ($35 USD)",
+  },
+  {
+    id: "fb-account",
+    title: "Cuenta Facebook Aged",
+    description: "Cuenta con historial real, foto de perfil y actividad. Ideal para ads, grupos y automatización.",
+    price: 12,
+    icon: "f",
+    color: "#1877f2",
+    bg: "#1877f215",
+    border: "#1877f230",
+    badges: ["Aged 2+ años", "Verificada", "Perfil completo"],
+    whatsapp: "Hola, quiero comprar una Cuenta Facebook Aged ($12 USD)",
+  },
+  {
+    id: "tiktok-account",
+    title: "Cuenta TikTok con Seguidores",
+    description: "Cuenta con seguidores reales y engagement. Perfecta para inicio de bots o crecimiento rápido.",
+    price: 18,
+    icon: "♪",
+    color: "#ff0050",
+    bg: "#ff005015",
+    border: "#ff005030",
+    badges: ["500+ Seguidores", "Engagement real", "Lista para usar"],
+    whatsapp: "Hola, quiero comprar una Cuenta TikTok con Seguidores ($18 USD)",
+  },
+];
+
 export default function ServicesPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -44,6 +87,8 @@ export default function ServicesPage() {
   const [modal, setModal] = useState<OrderModal | null>(null);
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
+  const [showAllJAP, setShowAllJAP] = useState(false);
+  const [accountModal, setAccountModal] = useState<typeof PREMIUM_ACCOUNTS[0] | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -83,7 +128,7 @@ export default function ServicesPage() {
   }, [services]);
 
   const filtered = useMemo(() => {
-    return services.filter((s) => {
+    let list = services.filter((s) => {
       const matchCat = selectedCategory === "all" || s.category === selectedCategory;
       const matchSearch =
         !search ||
@@ -91,7 +136,18 @@ export default function ServicesPage() {
         s.category.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
     });
-  }, [services, selectedCategory, search]);
+    // Si no hay búsqueda activa y no hay filtro de categoría, mostrar solo curados
+    if (!search && selectedCategory === "all" && !showAllJAP) {
+      const featured: Service[] = [];
+      for (const cat of FEATURED_CATEGORIES) {
+        const catServices = list.filter((s) => s.category.toLowerCase().includes(cat.toLowerCase()));
+        if (catServices.length > 0) featured.push(...catServices.slice(0, 3));
+        if (featured.length >= 10) break;
+      }
+      return featured.slice(0, 10);
+    }
+    return list;
+  }, [services, selectedCategory, search, showAllJAP]);
 
   const openModal = (service: Service) => {
     setOrderError(null);
@@ -246,70 +302,143 @@ export default function ServicesPage() {
             </div>
           </div>
 
-          {/* Services grid */}
-          {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "80px", color: "#64748b" }}>
-              <Package size={40} style={{ margin: "0 auto 16px", opacity: 0.4 }} />
-              <p style={{ fontSize: "16px", marginBottom: "8px" }}>No hay servicios que coincidan</p>
-              <p style={{ fontSize: "13px" }}>Prueba con otro término o categoría</p>
+          {/* ===== Cuentas Premium ===== */}
+          <div style={{ marginBottom: "36px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+              <Crown size={16} color="#f59e0b" />
+              <h2 style={{ fontSize: "16px", fontWeight: 700, color: "white" }}>Cuentas Premium</h2>
+              <span style={{ fontSize: "11px", color: "#f59e0b", background: "#f59e0b15", border: "1px solid #f59e0b30", padding: "2px 8px", borderRadius: "20px", fontWeight: 600 }}>
+                Exclusivo
+              </span>
             </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
-              {filtered.map((service) => {
-                const cost1k = parseFloat(service.rate);
-                return (
-                  <div key={service.service} className="service-card"
-                    style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "16px", padding: "20px", transition: "all 0.15s", cursor: "default" }}>
-                    {/* Category + badges */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
-                      <span style={{ fontSize: "11px", fontWeight: 600, color: "#7c3aed", background: "#7c3aed15", padding: "3px 8px", borderRadius: "6px" }}>
-                        {service.category}
-                      </span>
-                      <div style={{ display: "flex", gap: "4px" }}>
-                        {service.refill && (
-                          <span title="Refill disponible" style={{ fontSize: "10px", color: "#34d399", background: "#34d39915", padding: "2px 6px", borderRadius: "4px" }}>
-                            ↻ Refill
-                          </span>
-                        )}
-                        {service.dripfeed && (
-                          <span title="Drip feed" style={{ fontSize: "10px", color: "#60a5fa", background: "#60a5fa15", padding: "2px 6px", borderRadius: "4px" }}>
-                            ⏱ Drip
-                          </span>
-                        )}
-                      </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "16px" }}>
+              {PREMIUM_ACCOUNTS.map((acc) => (
+                <div key={acc.id}
+                  style={{ background: "#111118", border: `1px solid ${acc.border}`, borderRadius: "16px", padding: "20px", transition: "all 0.15s", cursor: "pointer" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = acc.color; (e.currentTarget as HTMLDivElement).style.background = acc.bg; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = acc.border; (e.currentTarget as HTMLDivElement).style.background = "#111118"; }}>
+
+                  {/* Icon + title */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+                    <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: acc.bg, border: `1px solid ${acc.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>
+                      {acc.icon}
                     </div>
-
-                    {/* Name */}
-                    <p style={{ fontSize: "14px", fontWeight: 600, color: "white", marginBottom: "12px", lineHeight: "1.4" }}>
-                      #{service.service} · {service.name}
-                    </p>
-
-                    {/* Stats row */}
-                    <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                        <DollarSign size={12} color="#34d399" />
-                        <span style={{ fontSize: "12px", color: "#34d399", fontWeight: 600 }}>${cost1k.toFixed(4)}</span>
-                        <span style={{ fontSize: "11px", color: "#64748b" }}>/ 1K</span>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                        <Users size={12} color="#a78bfa" />
-                        <span style={{ fontSize: "12px", color: "#94a3b8" }}>{parseInt(service.min).toLocaleString()} – {parseInt(service.max).toLocaleString()}</span>
-                      </div>
-                    </div>
-
-                    {/* Type */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                      <span style={{ fontSize: "11px", color: "#64748b" }}>{service.type}</span>
-                      <button onClick={() => openModal(service)} className="order-btn"
-                        style={{ background: "#7c3aed", border: "none", borderRadius: "8px", padding: "8px 16px", color: "white", fontSize: "13px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "background 0.15s" }}>
-                        <ShoppingCart size={13} /> Ordenar
-                      </button>
+                    <div>
+                      <p style={{ fontSize: "14px", fontWeight: 700, color: "white", lineHeight: "1.3" }}>{acc.title}</p>
+                      <p style={{ fontSize: "18px", fontWeight: 800, color: acc.color, marginTop: "2px" }}>${acc.price} USD</p>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Description */}
+                  <p style={{ fontSize: "13px", color: "#94a3b8", lineHeight: "1.5", marginBottom: "14px" }}>{acc.description}</p>
+
+                  {/* Badges */}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "16px" }}>
+                    {acc.badges.map((badge) => (
+                      <span key={badge} style={{ fontSize: "11px", fontWeight: 600, color: acc.color, background: acc.bg, border: `1px solid ${acc.border}`, padding: "3px 8px", borderRadius: "6px" }}>
+                        ✓ {badge}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* CTA */}
+                  <button
+                    onClick={() => setAccountModal(acc)}
+                    style={{ width: "100%", padding: "10px", borderRadius: "10px", border: "none", background: acc.color, color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                    <MessageCircle size={14} /> Comprar por WhatsApp
+                  </button>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+
+          {/* ===== Servicios JAP ===== */}
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <Zap size={16} color="#a78bfa" />
+                <h2 style={{ fontSize: "16px", fontWeight: 700, color: "white" }}>Servicios SMM</h2>
+                {!search && selectedCategory === "all" && (
+                  <span style={{ fontSize: "11px", color: "#64748b", background: "#64748b15", padding: "2px 8px", borderRadius: "20px" }}>
+                    {showAllJAP ? `${services.length} servicios` : "10 destacados"}
+                  </span>
+                )}
+              </div>
+              {!search && selectedCategory === "all" && (
+                <button
+                  onClick={() => setShowAllJAP(!showAllJAP)}
+                  style={{ padding: "6px 14px", borderRadius: "8px", border: "1px solid #2d2d44", background: "transparent", color: "#a78bfa", fontSize: "12px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <ChevronDown size={13} style={{ transform: showAllJAP ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
+                  {showAllJAP ? "Ver menos" : `Ver todos (${services.length})`}
+                </button>
+              )}
+            </div>
+
+            {/* Services grid */}
+            {filtered.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "80px", color: "#64748b" }}>
+                <Package size={40} style={{ margin: "0 auto 16px", opacity: 0.4 }} />
+                <p style={{ fontSize: "16px", marginBottom: "8px" }}>No hay servicios que coincidan</p>
+                <p style={{ fontSize: "13px" }}>Prueba con otro término o categoría</p>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
+                {filtered.map((service) => {
+                  const cost1k = parseFloat(service.rate);
+                  return (
+                    <div key={service.service} className="service-card"
+                      style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: "16px", padding: "20px", transition: "all 0.15s", cursor: "default" }}>
+                      {/* Category + badges */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
+                        <span style={{ fontSize: "11px", fontWeight: 600, color: "#7c3aed", background: "#7c3aed15", padding: "3px 8px", borderRadius: "6px" }}>
+                          {service.category}
+                        </span>
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          {service.refill && (
+                            <span title="Refill disponible" style={{ fontSize: "10px", color: "#34d399", background: "#34d39915", padding: "2px 6px", borderRadius: "4px" }}>
+                              ↻ Refill
+                            </span>
+                          )}
+                          {service.dripfeed && (
+                            <span title="Drip feed" style={{ fontSize: "10px", color: "#60a5fa", background: "#60a5fa15", padding: "2px 6px", borderRadius: "4px" }}>
+                              ⏱ Drip
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Name */}
+                      <p style={{ fontSize: "14px", fontWeight: 600, color: "white", marginBottom: "12px", lineHeight: "1.4" }}>
+                        #{service.service} · {service.name}
+                      </p>
+
+                      {/* Stats row */}
+                      <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                          <DollarSign size={12} color="#34d399" />
+                          <span style={{ fontSize: "12px", color: "#34d399", fontWeight: 600 }}>${cost1k.toFixed(4)}</span>
+                          <span style={{ fontSize: "11px", color: "#64748b" }}>/ 1K</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                          <Users size={12} color="#a78bfa" />
+                          <span style={{ fontSize: "12px", color: "#94a3b8" }}>{parseInt(service.min).toLocaleString()} – {parseInt(service.max).toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      {/* Type */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>{service.type}</span>
+                        <button onClick={() => openModal(service)} className="order-btn"
+                          style={{ background: "#7c3aed", border: "none", borderRadius: "8px", padding: "8px 16px", color: "white", fontSize: "13px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "background 0.15s" }}>
+                          <ShoppingCart size={13} /> Ordenar
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -408,6 +537,64 @@ export default function ServicesPage() {
             </div>
           </div>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+
+      {/* Account Modal */}
+      {accountModal && (
+        <div style={{ position: "fixed", inset: 0, background: "#00000090", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+          <div style={{ background: "#111118", border: `1px solid ${accountModal.border}`, borderRadius: "20px", width: "100%", maxWidth: "440px", padding: "28px" }}>
+
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: accountModal.bg, border: `1px solid ${accountModal.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>
+                  {accountModal.icon}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: "16px", fontWeight: 700, color: "white", lineHeight: "1.3" }}>{accountModal.title}</h3>
+                  <p style={{ fontSize: "20px", fontWeight: 800, color: accountModal.color, marginTop: "2px" }}>${accountModal.price} USD</p>
+                </div>
+              </div>
+              <button onClick={() => setAccountModal(null)} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Description */}
+            <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: "1.6", marginBottom: "16px" }}>{accountModal.description}</p>
+
+            {/* Badges */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "24px" }}>
+              {accountModal.badges.map((badge) => (
+                <span key={badge} style={{ fontSize: "12px", fontWeight: 600, color: accountModal.color, background: accountModal.bg, border: `1px solid ${accountModal.border}`, padding: "4px 10px", borderRadius: "8px" }}>
+                  ✓ {badge}
+                </span>
+              ))}
+            </div>
+
+            {/* Info box */}
+            <div style={{ background: "#f59e0b10", border: "1px solid #f59e0b30", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px" }}>
+              <p style={{ fontSize: "12px", color: "#f59e0b", fontWeight: 600, marginBottom: "4px" }}>¿Cómo funciona?</p>
+              <p style={{ fontSize: "12px", color: "#94a3b8", lineHeight: "1.5" }}>
+                Al hacer clic en el botón se abrirá WhatsApp con un mensaje predefinido. Nuestro equipo te responderá y procesará tu pedido en menos de 24 horas.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button onClick={() => setAccountModal(null)}
+                style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid #2d2d44", background: "transparent", color: "#94a3b8", fontSize: "14px", fontWeight: 500, cursor: "pointer" }}>
+                Cancelar
+              </button>
+              <a
+                href={`https://wa.me/18496867266?text=${encodeURIComponent(accountModal.whatsapp)}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{ flex: 2, padding: "12px", borderRadius: "10px", border: "none", background: "#25d366", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", textDecoration: "none" }}>
+                <MessageCircle size={15} /> Abrir WhatsApp
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </>

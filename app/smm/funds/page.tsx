@@ -11,7 +11,8 @@ import {
   Clock, ExternalLink, Copy, Check, ShoppingCart, TrendingUp, AlertCircle
 } from "lucide-react";
 
-const PRESET_AMOUNTS = [5, 10, 25, 50, 100, 200];
+const PRESET_AMOUNTS = [11, 20, 25, 50, 100, 200];
+const MIN_AMOUNT = 11;
 
 const CRYPTO_OPTIONS = [
   { id: "usdttrc20", label: "USDT", network: "TRC20", icon: "₮", color: "#26a17b", recommended: true },
@@ -76,7 +77,7 @@ export default function FundsPage() {
   const finalAmount = useCustom ? parseFloat(customAmount) || 0 : amount;
 
   const createPayment = async () => {
-    if (finalAmount < 1) { setError("El monto mínimo es $1 USD"); return; }
+    if (finalAmount < MIN_AMOUNT) { setError(`El monto mínimo es $${MIN_AMOUNT} USD (incluye comisión de red)`); return; }
     if (finalAmount > 500) { setError("El monto máximo por recarga es $500 USD"); return; }
     setCreating(true);
     setError(null);
@@ -247,8 +248,8 @@ export default function FundsPage() {
                     </div>
                   )}
 
-                  <button onClick={createPayment} disabled={creating || finalAmount < 1}
-                    style={{ width: "100%", padding: "14px", borderRadius: "12px", border: "none", background: creating || finalAmount < 1 ? "#3b2068" : "#7c3aed", color: "white", fontSize: "15px", fontWeight: 700, cursor: creating || finalAmount < 1 ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                  <button onClick={createPayment} disabled={creating || finalAmount < MIN_AMOUNT}
+                    style={{ width: "100%", padding: "14px", borderRadius: "12px", border: "none", background: creating || finalAmount < MIN_AMOUNT ? "#3b2068" : "#7c3aed", color: "white", fontSize: "15px", fontWeight: 700, cursor: creating || finalAmount < MIN_AMOUNT ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                     {creating ? (
                       <><div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid white", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Generando pago...</>
                     ) : (
@@ -256,7 +257,7 @@ export default function FundsPage() {
                     )}
                   </button>
                   <p style={{ fontSize: "11px", color: "#64748b", textAlign: "center", marginTop: "10px" }}>
-                    El saldo se acredita automáticamente tras la confirmación · Procesado por NOWPayments
+                    Mínimo $11 USD · Saldo acreditado automáticamente · Procesado por NOWPayments
                   </p>
                 </div>
               ) : (
