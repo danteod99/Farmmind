@@ -2,6 +2,38 @@ import { getServices } from "@/app/lib/jap";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+// ━━━ Plataformas relevantes para Latinoamérica / habla hispana ━━━
+// Solo se muestran servicios cuya categoría o nombre contenga alguno de estos términos
+const ALLOWED_PLATFORMS = [
+  "instagram", "tiktok", "youtube", "facebook", "twitter", " x ",
+  "telegram", "whatsapp", "twitch", "kick", "discord", "pinterest",
+  "linkedin", "snapchat", "threads", "reddit", "spotify", "soundcloud",
+  "apple music", "deezer", "shazam", "google", "web traffic", "website",
+  "seo", "traffic", "reviews", "rating", "appstore", "play store",
+  "google play", "app store", "clubhouse", "rumble", "tumblr",
+  "daily motion", "dailymotion", "vimeo", "triller", "onlyfans",
+  "twitch", "mixer", "amazon", "netflix",
+];
+
+// Plataformas que NO son de uso común en habla hispana (bloquear)
+const BLOCKED_PLATFORMS = [
+  "vk", "vkontakte", "ok.ru", "odnoklassniki",
+  "weibo", "wechat", "douyin", "kuaishou", "xiaohongshu", "bilibili",
+  "baidu", "qq ", "qqgroup", "qq group", "xhs",
+  "sharechat", "moj ", "josh ", "roposo", "koo ",
+  "zalo", "line ", "kakaotalk", "kakao",
+  "mixi", "naver", "picsart",
+  "imo ", "viber",
+];
+
+function isAllowed(category: string, name: string): boolean {
+  const text = (category + " " + name).toLowerCase();
+  // Block first
+  if (BLOCKED_PLATFORMS.some((b) => text.includes(b))) return false;
+  // Then allow if any allowed platform is present
+  return ALLOWED_PLATFORMS.some((p) => text.includes(p));
+}
+
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -28,10 +60,12 @@ export async function GET() {
     const MARKUP_MULTIPLIER = 3.0;
 
     const rawServices = await getServices();
-    const services = rawServices.map((s) => ({
-      ...s,
-      rate: (parseFloat(s.rate) * MARKUP_MULTIPLIER).toFixed(2),
-    }));
+    const services = rawServices
+      .filter((s) => isAllowed(s.category, s.name))
+      .map((s) => ({
+        ...s,
+        rate: (parseFloat(s.rate) * MARKUP_MULTIPLIER).toFixed(2),
+      }));
 
     return Response.json({ services });
   } catch (error) {

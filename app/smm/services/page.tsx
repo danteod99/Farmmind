@@ -427,7 +427,7 @@ export default function ServicesPage() {
               <Search size={16} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480" }} />
               <input
                 className="search-input"
-                value={search} onChange={(e) => setSearch(e.target.value)}
+                value={search} onChange={(e) => { setSearch(e.target.value); if (e.target.value.trim()) { setSelectedCategory("all"); setShowAllJAP(true); } }}
                 placeholder="Buscar por nombre, plataforma, tipo..."
                 style={{ width: "100%", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "13px 14px 13px 44px", color: "white", fontSize: "14px", outline: "none", transition: "all 0.15s", fontFamily: "inherit" }}
               />
