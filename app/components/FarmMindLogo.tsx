@@ -19,7 +19,7 @@ export function FarmMindLogo({ size = 36 }: { size?: number }) {
   // For normal and large sizes, use the actual logo image
   return (
     <img
-      src="/trustworld-logo.jpg"
+      src="/trust-logo.png"
       alt="TRUST MIND"
       style={{
         height: `${size}px`,

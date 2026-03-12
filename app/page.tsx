@@ -207,7 +207,7 @@ function LoginScreen() {
           <span style={{ fontWeight: 800, fontSize: "15px", letterSpacing: "-0.3px" }}>TRUST MIND<span style={{ color: "#007ABF" }}> AI</span></span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <a href="https://skool.com/artificial-humans" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#64748b", textDecoration: "none", fontWeight: 500 }}>Artificial Humans ↗</a>
+          <a href="https://www.skool.com/artificial-humans-7653/about" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#64748b", textDecoration: "none", fontWeight: 500 }}>Artificial Humans ↗</a>
           <GoogleButton />
         </div>
       </nav>
