@@ -154,60 +154,237 @@ function LoginScreen() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
   };
+
+  const GoogleButton = ({ large = false }: { large?: boolean }) => (
+    <button
+      onClick={handleGoogleLogin}
+      disabled={loading}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px",
+        padding: large ? "16px 32px" : "13px 24px",
+        borderRadius: "14px", background: loading ? "#1e1e30" : "white",
+        color: "#111", fontSize: large ? "15px" : "14px", fontWeight: 700,
+        border: "none", cursor: loading ? "not-allowed" : "pointer",
+        letterSpacing: "-0.1px", transition: "all 0.2s",
+        boxShadow: large ? "0 0 40px #7c3aed40" : "none",
+      }}
+      onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.opacity = "0.92"; e.currentTarget.style.transform = "translateY(-1px)"; }}}
+      onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "none"; }}
+    >
+      {loading ? (
+        <><div style={{ width: "16px", height: "16px", border: "2px solid #94a3b8", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /><span style={{ color: "#64748b" }}>Redirigiendo...</span></>
+      ) : (
+        <>
+          <svg width="18" height="18" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          {large ? "Entrar con Google — Es gratis" : "Continuar con Google"}
+        </>
+      )}
+    </button>
+  );
+
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
-      {/* Background glow blobs */}
-      <div style={{ position: "absolute", width: "700px", height: "700px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed12 0%, transparent 65%)", top: "-200px", left: "-200px", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #4f46e50a 0%, transparent 65%)", bottom: "-100px", right: "-100px", pointerEvents: "none" }} />
+    <div style={{ minHeight: "100vh", background: "#07070e", color: "#f0efff", fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", overflowX: "hidden" }}>
+      <style>{`
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes glow-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+      `}</style>
 
-      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: "420px", margin: "24px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "28px", padding: "48px 40px" }}>
+      {/* === NAVBAR === */}
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(124,58,237,0.15)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(5px)" }} />
+            <FarmMindLogo size={30} />
+          </div>
+          <span style={{ fontWeight: 800, fontSize: "15px", letterSpacing: "-0.3px" }}>FarmMind<span style={{ color: "#7c3aed" }}> AI</span></span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <a href="https://skool.com/artificial-humans" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#64748b", textDecoration: "none", fontWeight: 500 }}>Artificial Humans ↗</a>
+          <GoogleButton />
+        </div>
+      </nav>
 
-        {/* Logo mark */}
-        <div style={{ position: "relative", width: "64px", height: "64px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "28px" }}>
-          <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #7c3aed60, transparent 70%)", filter: "blur(10px)" }} />
-          <FarmMindLogo size={52} />
+      {/* === HERO === */}
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #0e0125 0%, #1b0545 30%, #0c0120 70%, #07070e 100%)", padding: "100px 32px 80px", textAlign: "center" }}>
+        {/* Grid overlay */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
+        {/* Orbs */}
+        <div style={{ position: "absolute", top: "-100px", left: "50%", transform: "translateX(-50%)", width: "700px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed25, transparent 65%)", filter: "blur(60px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "-60px", right: "5%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #4f46e520, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+
+        <div style={{ position: "relative", maxWidth: "820px", margin: "0 auto", animation: "fade-up 0.7s ease-out" }}>
+          {/* Badge */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "100px", background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.4)", marginBottom: "28px" }}>
+            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", animation: "glow-pulse 2s ease-in-out infinite" }} />
+            <span style={{ fontSize: "12px", color: "#c4b5fd", fontWeight: 600, letterSpacing: "0.5px" }}>Agente activo · Claude API · Solo para Artificial Humans</span>
+          </div>
+
+          {/* Headline */}
+          <h1 style={{ fontSize: "clamp(44px, 8vw, 80px)", fontWeight: 900, lineHeight: 1.0, letterSpacing: "-0.04em", marginBottom: "24px" }}>
+            <span style={{ background: "linear-gradient(135deg, #fff 0%, #e0d4ff 40%, #a78bfa 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Tu agente AI</span>
+            <br />
+            <span style={{ background: "linear-gradient(135deg, #c4b5fd 0%, #7c3aed 60%, #4f46e5 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>para bot farms</span>
+          </h1>
+
+          <p style={{ fontSize: "18px", color: "#94a3b8", lineHeight: 1.7, maxWidth: "560px", margin: "0 auto 40px" }}>
+            Controla GenFarmer, gestiona proxies, detecta anomalías y pide servicios SMM — todo desde una sola conversación con IA.
+          </p>
+
+          {/* CTA */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
+            <GoogleButton large />
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399" }} />
+              <span style={{ fontSize: "13px", color: "#64748b" }}>30 mensajes gratis · Sin tarjeta</span>
+            </div>
+          </div>
         </div>
 
-        {/* Headline */}
-        <h1 style={{ fontSize: "34px", fontWeight: 800, color: "white", lineHeight: "1.05", letterSpacing: "-0.8px", marginBottom: "10px" }}>
-          FarmMind AI
-        </h1>
-        <p style={{ fontSize: "14px", color: "var(--text-3)", lineHeight: "1.6", marginBottom: "36px" }}>
-          Tu agente AI para granjas de bots.<br />
-          <span style={{ color: "var(--accent-light)" }}>Artificial Humans</span> members only.
-        </p>
+        {/* Floating preview card */}
+        <div style={{ position: "relative", maxWidth: "680px", margin: "60px auto 0", animation: "float 5s ease-in-out infinite" }}>
+          <div style={{ background: "rgba(13,13,24,0.9)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: "20px", padding: "20px 24px", backdropFilter: "blur(20px)", boxShadow: "0 0 60px rgba(124,58,237,0.2), 0 40px 80px rgba(0,0,0,0.6)", textAlign: "left" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", paddingBottom: "14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ position: "relative", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50, transparent)", filter: "blur(4px)" }} />
+                <FarmMindLogo size={26} />
+              </div>
+              <div>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>FarmMind AI</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#34d399" }} />
+                  <span style={{ fontSize: "10px", color: "#64748b" }}>Agente activo</span>
+                </div>
+              </div>
+            </div>
+            {[
+              { role: "user", text: "¿Cuántos delays poner en GenFarmer para TikTok sin que me baneen?" },
+              { role: "ai", text: "Para TikTok con GenFarmer, recomiendo **3-7 segundos** entre acciones y **25-40 min** entre sesiones. Usa proxies residenciales rotativos y limita a **4-6 cuentas por IP**. Con esos parámetros tu tasa de baneo debería bajar al ~3%." },
+            ].map((msg, i) => (
+              <div key={i} style={{ display: "flex", gap: "10px", flexDirection: msg.role === "user" ? "row-reverse" : "row", marginBottom: "10px" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "10px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "#1e1e30" : "linear-gradient(135deg, #7c3aed, #4f46e5)" }}>
+                  {msg.role === "user" ? <User size={13} color="#a78bfa" /> : <Bot size={13} color="white" />}
+                </div>
+                <div style={{ maxWidth: "80%", background: msg.role === "user" ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "rgba(255,255,255,0.06)", border: msg.role === "ai" ? "1px solid rgba(255,255,255,0.08)" : "none", borderRadius: msg.role === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px", padding: "10px 14px", fontSize: "13px", lineHeight: 1.6, color: "#e2e8f0" }}
+                  dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.+?)\*\*/g, "<strong style='color:white'>$1</strong>") }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-        {/* Google button */}
-        <button
-          onClick={handleGoogleLogin}
-          disabled={loading}
-          style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 20px", borderRadius: "14px", background: loading ? "var(--surface-2)" : "white", color: "#111", fontSize: "14px", fontWeight: 700, border: "none", cursor: loading ? "not-allowed" : "pointer", transition: "opacity 0.2s", letterSpacing: "-0.1px" }}
-          onMouseEnter={(e) => { if (!loading) e.currentTarget.style.opacity = "0.92"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
-        >
-          {loading ? (
-            <><div style={{ width: "16px", height: "16px", border: "2px solid #94a3b8", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /><span style={{ color: "#64748b" }}>Redirigiendo...</span></>
-          ) : (
-            <>
-              <svg width="18" height="18" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Continuar con Google
-            </>
-          )}
-        </button>
-
-        {/* Status badge */}
-        <div style={{ marginTop: "28px", display: "flex", alignItems: "center", gap: "8px", justifyContent: "center" }}>
-          <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d39960" }} />
-          <span style={{ fontSize: "11px", color: "var(--text-3)", fontWeight: 500, letterSpacing: "0.2px" }}>Agente activo · Claude API</span>
+      {/* === FEATURES === */}
+      <section style={{ padding: "80px 32px", maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "56px" }}>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "12px" }}>
+            Todo lo que necesita tu granja
+          </h2>
+          <p style={{ color: "#64748b", fontSize: "15px", maxWidth: "440px", margin: "0 auto", lineHeight: 1.6 }}>Desde optimización de bots hasta pedidos SMM masivos — FarmMind lo gestiona todo.</p>
         </div>
 
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
+          {[
+            { emoji: "🤖", title: "Agente para GenFarmer", desc: "Configuración de delays, rotación de cuentas, estrategias anti-detección específicas para cada plataforma.", color: "#7c3aed" },
+            { emoji: "🌐", title: "Gestión de proxies", desc: "Análisis de proveedores, rotación óptima, detección de IPs quemadas y recomendaciones por plataforma.", color: "#4f46e5" },
+            { emoji: "📦", title: "Panel SMM integrado", desc: "Pide seguidores, likes, views y más en +15 plataformas directamente desde FarmMind. Pagos con crypto.", color: "#0891b2" },
+            { emoji: "🛡️", title: "Anti-detección", desc: "Fingerprinting, user-agent rotation, patrones de comportamiento humano para máxima supervivencia de cuentas.", color: "#059669" },
+            { emoji: "📊", title: "Análisis en tiempo real", desc: "Métricas de éxito, tasa de baneo, rendimiento por plataforma y alertas automáticas de anomalías.", color: "#d97706" },
+            { emoji: "⚡", title: "Respuestas al instante", desc: "Powered by Claude (Anthropic). Historial de conversaciones guardado. Aprende de tu granja específica.", color: "#db2777" },
+          ].map((f) => (
+            <div key={f.title} style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "20px", padding: "28px", position: "relative", overflow: "hidden" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = f.color + "50"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "#1e1e30"; }}>
+              <div style={{ position: "absolute", top: 0, right: 0, width: "120px", height: "120px", borderRadius: "50%", background: `radial-gradient(circle, ${f.color}15, transparent 70%)`, pointerEvents: "none" }} />
+              <div style={{ fontSize: "32px", marginBottom: "14px" }}>{f.emoji}</div>
+              <h3 style={{ fontSize: "16px", fontWeight: 700, color: "white", marginBottom: "8px" }}>{f.title}</h3>
+              <p style={{ fontSize: "13px", color: "#64748b", lineHeight: 1.6 }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* === PRICING === */}
+      <section style={{ padding: "80px 32px", background: "linear-gradient(180deg, transparent, rgba(124,58,237,0.05), transparent)" }}>
+        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", color: "white", marginBottom: "10px" }}>Planes simples</h2>
+            <p style={{ color: "#64748b", fontSize: "15px" }}>Empieza gratis, escala cuando quieras.</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+            {/* Free */}
+            <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "24px", padding: "32px" }}>
+              <p style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Free</p>
+              <div style={{ marginBottom: "24px" }}>
+                <span style={{ fontSize: "48px", fontWeight: 900, color: "white" }}>$0</span>
+                <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
+              </div>
+              <div style={{ borderTop: "1px solid #1e1e30", paddingTop: "20px" }}>
+                {["30 mensajes / mes", "Historial básico", "Acceso al Panel SMM", "Soporte de comunidad"].map((f) => (
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                    <span style={{ color: "#34d399", fontSize: "14px" }}>✓</span>
+                    <span style={{ fontSize: "13px", color: "#94a3b8" }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "20px", width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #2d2d44", background: "transparent", color: "#94a3b8", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}>
+                Empezar gratis
+              </button>
+            </div>
+            {/* Pro */}
+            <div style={{ background: "linear-gradient(135deg, #1a0f3a, #150f2e)", border: "1px solid #7c3aed50", borderRadius: "24px", padding: "32px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "12px", right: "12px", padding: "3px 10px", borderRadius: "20px", background: "#7c3aed20", border: "1px solid #7c3aed40", fontSize: "11px", color: "#a78bfa", fontWeight: 700 }}>
+                Popular
+              </div>
+              <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed20, transparent 70%)", pointerEvents: "none" }} />
+              <p style={{ fontSize: "12px", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Pro</p>
+              <div style={{ marginBottom: "24px" }}>
+                <span style={{ fontSize: "48px", fontWeight: 900, color: "white" }}>$19</span>
+                <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
+              </div>
+              <div style={{ borderTop: "1px solid rgba(124,58,237,0.2)", paddingTop: "20px" }}>
+                {["Mensajes ilimitados", "Historial completo", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+                    <span style={{ color: "#a78bfa", fontSize: "14px" }}>✓</span>
+                    <span style={{ fontSize: "13px", color: "#c4b5fd" }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "20px", width: "100%", padding: "12px", borderRadius: "12px", border: "none", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                <Crown size={14} className="text-yellow-300" /> Comenzar con Pro
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* === FOOTER CTA === */}
+      <section style={{ padding: "80px 32px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "600px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed15, transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
+        <div style={{ position: "relative" }}>
+          <h2 style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, letterSpacing: "-0.04em", background: "linear-gradient(135deg, #fff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "16px", lineHeight: 1.1 }}>
+            Listo para automatizar<br />tu granja?
+          </h2>
+          <p style={{ color: "#64748b", fontSize: "15px", marginBottom: "36px" }}>Solo para miembros de Artificial Humans · Exclusivo · Potenciado por Claude</p>
+          <GoogleButton large />
+        </div>
+      </section>
+
+      {/* === FOOTER === */}
+      <footer style={{ padding: "24px 32px", borderTop: "1px solid #1e1e30", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <FarmMindLogo size={22} />
+          <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 600 }}>FarmMind AI</span>
+        </div>
+        <span style={{ fontSize: "12px", color: "#475569" }}>© 2025 Artificial Humans · Powered by Anthropic Claude</span>
+      </footer>
     </div>
   );
 }
