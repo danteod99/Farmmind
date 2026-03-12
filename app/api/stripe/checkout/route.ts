@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     }
 
     const { priceId } = await req.json();
-    const origin = req.headers.get("origin") || "https://farmmind-livid.vercel.app";
+    const origin = req.headers.get("origin") || "https://trustmind-livid.vercel.app";
     const stripe = getStripe();
 
     // Buscar o crear customer en Stripe

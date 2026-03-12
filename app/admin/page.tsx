@@ -128,7 +128,7 @@ export default function AdminPage() {
   return (
     <>
       <style>{`
-        :root { --background: #0a0a0f; --surface: #111118; --surface-2: #1a1a2e; --border: #2d2d44; --accent: #7c3aed; --accent-light: #a78bfa; --foreground: #e2e8f0; }
+        :root { --background: #0a0a0f; --surface: #111118; --surface-2: #1a1a2e; --border: #2d2d44; --accent: #007ABF; --accent-light: #56B4E0; --foreground: #e2e8f0; }
         body { background: var(--background); color: var(--foreground); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; }
       `}</style>
 
@@ -147,7 +147,7 @@ export default function AdminPage() {
                 <Bot size={16} className="text-white" />
               </div>
               <div>
-                <h1 className="font-bold text-white text-sm">FarmMind Admin</h1>
+                <h1 className="font-bold text-white text-sm">TRUST MIND Admin</h1>
                 <p className="text-xs text-gray-500">Panel de administración</p>
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function AdminPage() {
                 label="Usuarios totales"
                 value={stats.totalUsers}
                 sub={`${stats.freeUsers} free · ${stats.proUsers} pro`}
-                color="#a78bfa"
+                color="#56B4E0"
               />
               <StatCard
                 icon={<Crown size={18} />}
@@ -209,8 +209,8 @@ export default function AdminPage() {
           {stats && (
             <div className="grid grid-cols-3 gap-4 mb-8">
               <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#a78bfa20" }}>
-                  <TrendingUp size={18} style={{ color: "#a78bfa" }} />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#56B4E020" }}>
+                  <TrendingUp size={18} style={{ color: "#56B4E0" }} />
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Conversaciones totales</p>
@@ -314,7 +314,7 @@ export default function AdminPage() {
                                 <div
                                   className="h-1.5 rounded-full"
                                   style={{
-                                    background: u.plan === "pro" ? "#34d399" : "#a78bfa",
+                                    background: u.plan === "pro" ? "#34d399" : "#56B4E0",
                                     width: u.plan === "pro" ? "100%" : `${Math.min(100, (u.messages_this_month / 30) * 100)}%`,
                                   }}
                                 />

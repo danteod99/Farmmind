@@ -34,7 +34,7 @@ interface UserProfile {
 const WELCOME_MESSAGE: Message = {
   id: "welcome",
   role: "assistant",
-  content: "¡Hola! Soy **FarmMind**, tu agente AI para granjas de bots. 🤖\n\nPuedo ayudarte con GenFarmer, Xiaowei, proxies y anti-detección. También puedo ejecutar acciones directamente en tus herramientas.\n\n¿Qué necesitas hoy?",
+  content: "¡Hola! Soy **TRUST MIND**, tu agente AI para granjas de bots. 🤖\n\nPuedo ayudarte con GenFarmer, Xiaowei, proxies y anti-detección. También puedo ejecutar acciones directamente en tus herramientas.\n\n¿Qué necesitas hoy?",
   timestamp: new Date(),
 };
 
@@ -88,13 +88,13 @@ function formatDate(dateStr: string): string {
 function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)" }}>
-      <div className="relative rounded-2xl p-8 max-w-md w-full mx-4 text-center" style={{ background: "var(--surface)", border: "1px solid #7c3aed" }}>
+      <div className="relative rounded-2xl p-8 max-w-md w-full mx-4 text-center" style={{ background: "var(--surface)", border: "1px solid #007ABF" }}>
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors">
           <X size={18} />
         </button>
 
         {/* Icono */}
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}>
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5" style={{ background: "linear-gradient(135deg, #007ABF, #005F96)" }}>
           <Crown size={28} className="text-yellow-300" />
         </div>
 
@@ -116,10 +116,10 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
               <p className="text-gray-600">✗ Acceso prioritario</p>
             </div>
           </div>
-          <div className="rounded-xl p-4 text-left" style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", border: "1px solid #7c3aed" }}>
+          <div className="rounded-xl p-4 text-left" style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", border: "1px solid #007ABF" }}>
             <div className="flex items-center gap-1 mb-2">
-              <p className="text-xs font-semibold" style={{ color: "#a78bfa" }}>PRO</p>
-              <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#7c3aed20", color: "#a78bfa" }}>Popular</span>
+              <p className="text-xs font-semibold" style={{ color: "#56B4E0" }}>PRO</p>
+              <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#007ABF20", color: "#56B4E0" }}>Popular</span>
             </div>
             <p className="text-2xl font-bold text-white mb-3">$19<span className="text-sm font-normal text-gray-400">/mes</span></p>
             <div className="space-y-1.5 text-xs text-gray-300">
@@ -134,10 +134,10 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
         <button
           onClick={onUpgrade}
           className="w-full py-3 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 transition-all hover:opacity-90"
-          style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}
+          style={{ background: "linear-gradient(135deg, #007ABF, #005F96)" }}
         >
           <Sparkles size={15} />
-          Obtener FarmMind Pro — $19/mes
+          Obtener TRUST MIND Pro — $19/mes
         </button>
         <p className="text-xs text-gray-600 mt-3">Cancela cuando quieras • Pago seguro con Stripe</p>
       </div>
@@ -166,7 +166,7 @@ function LoginScreen() {
         color: "#111", fontSize: large ? "15px" : "14px", fontWeight: 700,
         border: "none", cursor: loading ? "not-allowed" : "pointer",
         letterSpacing: "-0.1px", transition: "all 0.2s",
-        boxShadow: large ? "0 0 40px #7c3aed40" : "none",
+        boxShadow: large ? "0 0 40px #007ABF40" : "none",
       }}
       onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.opacity = "0.92"; e.currentTarget.style.transform = "translateY(-1px)"; }}}
       onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "none"; }}
@@ -201,10 +201,10 @@ function LoginScreen() {
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(124,58,237,0.15)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(5px)" }} />
+            <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(5px)" }} />
             <FarmMindLogo size={30} />
           </div>
-          <span style={{ fontWeight: 800, fontSize: "15px", letterSpacing: "-0.3px" }}>FarmMind<span style={{ color: "#7c3aed" }}> AI</span></span>
+          <span style={{ fontWeight: 800, fontSize: "15px", letterSpacing: "-0.3px" }}>TRUST MIND<span style={{ color: "#007ABF" }}> AI</span></span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <a href="https://skool.com/artificial-humans" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#64748b", textDecoration: "none", fontWeight: 500 }}>Artificial Humans ↗</a>
@@ -213,25 +213,25 @@ function LoginScreen() {
       </nav>
 
       {/* === HERO === */}
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #0e0125 0%, #1b0545 30%, #0c0120 70%, #07070e 100%)", padding: "100px 32px 80px", textAlign: "center" }}>
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #000C18 0%, #001530 30%, #000A14 70%, #07070e 100%)", padding: "100px 32px 80px", textAlign: "center" }}>
         {/* Grid overlay */}
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
         {/* Orbs */}
-        <div style={{ position: "absolute", top: "-100px", left: "50%", transform: "translateX(-50%)", width: "700px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed25, transparent 65%)", filter: "blur(60px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-60px", right: "5%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #4f46e520, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "-100px", left: "50%", transform: "translateX(-50%)", width: "700px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF25, transparent 65%)", filter: "blur(60px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "-60px", right: "5%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #005FA420, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
 
         <div style={{ position: "relative", maxWidth: "820px", margin: "0 auto", animation: "fade-up 0.7s ease-out" }}>
           {/* Badge */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "100px", background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.4)", marginBottom: "28px" }}>
             <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", animation: "glow-pulse 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: "12px", color: "#c4b5fd", fontWeight: 600, letterSpacing: "0.5px" }}>Agente activo · Claude API · Solo para Artificial Humans</span>
+            <span style={{ fontSize: "12px", color: "#88D0F0", fontWeight: 600, letterSpacing: "0.5px" }}>Agente activo · Claude API · Solo para Artificial Humans</span>
           </div>
 
           {/* Headline */}
           <h1 style={{ fontSize: "clamp(44px, 8vw, 80px)", fontWeight: 900, lineHeight: 1.0, letterSpacing: "-0.04em", marginBottom: "24px" }}>
-            <span style={{ background: "linear-gradient(135deg, #fff 0%, #e0d4ff 40%, #a78bfa 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Tu agente AI</span>
+            <span style={{ background: "linear-gradient(135deg, #fff 0%, #C0E8F8 40%, #56B4E0 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Tu agente AI</span>
             <br />
-            <span style={{ background: "linear-gradient(135deg, #c4b5fd 0%, #7c3aed 60%, #4f46e5 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>para bot farms</span>
+            <span style={{ background: "linear-gradient(135deg, #88D0F0 0%, #007ABF 60%, #005FA4 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>para bot farms</span>
           </h1>
 
           <p style={{ fontSize: "18px", color: "#94a3b8", lineHeight: 1.7, maxWidth: "560px", margin: "0 auto 40px" }}>
@@ -253,11 +253,11 @@ function LoginScreen() {
           <div style={{ background: "rgba(13,13,24,0.9)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: "20px", padding: "20px 24px", backdropFilter: "blur(20px)", boxShadow: "0 0 60px rgba(124,58,237,0.2), 0 40px 80px rgba(0,0,0,0.6)", textAlign: "left" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", paddingBottom: "14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div style={{ position: "relative", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50, transparent)", filter: "blur(4px)" }} />
+                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #007ABF50, transparent)", filter: "blur(4px)" }} />
                 <FarmMindLogo size={26} />
               </div>
               <div>
-                <span style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>FarmMind AI</span>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>TRUST MIND AI</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#34d399" }} />
                   <span style={{ fontSize: "10px", color: "#64748b" }}>Agente activo</span>
@@ -269,10 +269,10 @@ function LoginScreen() {
               { role: "ai", text: "Para TikTok con GenFarmer, recomiendo **3-7 segundos** entre acciones y **25-40 min** entre sesiones. Usa proxies residenciales rotativos y limita a **4-6 cuentas por IP**. Con esos parámetros tu tasa de baneo debería bajar al ~3%." },
             ].map((msg, i) => (
               <div key={i} style={{ display: "flex", gap: "10px", flexDirection: msg.role === "user" ? "row-reverse" : "row", marginBottom: "10px" }}>
-                <div style={{ width: "28px", height: "28px", borderRadius: "10px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "#1e1e30" : "linear-gradient(135deg, #7c3aed, #4f46e5)" }}>
-                  {msg.role === "user" ? <User size={13} color="#a78bfa" /> : <Bot size={13} color="white" />}
+                <div style={{ width: "28px", height: "28px", borderRadius: "10px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "#1e1e30" : "linear-gradient(135deg, #007ABF, #005FA4)" }}>
+                  {msg.role === "user" ? <User size={13} color="#56B4E0" /> : <Bot size={13} color="white" />}
                 </div>
-                <div style={{ maxWidth: "80%", background: msg.role === "user" ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "rgba(255,255,255,0.06)", border: msg.role === "ai" ? "1px solid rgba(255,255,255,0.08)" : "none", borderRadius: msg.role === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px", padding: "10px 14px", fontSize: "13px", lineHeight: 1.6, color: "#e2e8f0" }}
+                <div style={{ maxWidth: "80%", background: msg.role === "user" ? "linear-gradient(135deg, #007ABF, #005F96)" : "rgba(255,255,255,0.06)", border: msg.role === "ai" ? "1px solid rgba(255,255,255,0.08)" : "none", borderRadius: msg.role === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px", padding: "10px 14px", fontSize: "13px", lineHeight: 1.6, color: "#e2e8f0" }}
                   dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.+?)\*\*/g, "<strong style='color:white'>$1</strong>") }}
                 />
               </div>
@@ -284,17 +284,17 @@ function LoginScreen() {
       {/* === FEATURES === */}
       <section style={{ padding: "80px 32px", maxWidth: "1100px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "56px" }}>
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "12px" }}>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff, #56B4E0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "12px" }}>
             Todo lo que necesita tu granja
           </h2>
-          <p style={{ color: "#64748b", fontSize: "15px", maxWidth: "440px", margin: "0 auto", lineHeight: 1.6 }}>Desde optimización de bots hasta pedidos SMM masivos — FarmMind lo gestiona todo.</p>
+          <p style={{ color: "#64748b", fontSize: "15px", maxWidth: "440px", margin: "0 auto", lineHeight: 1.6 }}>Desde optimización de bots hasta pedidos SMM masivos — TRUST MIND lo gestiona todo.</p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
           {[
-            { emoji: "🤖", title: "Agente para GenFarmer", desc: "Configuración de delays, rotación de cuentas, estrategias anti-detección específicas para cada plataforma.", color: "#7c3aed" },
-            { emoji: "🌐", title: "Gestión de proxies", desc: "Análisis de proveedores, rotación óptima, detección de IPs quemadas y recomendaciones por plataforma.", color: "#4f46e5" },
-            { emoji: "📦", title: "Panel SMM integrado", desc: "Pide seguidores, likes, views y más en +15 plataformas directamente desde FarmMind. Pagos con crypto.", color: "#0891b2" },
+            { emoji: "🤖", title: "Agente para GenFarmer", desc: "Configuración de delays, rotación de cuentas, estrategias anti-detección específicas para cada plataforma.", color: "#007ABF" },
+            { emoji: "🌐", title: "Gestión de proxies", desc: "Análisis de proveedores, rotación óptima, detección de IPs quemadas y recomendaciones por plataforma.", color: "#005FA4" },
+            { emoji: "📦", title: "Panel SMM integrado", desc: "Pide seguidores, likes, views y más en +15 plataformas directamente desde TRUST MIND. Pagos con crypto.", color: "#0891b2" },
             { emoji: "🛡️", title: "Anti-detección", desc: "Fingerprinting, user-agent rotation, patrones de comportamiento humano para máxima supervivencia de cuentas.", color: "#059669" },
             { emoji: "📊", title: "Análisis en tiempo real", desc: "Métricas de éxito, tasa de baneo, rendimiento por plataforma y alertas automáticas de anomalías.", color: "#d97706" },
             { emoji: "⚡", title: "Respuestas al instante", desc: "Powered by Claude (Anthropic). Historial de conversaciones guardado. Aprende de tu granja específica.", color: "#db2777" },
@@ -339,12 +339,12 @@ function LoginScreen() {
               </button>
             </div>
             {/* Pro */}
-            <div style={{ background: "linear-gradient(135deg, #1a0f3a, #150f2e)", border: "1px solid #7c3aed50", borderRadius: "24px", padding: "32px", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "12px", right: "12px", padding: "3px 10px", borderRadius: "20px", background: "#7c3aed20", border: "1px solid #7c3aed40", fontSize: "11px", color: "#a78bfa", fontWeight: 700 }}>
+            <div style={{ background: "linear-gradient(135deg, #001528, #001020)", border: "1px solid #007ABF50", borderRadius: "24px", padding: "32px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "12px", right: "12px", padding: "3px 10px", borderRadius: "20px", background: "#007ABF20", border: "1px solid #007ABF40", fontSize: "11px", color: "#56B4E0", fontWeight: 700 }}>
                 Popular
               </div>
-              <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed20, transparent 70%)", pointerEvents: "none" }} />
-              <p style={{ fontSize: "12px", fontWeight: 700, color: "#a78bfa", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Pro</p>
+              <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF20, transparent 70%)", pointerEvents: "none" }} />
+              <p style={{ fontSize: "12px", fontWeight: 700, color: "#56B4E0", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Pro</p>
               <div style={{ marginBottom: "24px" }}>
                 <span style={{ fontSize: "48px", fontWeight: 900, color: "white" }}>$19</span>
                 <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
@@ -352,12 +352,12 @@ function LoginScreen() {
               <div style={{ borderTop: "1px solid rgba(124,58,237,0.2)", paddingTop: "20px" }}>
                 {["Mensajes ilimitados", "Historial completo", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                    <span style={{ color: "#a78bfa", fontSize: "14px" }}>✓</span>
-                    <span style={{ fontSize: "13px", color: "#c4b5fd" }}>{f}</span>
+                    <span style={{ color: "#56B4E0", fontSize: "14px" }}>✓</span>
+                    <span style={{ fontSize: "13px", color: "#88D0F0" }}>{f}</span>
                   </div>
                 ))}
               </div>
-              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "20px", width: "100%", padding: "12px", borderRadius: "12px", border: "none", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "20px", width: "100%", padding: "12px", borderRadius: "12px", border: "none", background: "linear-gradient(135deg, #007ABF, #005F96)", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                 <Crown size={14} className="text-yellow-300" /> Comenzar con Pro
               </button>
             </div>
@@ -367,9 +367,9 @@ function LoginScreen() {
 
       {/* === FOOTER CTA === */}
       <section style={{ padding: "80px 32px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "600px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed15, transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "600px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF15, transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
         <div style={{ position: "relative" }}>
-          <h2 style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, letterSpacing: "-0.04em", background: "linear-gradient(135deg, #fff, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "16px", lineHeight: 1.1 }}>
+          <h2 style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, letterSpacing: "-0.04em", background: "linear-gradient(135deg, #fff, #56B4E0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "16px", lineHeight: 1.1 }}>
             Listo para automatizar<br />tu granja?
           </h2>
           <p style={{ color: "#64748b", fontSize: "15px", marginBottom: "36px" }}>Solo para miembros de Artificial Humans · Exclusivo · Potenciado por Claude</p>
@@ -381,7 +381,7 @@ function LoginScreen() {
       <footer style={{ padding: "24px 32px", borderTop: "1px solid #1e1e30", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <FarmMindLogo size={22} />
-          <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 600 }}>FarmMind AI</span>
+          <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 600 }}>TRUST MIND AI</span>
         </div>
         <span style={{ fontSize: "12px", color: "#475569" }}>© 2025 Artificial Humans · Powered by Anthropic Claude</span>
       </footer>
@@ -389,7 +389,7 @@ function LoginScreen() {
   );
 }
 
-export default function FarmMindChat() {
+export default function TRUST MINDChat() {
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -638,12 +638,12 @@ export default function FarmMindChat() {
     <>
       <style>{`
         .code-block { background: #070710; border: 1px solid #1e1e30; border-radius: 10px; margin: 10px 0; overflow: hidden; }
-        .code-lang { display: block; background: #0d0d18; color: #a78bfa; font-size: 11px; font-family: monospace; padding: 5px 14px; border-bottom: 1px solid #1e1e30; font-weight: 600; letter-spacing: 0.5px; }
+        .code-lang { display: block; background: #0d0d18; color: #56B4E0; font-size: 11px; font-family: monospace; padding: 5px 14px; border-bottom: 1px solid #1e1e30; font-weight: 600; letter-spacing: 0.5px; }
         .code-block pre { margin: 0; padding: 14px; font-family: 'Menlo', 'Monaco', monospace; font-size: 12px; color: #e2e8f0; overflow-x: auto; white-space: pre; }
-        .inline-code { background: #1e1e38; padding: 2px 7px; border-radius: 5px; color: #a78bfa; font-size: 0.85em; font-family: monospace; }
+        .inline-code { background: #1e1e38; padding: 2px 7px; border-radius: 5px; color: #56B4E0; font-size: 0.85em; font-family: monospace; }
         .msg-h1 { font-size: 1.15em; font-weight: 800; color: #f0efff; margin: 10px 0 5px; letter-spacing: -0.3px; }
         .msg-h2 { font-size: 1.02em; font-weight: 700; color: #e2e8f0; margin: 8px 0 4px; border-bottom: 1px solid #1e1e30; padding-bottom: 4px; }
-        .msg-h3 { font-size: 0.95em; font-weight: 700; color: #a78bfa; margin: 6px 0 3px; }
+        .msg-h3 { font-size: 0.95em; font-weight: 700; color: #56B4E0; margin: 6px 0 3px; }
         ul { padding-left: 18px; margin: 5px 0; }
         ol { padding-left: 18px; margin: 5px 0; }
         li { margin: 3px 0; color: #c8d3e8; }
@@ -710,12 +710,12 @@ export default function FarmMindChat() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <div style={{ position: "absolute", inset: "-2px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50, transparent 70%)", filter: "blur(5px)" }} />
+                  <div style={{ position: "absolute", inset: "-2px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF50, transparent 70%)", filter: "blur(5px)" }} />
                   <FarmMindLogo size={30} />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h1 style={{ fontWeight: 800, color: "white", fontSize: "15px", letterSpacing: "-0.3px" }}>FarmMind</h1>
+                    <h1 style={{ fontWeight: 800, color: "white", fontSize: "15px", letterSpacing: "-0.3px" }}>TRUST MIND</h1>
                     {isPro && <Crown size={11} className="text-yellow-400" />}
                   </div>
                   <p style={{ fontSize: "11px", color: "var(--accent-light)", fontWeight: 500 }}>Bot Farm AI Agent</p>
@@ -724,7 +724,7 @@ export default function FarmMindChat() {
               <button onClick={newChat} disabled={isStreaming} title="Nueva conversación"
                 className="w-7 h-7 rounded-xl flex items-center justify-center transition-colors flex-shrink-0"
                 style={{ background: "var(--surface-2)", color: "var(--text-3)", border: "1px solid var(--border)" }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "#a78bfa"; e.currentTarget.style.borderColor = "#7c3aed50"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "#56B4E0"; e.currentTarget.style.borderColor = "#007ABF50"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; e.currentTarget.style.borderColor = "var(--border)"; }}>
                 <Plus size={13} />
               </button>
@@ -735,17 +735,17 @@ export default function FarmMindChat() {
           <div className="px-3 pt-3 pb-1">
             <Link href="/smm"
               className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-2xl transition-all"
-              style={{ background: "linear-gradient(135deg, #1a0f3a, #150f2e)", border: "1px solid #7c3aed40" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#7c3aed80"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#7c3aed40"; }}>
-              <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)" }}>
+              style={{ background: "linear-gradient(135deg, #001528, #001020)", border: "1px solid #007ABF40" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#007ABF80"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "#007ABF40"; }}>
+              <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #007ABF, #005F96)" }}>
                 <ShoppingCart size={13} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
                 <p style={{ fontSize: "12px", fontWeight: 700, color: "white", letterSpacing: "-0.1px" }}>Panel SMM</p>
-                <p style={{ fontSize: "10px", color: "#8b5cf6", marginTop: "1px" }}>Servicios & pedidos</p>
+                <p style={{ fontSize: "10px", color: "#1E90D4", marginTop: "1px" }}>Servicios & pedidos</p>
               </div>
-              <span style={{ fontSize: "12px", color: "#7c3aed" }}>›</span>
+              <span style={{ fontSize: "12px", color: "#007ABF" }}>›</span>
             </Link>
           </div>
 
@@ -817,10 +817,10 @@ export default function FarmMindChat() {
           {/* Upgrade banner (solo para free) */}
           {!isPro && userProfile && (
             <div className="px-3 pb-2">
-              <div className="rounded-2xl p-3" style={{ background: "linear-gradient(135deg, #130d2e, #1a0e38)", border: "1px solid #3b1d6e" }}>
+              <div className="rounded-2xl p-3" style={{ background: "linear-gradient(135deg, #001020, #001528)", border: "1px solid #002860" }}>
                 <div className="flex items-center justify-between mb-2">
-                  <p style={{ fontSize: "11px", fontWeight: 700, color: "#c4b5fd" }}>Plan Free</p>
-                  <span style={{ fontSize: "10px", padding: "2px 7px", borderRadius: "20px", background: "#7c3aed25", color: "#a78bfa", fontWeight: 600 }}>
+                  <p style={{ fontSize: "11px", fontWeight: 700, color: "#88D0F0" }}>Plan Free</p>
+                  <span style={{ fontSize: "10px", padding: "2px 7px", borderRadius: "20px", background: "#007ABF25", color: "#56B4E0", fontWeight: 600 }}>
                     {messagesLeft} restantes
                   </span>
                 </div>
@@ -828,14 +828,14 @@ export default function FarmMindChat() {
                   <div
                     className="h-1 rounded-full transition-all"
                     style={{
-                      background: "linear-gradient(90deg, #7c3aed, #a78bfa)",
+                      background: "linear-gradient(90deg, #007ABF, #56B4E0)",
                       width: `${Math.min(100, (userProfile.messagesThisMonth / (userProfile.messagesLimit || 30)) * 100)}%`,
                     }}
                   />
                 </div>
                 <button
                   onClick={() => setShowUpgrade(true)}
-                  style={{ width: "100%", padding: "8px 0", borderRadius: "10px", fontSize: "12px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}
+                  style={{ width: "100%", padding: "8px 0", borderRadius: "10px", fontSize: "12px", fontWeight: 700, color: "white", background: "linear-gradient(135deg, #007ABF, #005F96)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}
                   onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.9"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                 >
@@ -852,7 +852,7 @@ export default function FarmMindChat() {
             {saveStatus === "saved" && <p style={{ fontSize: "11px", color: "var(--green)", textAlign: "center", marginBottom: "8px" }}>Guardado ✓</p>}
             <div className="flex items-center justify-between gap-2 rounded-2xl p-2" style={{ background: "var(--surface-2)" }}>
               <div className="flex items-center gap-2 min-w-0">
-                {userAvatar ? <img src={userAvatar} alt={userName} style={{ width: "28px", height: "28px", borderRadius: "50%", flexShrink: 0 }} /> : <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><User size={12} color="white" /></div>}
+                {userAvatar ? <img src={userAvatar} alt={userName} style={{ width: "28px", height: "28px", borderRadius: "50%", flexShrink: 0 }} /> : <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#007ABF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><User size={12} color="white" /></div>}
                 <div className="min-w-0">
                   <div className="flex items-center gap-1">
                     <p style={{ fontSize: "12px", fontWeight: 700, color: "white" }} className="truncate">{userName}</p>
@@ -861,7 +861,7 @@ export default function FarmMindChat() {
                   <p style={{ fontSize: "10px", color: "var(--text-3)" }} className="truncate">
                     {isPro ? (
                       <button onClick={handleManageBilling} style={{ color: "var(--text-3)", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = "#a78bfa"; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = "#56B4E0"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-3)"; }}>
                         Plan Pro ↗
                       </button>
@@ -891,11 +891,11 @@ export default function FarmMindChat() {
                 <Menu size={16} />
               </button>
               <div style={{ position: "relative", width: "38px", height: "38px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50, transparent 70%)", filter: "blur(5px)" }} />
+                <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF50, transparent 70%)", filter: "blur(5px)" }} />
                 <FarmMindLogo size={32} />
               </div>
               <div>
-                <h2 style={{ fontSize: "15px", fontWeight: 800, color: "white", letterSpacing: "-0.3px" }}>FarmMind</h2>
+                <h2 style={{ fontSize: "15px", fontWeight: 800, color: "white", letterSpacing: "-0.3px" }}>TRUST MIND</h2>
                 <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                   <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d39960" }} />
                   <span style={{ fontSize: "11px", color: "var(--text-3)", fontWeight: 500 }}>Agente activo</span>
@@ -904,13 +904,13 @@ export default function FarmMindChat() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               {isPro ? (
-                <span style={{ fontSize: "11px", padding: "4px 12px", borderRadius: "20px", fontWeight: 700, background: "linear-gradient(135deg, #1a0f3a, #110a26)", color: "#c4b5fd", border: "1px solid #7c3aed50", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span style={{ fontSize: "11px", padding: "4px 12px", borderRadius: "20px", fontWeight: 700, background: "linear-gradient(135deg, #001528, #000E1C)", color: "#88D0F0", border: "1px solid #007ABF50", display: "flex", alignItems: "center", gap: "4px" }}>
                   <Crown size={10} className="text-yellow-400" /> Pro
                 </span>
               ) : (
                 <span style={{ fontSize: "11px", padding: "4px 12px", borderRadius: "20px", fontWeight: 600, background: "var(--surface-2)", color: "var(--accent-light)", border: "1px solid var(--border)" }}>🤖 Fase 1</span>
               )}
-              {upgradingToStripe && <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid #7c3aed", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} />}
+              {upgradingToStripe && <div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid #007ABF", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} />}
             </div>
           </div>
 
@@ -918,8 +918,8 @@ export default function FarmMindChat() {
           <div className="chat-messages flex-1 overflow-y-auto" style={{ padding: "28px 28px", display: "flex", flexDirection: "column", gap: "20px" }}>
             {messages.map((msg) => (
               <div key={msg.id} style={{ display: "flex", gap: "12px", flexDirection: msg.role === "user" ? "row-reverse" : "row" }} className="group">
-                <div style={{ width: "32px", height: "32px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "var(--surface-3)" : "linear-gradient(135deg, #7c3aed, #4f46e5)" }}>
-                  {msg.role === "user" ? <User size={14} color="#a78bfa" /> : <FarmMindLogo size={16} />}
+                <div style={{ width: "32px", height: "32px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "var(--surface-3)" : "linear-gradient(135deg, #007ABF, #005FA4)" }}>
+                  {msg.role === "user" ? <User size={14} color="#56B4E0" /> : <FarmMindLogo size={16} />}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxWidth: "min(680px, 75%)", alignItems: msg.role === "user" ? "flex-end" : "flex-start" }}>
                   <div style={{
@@ -928,15 +928,15 @@ export default function FarmMindChat() {
                     fontSize: "14px",
                     lineHeight: "1.65",
                     ...(msg.role === "user"
-                      ? { background: "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white" }
+                      ? { background: "linear-gradient(135deg, #007ABF, #005F96)", color: "white" }
                       : { background: "var(--surface-2)", color: "var(--foreground)", border: "1px solid var(--border)" }
                     )
                   }}>
                     {msg.content === "" && isStreaming ? (
                       <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "4px 0" }}>
-                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#a78bfa" }} className="typing-dot" />
-                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#a78bfa" }} className="typing-dot" />
-                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#a78bfa" }} className="typing-dot" />
+                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#56B4E0" }} className="typing-dot" />
+                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#56B4E0" }} className="typing-dot" />
+                        <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#56B4E0" }} className="typing-dot" />
                       </div>
                     ) : <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />}
                   </div>
@@ -953,14 +953,14 @@ export default function FarmMindChat() {
           {/* Input Area */}
           <div className="chat-input-area" style={{ padding: "16px 24px", borderTop: "1px solid var(--border)", background: "var(--surface)", flexShrink: 0 }}>
             {!isPro && messagesLeft !== null && messagesLeft <= 5 && messagesLeft > 0 && (
-              <div style={{ marginBottom: "12px", padding: "9px 14px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#130a2c", border: "1px solid #7c3aed50" }}>
-                <span style={{ fontSize: "12px", color: "#c4b5fd" }}>⚠️ Solo te quedan <strong style={{ color: "white" }}>{messagesLeft} mensajes</strong> este mes</span>
+              <div style={{ marginBottom: "12px", padding: "9px 14px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#001020", border: "1px solid #007ABF50" }}>
+                <span style={{ fontSize: "12px", color: "#88D0F0" }}>⚠️ Solo te quedan <strong style={{ color: "white" }}>{messagesLeft} mensajes</strong> este mes</span>
                 <button onClick={() => setShowUpgrade(true)} style={{ fontSize: "11px", color: "#fbbf24", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>Upgrade →</button>
               </div>
             )}
             {!isPro && messagesLeft === 0 && (
-              <div style={{ marginBottom: "12px", padding: "9px 14px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#130a2c", border: "1px solid #7c3aed50" }}>
-                <span style={{ fontSize: "12px", color: "#c4b5fd" }}>🔒 Límite mensual alcanzado</span>
+              <div style={{ marginBottom: "12px", padding: "9px 14px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#001020", border: "1px solid #007ABF50" }}>
+                <span style={{ fontSize: "12px", color: "#88D0F0" }}>🔒 Límite mensual alcanzado</span>
                 <button onClick={() => setShowUpgrade(true)} style={{ fontSize: "11px", color: "#fbbf24", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>Upgrade a Pro →</button>
               </div>
             )}
@@ -979,7 +979,7 @@ export default function FarmMindChat() {
                 disabled={!input.trim() || isStreaming || (messagesLeft === 0 && !isPro)}
                 style={{
                   width: "36px", height: "36px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "none",
-                  background: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "linear-gradient(135deg, #7c3aed, #6d28d9)" : "var(--border)",
+                  background: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "linear-gradient(135deg, #007ABF, #005F96)" : "var(--border)",
                   cursor: input.trim() && !isStreaming && (isPro || messagesLeft !== 0) ? "pointer" : "not-allowed",
                   transition: "background 0.15s",
                 }}

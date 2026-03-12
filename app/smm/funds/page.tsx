@@ -113,7 +113,7 @@ export default function FundsPage() {
 
   if (loading) return (
     <div style={{ height: "100vh", background: "#07070e", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid #7c3aed", borderTopColor: "transparent", animation: "spin 0.8s linear infinite" }} />
+      <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid #007ABF", borderTopColor: "transparent", animation: "spin 0.8s linear infinite" }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -145,7 +145,7 @@ export default function FundsPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
             <Link href="/" style={{ display: "flex", alignItems: "center" }}>
               <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(6px)" }} />
+                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(6px)" }} />
                 <FarmMindLogo size={34} />
               </div>
             </Link>
@@ -157,7 +157,7 @@ export default function FundsPage() {
                 { href: "/smm/orders", label: "Mis pedidos" },
                 { href: "/smm/funds", label: "Recargar", active: true },
               ].map((item) => (
-                <Link key={item.href} href={item.href} style={{ padding: "7px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#c4b5fd" : "#64748b", background: item.active ? "rgba(124,58,237,0.18)" : "transparent", border: item.active ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent", transition: "all 0.15s" }}>{item.label}</Link>
+                <Link key={item.href} href={item.href} style={{ padding: "7px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#88D0F0" : "#64748b", background: item.active ? "rgba(124,58,237,0.18)" : "transparent", border: item.active ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent", transition: "all 0.15s" }}>{item.label}</Link>
               ))}
             </div>
           </div>
@@ -171,14 +171,14 @@ export default function FundsPage() {
         </nav>
 
         {/* Hero Section */}
-        <div className="funds-hero" style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #0e0125 0%, #1b0545 30%, #0c0120 70%, #07070e 100%)", padding: "48px 28px 40px", animation: "fade-in 0.6s ease-out" }}>
+        <div className="funds-hero" style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #000C18 0%, #001530 30%, #000A14 70%, #07070e 100%)", padding: "48px 28px 40px", animation: "fade-in 0.6s ease-out" }}>
           <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: "-60px", right: "10%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed30, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", top: "-60px", right: "10%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF30, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
           <div style={{ maxWidth: "960px", margin: "0 auto", position: "relative" }}>
-            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#7c3aed", marginBottom: "16px", opacity: 0.8 }}>
+            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#007ABF", marginBottom: "16px", opacity: 0.8 }}>
               <ArrowLeft size={13} /> Volver al dashboard
             </Link>
-            <h1 style={{ fontSize: "40px", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff 0%, #c4b5fd 50%, #a78bfa 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "12px" }}>
+            <h1 style={{ fontSize: "40px", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff 0%, #88D0F0 50%, #56B4E0 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "12px" }}>
               Recargar saldo
             </h1>
             <p style={{ fontSize: "16px", color: "#94a3b8", maxWidth: "480px", lineHeight: 1.6 }}>
@@ -216,7 +216,7 @@ export default function FundsPage() {
                         const active = !useCustom && amount === a;
                         return (
                           <button key={a} onClick={() => { setAmount(a); setUseCustom(false); }}
-                            style={{ padding: "12px", borderRadius: "12px", border: "1px solid", borderColor: active ? "#7c3aed" : "#2d2d44", background: active ? "#7c3aed20" : "#0a0a0f", color: active ? "white" : "#94a3b8", fontWeight: active ? 700 : 500, fontSize: "16px", cursor: "pointer", transition: "all 0.15s" }}>
+                            style={{ padding: "12px", borderRadius: "12px", border: "1px solid", borderColor: active ? "#007ABF" : "#2d2d44", background: active ? "#007ABF20" : "#0a0a0f", color: active ? "white" : "#94a3b8", fontWeight: active ? 700 : 500, fontSize: "16px", cursor: "pointer", transition: "all 0.15s" }}>
                             ${a}
                           </button>
                         );
@@ -230,7 +230,7 @@ export default function FundsPage() {
                         value={customAmount}
                         onChange={(e) => { setCustomAmount(e.target.value); setUseCustom(true); }}
                         onFocus={() => setUseCustom(true)}
-                        style={{ width: "100%", background: useCustom ? "#7c3aed10" : "#0a0a0f", border: "1px solid", borderColor: useCustom ? "#7c3aed" : "#2d2d44", borderRadius: "12px", padding: "12px 14px 12px 28px", color: "white", fontSize: "14px", outline: "none" }} />
+                        style={{ width: "100%", background: useCustom ? "#007ABF10" : "#0a0a0f", border: "1px solid", borderColor: useCustom ? "#007ABF" : "#2d2d44", borderRadius: "12px", padding: "12px 14px 12px 28px", color: "white", fontSize: "14px", outline: "none" }} />
                     </div>
                   </div>
 
@@ -278,7 +278,7 @@ export default function FundsPage() {
                   )}
 
                   <button onClick={createPayment} disabled={creating || finalAmount < MIN_AMOUNT}
-                    style={{ width: "100%", padding: "14px", borderRadius: "12px", border: "none", background: creating || finalAmount < MIN_AMOUNT ? "#3b2068" : "#7c3aed", color: "white", fontSize: "15px", fontWeight: 700, cursor: creating || finalAmount < MIN_AMOUNT ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                    style={{ width: "100%", padding: "14px", borderRadius: "12px", border: "none", background: creating || finalAmount < MIN_AMOUNT ? "#3b2068" : "#007ABF", color: "white", fontSize: "15px", fontWeight: 700, cursor: creating || finalAmount < MIN_AMOUNT ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                     {creating ? (
                       <><div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid white", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Generando pago...</>
                     ) : (
@@ -301,9 +301,9 @@ export default function FundsPage() {
                   </div>
 
                   {/* Amount to send */}
-                  <div style={{ background: "#7c3aed15", border: "1px solid #7c3aed30", borderRadius: "12px", padding: "16px", marginBottom: "16px", textAlign: "center" }}>
-                    <p style={{ fontSize: "12px", color: "#a78bfa", marginBottom: "4px" }}>Enviar exactamente</p>
-                    <p style={{ fontSize: "28px", fontWeight: 800, color: "white" }}>{payment.pay_amount} <span style={{ fontSize: "16px", color: "#a78bfa" }}>{payment.pay_currency.toUpperCase()}</span></p>
+                  <div style={{ background: "#007ABF15", border: "1px solid #007ABF30", borderRadius: "12px", padding: "16px", marginBottom: "16px", textAlign: "center" }}>
+                    <p style={{ fontSize: "12px", color: "#56B4E0", marginBottom: "4px" }}>Enviar exactamente</p>
+                    <p style={{ fontSize: "28px", fontWeight: 800, color: "white" }}>{payment.pay_amount} <span style={{ fontSize: "16px", color: "#56B4E0" }}>{payment.pay_currency.toUpperCase()}</span></p>
                     <p style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>≈ ${payment.amount_usd.toFixed(2)} USD</p>
                   </div>
 
@@ -312,7 +312,7 @@ export default function FundsPage() {
                     <p style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "8px" }}>Dirección de pago</p>
                     <div style={{ background: "#07070e", border: "1px solid #1e1e30", borderRadius: "10px", padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
                       <p style={{ fontSize: "12px", color: "#e2e8f0", fontFamily: "monospace", wordBreak: "break-all", flex: 1 }}>{payment.pay_address}</p>
-                      <button onClick={copyAddress} style={{ flexShrink: 0, background: copied ? "#34d39920" : "#7c3aed20", border: "none", borderRadius: "8px", padding: "8px", cursor: "pointer", color: copied ? "#34d399" : "#a78bfa" }}>
+                      <button onClick={copyAddress} style={{ flexShrink: 0, background: copied ? "#34d39920" : "#007ABF20", border: "none", borderRadius: "8px", padding: "8px", cursor: "pointer", color: copied ? "#34d399" : "#56B4E0" }}>
                         {copied ? <Check size={14} /> : <Copy size={14} />}
                       </button>
                     </div>
@@ -326,7 +326,7 @@ export default function FundsPage() {
                   {/* Open payment page */}
                   {payment.payment_url && (
                     <a href={payment.payment_url} target="_blank" rel="noreferrer"
-                      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "12px", borderRadius: "12px", background: "#7c3aed", color: "white", fontSize: "14px", fontWeight: 600, textDecoration: "none", marginBottom: "12px" }}>
+                      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "12px", borderRadius: "12px", background: "#007ABF", color: "white", fontSize: "14px", fontWeight: 600, textDecoration: "none", marginBottom: "12px" }}>
                       <ExternalLink size={14} /> Abrir página de pago
                     </a>
                   )}
@@ -351,8 +351,8 @@ export default function FundsPage() {
                   { n: "4", text: "Úsalo para hacer pedidos en el panel SMM" },
                 ].map((s) => (
                   <div key={s.n} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-                    <div style={{ width: "22px", height: "22px", borderRadius: "6px", background: "#7c3aed20", border: "1px solid #7c3aed40", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#a78bfa" }}>{s.n}</span>
+                    <div style={{ width: "22px", height: "22px", borderRadius: "6px", background: "#007ABF20", border: "1px solid #007ABF40", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#56B4E0" }}>{s.n}</span>
                     </div>
                     <p style={{ fontSize: "13px", color: "#94a3b8", lineHeight: "1.5" }}>{s.text}</p>
                   </div>
@@ -375,7 +375,7 @@ export default function FundsPage() {
                   <span style={{ fontSize: "13px", color: "white" }}>${transactions.filter(t => t.status === "finished").reduce((s, t) => s + t.amount, 0).toFixed(2)}</span>
                 </div>
                 <div style={{ height: "1px", background: "#2d2d44", margin: "14px 0" }} />
-                <Link href="/smm/services" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "9px", borderRadius: "10px", background: "#7c3aed20", color: "#a78bfa", fontSize: "13px", fontWeight: 600 }}>
+                <Link href="/smm/services" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "9px", borderRadius: "10px", background: "#007ABF20", color: "#56B4E0", fontSize: "13px", fontWeight: 600 }}>
                   <ShoppingCart size={13} /> Ir a hacer pedidos
                 </Link>
               </div>

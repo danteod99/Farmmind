@@ -25,7 +25,7 @@ interface Order {
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   pending:    { label: "Pendiente",   color: "#fbbf24", bg: "#fbbf2418", icon: <Clock size={11} /> },
   processing: { label: "Procesando",  color: "#60a5fa", bg: "#60a5fa18", icon: <Loader size={11} className="animate-spin" /> },
-  inprogress: { label: "En progreso", color: "#a78bfa", bg: "#a78bfa18", icon: <Zap size={11} /> },
+  inprogress: { label: "En progreso", color: "#56B4E0", bg: "#56B4E018", icon: <Zap size={11} /> },
   completed:  { label: "Completado",  color: "#34d399", bg: "#34d39918", icon: <CheckCircle size={11} /> },
   partial:    { label: "Parcial",     color: "#fb923c", bg: "#fb923c18", icon: <AlertCircle size={11} /> },
   canceled:   { label: "Cancelado",   color: "#f87171", bg: "#f8717118", icon: <AlertCircle size={11} /> },
@@ -70,7 +70,7 @@ export default function SMMDashboard() {
   if (loading) {
     return (
       <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center", background: "#07070e", flexDirection: "column", gap: "16px" }}>
-        <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "3px solid #7c3aed30", borderTopColor: "#7c3aed", animation: "spin 0.8s linear infinite" }} />
+        <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "3px solid #007ABF30", borderTopColor: "#007ABF", animation: "spin 0.8s linear infinite" }} />
         <p style={{ color: "#5a6480", fontSize: "13px", fontWeight: 500 }}>Cargando panel...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -89,8 +89,8 @@ export default function SMMDashboard() {
 
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 12px #7c3aed40; }
-          50% { box-shadow: 0 0 30px #7c3aed80; }
+          0%, 100% { box-shadow: 0 0 12px #007ABF40; }
+          50% { box-shadow: 0 0 30px #007ABF80; }
         }
         @keyframes float {
           0%, 100% { transform: translateY(0); }
@@ -99,7 +99,7 @@ export default function SMMDashboard() {
 
         .stat-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
         .stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px #00000050 !important; }
-        .nav-link:hover { color: #c4b5fd !important; }
+        .nav-link:hover { color: #88D0F0 !important; }
         .action-link { transition: all 0.15s ease; }
         .action-link:hover { transform: translateY(-3px); box-shadow: 0 12px 40px #00000060 !important; }
         .row-hover:hover { background: #110c20 !important; }
@@ -134,7 +134,7 @@ export default function SMMDashboard() {
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <Link href="/" style={{ display: "flex", alignItems: "center" }}>
               <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(6px)" }} />
+                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(6px)" }} />
                 <FarmMindLogo size={34} />
               </div>
             </Link>
@@ -147,7 +147,7 @@ export default function SMMDashboard() {
                 { href: "/smm/funds", label: "Recargar" },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="nav-link"
-                  style={{ padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s", fontWeight: item.active ? 700 : 500, color: item.active ? "#c4b5fd" : "#5a6480", background: item.active ? "#7c3aed20" : "transparent", border: `1px solid ${item.active ? "#7c3aed40" : "transparent"}` }}>
+                  style={{ padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s", fontWeight: item.active ? 700 : 500, color: item.active ? "#88D0F0" : "#5a6480", background: item.active ? "#007ABF20" : "transparent", border: `1px solid ${item.active ? "#007ABF40" : "transparent"}` }}>
                   {item.label}
                 </Link>
               ))}
@@ -169,29 +169,29 @@ export default function SMMDashboard() {
         {/* ━━━ HERO SECTION ━━━ */}
         <div style={{
           position: "relative", overflow: "hidden",
-          background: "linear-gradient(160deg, #0e0125 0%, #1b0545 35%, #0c0120 65%, #07070e 100%)",
-          borderBottom: "1px solid #2d1060",
+          background: "linear-gradient(160deg, #000C18 0%, #001530 35%, #000A14 65%, #07070e 100%)",
+          borderBottom: "1px solid #002860",
           padding: "52px 28px 48px",
         }} className="smm-hero">
           {/* Background decoration */}
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-            <div style={{ position: "absolute", top: "-80px", right: "5%", width: "380px", height: "380px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed50 0%, transparent 65%)", filter: "blur(60px)" }} />
+            <div style={{ position: "absolute", top: "-80px", right: "5%", width: "380px", height: "380px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF50 0%, transparent 65%)", filter: "blur(60px)" }} />
             <div style={{ position: "absolute", bottom: "-60px", left: "20%", width: "240px", height: "240px", borderRadius: "50%", background: "radial-gradient(circle, #a855f730 0%, transparent 70%)", filter: "blur(50px)" }} />
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(#7c3aed08 1px, transparent 1px), linear-gradient(90deg, #7c3aed08 1px, transparent 1px)", backgroundSize: "60px 60px", maskImage: "radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)" }} />
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(#007ABF08 1px, transparent 1px), linear-gradient(90deg, #007ABF08 1px, transparent 1px)", backgroundSize: "60px 60px", maskImage: "radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)" }} />
           </div>
 
           <div style={{ maxWidth: "1100px", margin: "0 auto", position: "relative", zIndex: 1 }}>
             <div className="smm-hero-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "20px" }}>
               <div>
                 {/* Label chip */}
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", borderRadius: "20px", background: "linear-gradient(135deg, #7c3aed25, #a855f715)", border: "1px solid #7c3aed50", marginBottom: "16px" }}>
-                  <Zap size={11} color="#a78bfa" />
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#a78bfa", letterSpacing: "0.8px", textTransform: "uppercase" }}>Panel SMM</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", borderRadius: "20px", background: "linear-gradient(135deg, #007ABF25, #a855f715)", border: "1px solid #007ABF50", marginBottom: "16px" }}>
+                  <Zap size={11} color="#56B4E0" />
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#56B4E0", letterSpacing: "0.8px", textTransform: "uppercase" }}>Panel SMM</span>
                 </div>
 
                 <h1 style={{ fontSize: "44px", fontWeight: 800, color: "white", letterSpacing: "-1.5px", lineHeight: "1.05", marginBottom: "12px" }}>
                   Hola, {userName.split(" ")[0]}<br />
-                  <span style={{ background: "linear-gradient(90deg, #e9d5ff 0%, #a855f7 40%, #7c3aed 80%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                  <span style={{ background: "linear-gradient(90deg, #e9d5ff 0%, #a855f7 40%, #007ABF 80%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                     bienvenido de vuelta.
                   </span>
                 </h1>
@@ -201,11 +201,11 @@ export default function SMMDashboard() {
               </div>
 
               {/* Quick balance card */}
-              <div style={{ background: "linear-gradient(135deg, #7c3aed25, #5b21b618)", border: "1px solid #7c3aed40", borderRadius: "20px", padding: "22px 28px", textAlign: "center", minWidth: "160px" }}>
-                <p style={{ fontSize: "11px", color: "#8b5cf6", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: "8px" }}>Balance</p>
+              <div style={{ background: "linear-gradient(135deg, #007ABF25, #5b21b618)", border: "1px solid #007ABF40", borderRadius: "20px", padding: "22px 28px", textAlign: "center", minWidth: "160px" }}>
+                <p style={{ fontSize: "11px", color: "#1E90D4", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: "8px" }}>Balance</p>
                 <p style={{ fontSize: "32px", fontWeight: 800, color: "white", letterSpacing: "-1px", lineHeight: "1" }}>${balance.toFixed(2)}</p>
                 <p style={{ fontSize: "11px", color: "#5a6480", marginTop: "4px" }}>USD disponible</p>
-                <Link href="/smm/funds" style={{ display: "inline-block", marginTop: "12px", padding: "6px 14px", borderRadius: "8px", background: "#7c3aed", color: "white", fontSize: "11px", fontWeight: 700, boxShadow: "0 0 14px #7c3aed40" }}>
+                <Link href="/smm/funds" style={{ display: "inline-block", marginTop: "12px", padding: "6px 14px", borderRadius: "8px", background: "#007ABF", color: "white", fontSize: "11px", fontWeight: 700, boxShadow: "0 0 14px #007ABF40" }}>
                   + Recargar
                 </Link>
               </div>
@@ -227,8 +227,8 @@ export default function SMMDashboard() {
               {
                 icon: <ShoppingCart size={20} />, label: "Total pedidos",
                 value: String(orders.length), sub: "todos los tiempos",
-                color: "#a78bfa", gradient: "linear-gradient(135deg, #a78bfa20, #a78bfa08)",
-                border: "#a78bfa30",
+                color: "#56B4E0", gradient: "linear-gradient(135deg, #56B4E020, #56B4E008)",
+                border: "#56B4E030",
               },
               {
                 icon: <Zap size={20} />, label: "Activos ahora",
@@ -261,16 +261,16 @@ export default function SMMDashboard() {
           {/* ━━━ QUICK ACTIONS ━━━ */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "28px" }}>
             <Link href="/smm/services" className="action-link"
-              style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg, #1a0640 0%, #0e0228 50%, #12062e 100%)", border: "1px solid #7c3aed50", borderRadius: "22px", padding: "24px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 4px 24px #7c3aed20" }}>
-              <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "160px", height: "160px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed40, transparent)", filter: "blur(30px)" }} />
+              style={{ position: "relative", overflow: "hidden", background: "linear-gradient(135deg, #1a0640 0%, #0e0228 50%, #12062e 100%)", border: "1px solid #007ABF50", borderRadius: "22px", padding: "24px", display: "flex", alignItems: "center", justifyContent: "space-between", boxShadow: "0 4px 24px #007ABF20" }}>
+              <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "160px", height: "160px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF40, transparent)", filter: "blur(30px)" }} />
               <div style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "3px 10px", borderRadius: "6px", background: "#7c3aed25", border: "1px solid #7c3aed40", marginBottom: "10px" }}>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#a78bfa", letterSpacing: "0.5px" }}>NUEVO PEDIDO</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "3px 10px", borderRadius: "6px", background: "#007ABF25", border: "1px solid #007ABF40", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#56B4E0", letterSpacing: "0.5px" }}>NUEVO PEDIDO</span>
                 </div>
                 <p style={{ fontWeight: 800, color: "white", fontSize: "18px", letterSpacing: "-0.4px", lineHeight: "1.2" }}>Explorar catálogo</p>
-                <p style={{ fontSize: "13px", color: "#8b5cf6", marginTop: "4px", fontWeight: 500 }}>SMM + Cuentas premium</p>
+                <p style={{ fontSize: "13px", color: "#1E90D4", marginTop: "4px", fontWeight: 500 }}>SMM + Cuentas premium</p>
               </div>
-              <div style={{ width: "52px", height: "52px", borderRadius: "16px", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px #7c3aed60", animation: "pulse-glow 3s ease infinite", flexShrink: 0, zIndex: 1 }}>
+              <div style={{ width: "52px", height: "52px", borderRadius: "16px", background: "linear-gradient(135deg, #007ABF, #005F96)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px #007ABF60", animation: "pulse-glow 3s ease infinite", flexShrink: 0, zIndex: 1 }}>
                 <Plus size={22} color="white" />
               </div>
             </Link>
@@ -301,7 +301,7 @@ export default function SMMDashboard() {
                 <h2 style={{ fontWeight: 800, color: "white", fontSize: "16px", letterSpacing: "-0.3px" }}>Pedidos recientes</h2>
                 <p style={{ fontSize: "12px", color: "#5a6480", marginTop: "2px" }}>Últimas 5 órdenes</p>
               </div>
-              <Link href="/smm/orders" style={{ fontSize: "12px", color: "#8b5cf6", fontWeight: 700, padding: "6px 12px", borderRadius: "8px", background: "#7c3aed15", border: "1px solid #7c3aed30" }}>Ver todos →</Link>
+              <Link href="/smm/orders" style={{ fontSize: "12px", color: "#1E90D4", fontWeight: 700, padding: "6px 12px", borderRadius: "8px", background: "#007ABF15", border: "1px solid #007ABF30" }}>Ver todos →</Link>
             </div>
 
             {recentOrders.length === 0 ? (
@@ -311,7 +311,7 @@ export default function SMMDashboard() {
                 </div>
                 <p style={{ fontSize: "15px", fontWeight: 700, color: "#8892a4", marginBottom: "6px" }}>Aún no tienes pedidos</p>
                 <p style={{ fontSize: "13px", marginBottom: "20px" }}>Empieza explorando nuestro catálogo</p>
-                <Link href="/smm/services" style={{ display: "inline-block", padding: "10px 24px", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, boxShadow: "0 0 20px #7c3aed40" }}>
+                <Link href="/smm/services" style={{ display: "inline-block", padding: "10px 24px", background: "linear-gradient(135deg, #007ABF, #005F96)", borderRadius: "10px", color: "white", fontSize: "13px", fontWeight: 700, boxShadow: "0 0 20px #007ABF40" }}>
                   Ver catálogo →
                 </Link>
               </div>

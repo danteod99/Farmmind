@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Pagos crypto no configurados aún. Contacta al administrador." }, { status: 503 });
     }
 
-    const origin = "https://farmmind-livid.vercel.app";
+    const origin = "https://trustmind-livid.vercel.app";
 
     // Usar /v1/payment para obtener dirección crypto directa
     const npRes = await fetch("https://api.nowpayments.io/v1/payment", {
@@ -58,8 +58,8 @@ export async function POST(req: Request) {
         price_amount: amount,
         price_currency: "usd",
         pay_currency: currency,
-        order_id: `farmmind_${user.id}_${Date.now()}`,
-        order_description: `Recarga FarmMind SMM - $${amount} USD`,
+        order_id: `trustmind_${user.id}_${Date.now()}`,
+        order_description: `Recarga TRUST MIND SMM - $${amount} USD`,
         ipn_callback_url: `${origin}/api/smm/payment-webhook`,
       }),
     });

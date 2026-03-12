@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "No tienes una suscripción activa" }, { status: 400 });
     }
 
-    const origin = req.headers.get("origin") || "https://farmmind-livid.vercel.app";
+    const origin = req.headers.get("origin") || "https://trustmind-livid.vercel.app";
     const stripe = getStripe();
 
     const portalSession = await stripe.billingPortal.sessions.create({

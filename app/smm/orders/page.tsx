@@ -32,7 +32,7 @@ type StatusKey = "pending" | "processing" | "inprogress" | "completed" | "partia
 const STATUS_CONFIG: Record<StatusKey, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   pending:    { label: "Pendiente",   color: "#fbbf24", bg: "#fbbf2420", icon: <Clock size={11} /> },
   processing: { label: "Procesando",  color: "#60a5fa", bg: "#60a5fa20", icon: <Loader size={11} className="animate-spin" /> },
-  inprogress: { label: "En progreso", color: "#a78bfa", bg: "#a78bfa20", icon: <Zap size={11} /> },
+  inprogress: { label: "En progreso", color: "#56B4E0", bg: "#56B4E020", icon: <Zap size={11} /> },
   completed:  { label: "Completado",  color: "#34d399", bg: "#34d39920", icon: <CheckCircle size={11} /> },
   partial:    { label: "Parcial",     color: "#fb923c", bg: "#fb923c20", icon: <AlertCircle size={11} /> },
   canceled:   { label: "Cancelado",   color: "#f87171", bg: "#f8717120", icon: <AlertCircle size={11} /> },
@@ -102,7 +102,7 @@ export default function OrdersPage() {
   if (loading) {
     return (
       <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center", background: "#07070e", flexDirection: "column", gap: "16px" }}>
-        <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "3px solid #7c3aed30", borderTopColor: "#7c3aed", animation: "spin 0.8s linear infinite" }} />
+        <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "3px solid #007ABF30", borderTopColor: "#007ABF", animation: "spin 0.8s linear infinite" }} />
         <p style={{ color: "#5a6480", fontSize: "13px", fontWeight: 500 }}>Cargando pedidos...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -119,8 +119,8 @@ export default function OrdersPage() {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #2a2a42; border-radius: 99px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .order-row:hover { background: #110c1e !important; }
-        .nav-link:hover { color: #c4b5fd !important; }
+        .order-row:hover { background: #000C18 !important; }
+        .nav-link:hover { color: #88D0F0 !important; }
         .stat-card { transition: transform 0.2s ease; }
         .stat-card:hover { transform: translateY(-3px); }
       `}</style>
@@ -132,7 +132,7 @@ export default function OrdersPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <Link href="/" style={{ display: "flex", alignItems: "center" }}>
               <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(6px)" }} />
+                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(6px)" }} />
                 <FarmMindLogo size={34} />
               </div>
             </Link>
@@ -145,7 +145,7 @@ export default function OrdersPage() {
                 { href: "/smm/funds", label: "Recargar" },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="nav-link"
-                  style={{ padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s", fontWeight: item.active ? 700 : 500, color: item.active ? "#c4b5fd" : "#5a6480", background: item.active ? "#7c3aed20" : "transparent", border: `1px solid ${item.active ? "#7c3aed40" : "transparent"}` }}>
+                  style={{ padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s", fontWeight: item.active ? 700 : 500, color: item.active ? "#88D0F0" : "#5a6480", background: item.active ? "#007ABF20" : "transparent", border: `1px solid ${item.active ? "#007ABF40" : "transparent"}` }}>
                   {item.label}
                 </Link>
               ))}
@@ -164,20 +164,20 @@ export default function OrdersPage() {
         </nav>
 
         {/* Hero */}
-        <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #0e0125 0%, #1b0545 35%, #0c0120 65%, #07070e 100%)", borderBottom: "1px solid #2d1060", padding: "44px 28px 36px" }}>
+        <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #000C18 0%, #001530 35%, #000A14 65%, #07070e 100%)", borderBottom: "1px solid #002860", padding: "44px 28px 36px" }}>
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-            <div style={{ position: "absolute", top: "-80px", right: "5%", width: "320px", height: "320px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed45 0%, transparent 65%)", filter: "blur(60px)" }} />
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(#7c3aed08 1px, transparent 1px), linear-gradient(90deg, #7c3aed08 1px, transparent 1px)", backgroundSize: "60px 60px", maskImage: "radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)" }} />
+            <div style={{ position: "absolute", top: "-80px", right: "5%", width: "320px", height: "320px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF45 0%, transparent 65%)", filter: "blur(60px)" }} />
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(#007ABF08 1px, transparent 1px), linear-gradient(90deg, #007ABF08 1px, transparent 1px)", backgroundSize: "60px 60px", maskImage: "radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)" }} />
           </div>
           <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#8b5cf6", fontWeight: 600, marginBottom: "18px", padding: "5px 12px", borderRadius: "8px", background: "#7c3aed18", border: "1px solid #7c3aed30" }}>
+            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#1E90D4", fontWeight: 600, marginBottom: "18px", padding: "5px 12px", borderRadius: "8px", background: "#007ABF18", border: "1px solid #007ABF30" }}>
               <ArrowLeft size={12} /> Dashboard
             </Link>
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
               <div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 12px", borderRadius: "20px", background: "#7c3aed25", border: "1px solid #7c3aed50", marginBottom: "12px" }}>
-                  <ShoppingCart size={11} color="#a78bfa" />
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#a78bfa", letterSpacing: "0.8px", textTransform: "uppercase" }}>Historial</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "4px 12px", borderRadius: "20px", background: "#007ABF25", border: "1px solid #007ABF50", marginBottom: "12px" }}>
+                  <ShoppingCart size={11} color="#56B4E0" />
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#56B4E0", letterSpacing: "0.8px", textTransform: "uppercase" }}>Historial</span>
                 </div>
                 <h1 style={{ fontSize: "38px", fontWeight: 800, color: "white", letterSpacing: "-1px", lineHeight: "1.05", marginBottom: "8px" }}>
                   Mis pedidos<br />
@@ -186,11 +186,11 @@ export default function OrdersPage() {
                 <p style={{ fontSize: "14px", color: "#8892a4" }}>Estado actualizado · haz clic en una fila para ver detalles</p>
               </div>
               <div style={{ display: "flex", gap: "10px" }}>
-                <Link href="/smm/services" style={{ padding: "10px 20px", borderRadius: "12px", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white", fontSize: "13px", fontWeight: 700, display: "flex", alignItems: "center", gap: "7px", boxShadow: "0 0 20px #7c3aed40" }}>
+                <Link href="/smm/services" style={{ padding: "10px 20px", borderRadius: "12px", background: "linear-gradient(135deg, #007ABF, #005F96)", color: "white", fontSize: "13px", fontWeight: 700, display: "flex", alignItems: "center", gap: "7px", boxShadow: "0 0 20px #007ABF40" }}>
                   <ShoppingCart size={14} /> Nuevo pedido
                 </Link>
                 <button onClick={() => fetchOrders(true)} disabled={refreshing}
-                  style={{ padding: "10px 16px", borderRadius: "12px", border: "1px solid #2a2a42", background: "transparent", color: "#a78bfa", fontSize: "13px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", fontFamily: "inherit" }}>
+                  style={{ padding: "10px 16px", borderRadius: "12px", border: "1px solid #2a2a42", background: "transparent", color: "#56B4E0", fontSize: "13px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", fontFamily: "inherit" }}>
                   <RefreshCw size={13} style={{ animation: refreshing ? "spin 0.8s linear infinite" : "none" }} />
                   {refreshing ? "Actualizando..." : "Actualizar"}
                 </button>
@@ -204,7 +204,7 @@ export default function OrdersPage() {
           {/* Stats */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", marginBottom: "24px" }}>
             {[
-              { label: "Total pedidos", value: stats.total, color: "#a78bfa", border: "#a78bfa30" },
+              { label: "Total pedidos", value: stats.total, color: "#56B4E0", border: "#56B4E030" },
               { label: "Activos", value: stats.active, color: "#fbbf24", border: "#fbbf2430" },
               { label: "Completados", value: stats.completed, color: "#34d399", border: "#34d39930" },
               { label: "Total gastado", value: `$${stats.spent.toFixed(2)}`, color: "#60a5fa", border: "#60a5fa30" },
@@ -234,7 +234,7 @@ export default function OrdersPage() {
                 const cfg = s !== "all" ? STATUS_CONFIG[s] : null;
                 return (
                   <button key={s} onClick={() => setStatusFilter(s)}
-                    style={{ padding: "5px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, border: "1px solid", borderColor: active ? (cfg?.color || "#7c3aed") : "#2d2d44", background: active ? ((cfg?.color || "#7c3aed") + "20") : "transparent", color: active ? (cfg?.color || "#a78bfa") : "#64748b", cursor: "pointer" }}>
+                    style={{ padding: "5px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, border: "1px solid", borderColor: active ? (cfg?.color || "#007ABF") : "#2d2d44", background: active ? ((cfg?.color || "#007ABF") + "20") : "transparent", color: active ? (cfg?.color || "#56B4E0") : "#64748b", cursor: "pointer" }}>
                     {s === "all" ? "Todos" : STATUS_CONFIG[s].label}
                   </button>
                 );
@@ -250,7 +250,7 @@ export default function OrdersPage() {
                 {orders.length === 0 ? (
                   <>
                     <p style={{ fontSize: "15px", marginBottom: "8px" }}>Aún no tienes pedidos</p>
-                    <Link href="/smm/services" style={{ display: "inline-block", marginTop: "12px", padding: "9px 18px", background: "#7c3aed", borderRadius: "8px", color: "white", fontSize: "13px", fontWeight: 500 }}>
+                    <Link href="/smm/services" style={{ display: "inline-block", marginTop: "12px", padding: "9px 18px", background: "#007ABF", borderRadius: "8px", color: "white", fontSize: "13px", fontWeight: 500 }}>
                       Explorar servicios
                     </Link>
                   </>
@@ -285,7 +285,7 @@ export default function OrdersPage() {
                             </td>
                             <td style={{ padding: "13px 18px" }}>
                               <p style={{ fontSize: "13px", color: "white", fontWeight: 500, maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{order.service_name}</p>
-                              <p style={{ fontSize: "11px", color: "#7c3aed" }}>{order.category}</p>
+                              <p style={{ fontSize: "11px", color: "#007ABF" }}>{order.category}</p>
                             </td>
                             <td style={{ padding: "13px 18px" }}>
                               <a href={order.link} target="_blank" rel="noreferrer"
@@ -302,7 +302,7 @@ export default function OrdersPage() {
                             </td>
                             <td style={{ padding: "13px 18px", minWidth: "100px" }}>
                               <div style={{ height: "6px", background: "#2d2d44", borderRadius: "3px", overflow: "hidden" }}>
-                                <div style={{ height: "100%", width: `${progress}%`, background: order.status === "completed" ? "#34d399" : order.status === "canceled" ? "#f87171" : "#a78bfa", borderRadius: "3px", transition: "width 0.4s" }} />
+                                <div style={{ height: "100%", width: `${progress}%`, background: order.status === "completed" ? "#34d399" : order.status === "canceled" ? "#f87171" : "#56B4E0", borderRadius: "3px", transition: "width 0.4s" }} />
                               </div>
                               <p style={{ fontSize: "10px", color: "#64748b", marginTop: "3px" }}>{Math.round(progress)}%</p>
                             </td>

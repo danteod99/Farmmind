@@ -13,11 +13,11 @@
   --border-2:     #2a2a42;
 
   /* ── Accent purple ── */
-  --accent:       #7c3aed;
-  --accent-2:     #6d28d9;
-  --accent-3:     #8b5cf6;
-  --accent-light: #a78bfa;
-  --accent-glow:  #7c3aed35;
+  --accent:       #007ABF;
+  --accent-2:     #005F96;
+  --accent-3:     #1E90D4;
+  --accent-light: #56B4E0;
+  --accent-glow:  #007ABF35;
 
   /* ── Typography ── */
   --foreground: #f0efff;
@@ -70,7 +70,7 @@ a { text-decoration: none; color: inherit; }
 
 /* ── Gradient text utility ── */
 .text-gradient {
-  background: linear-gradient(135deg, #c4b5fd, #7c3aed);
+  background: linear-gradient(135deg, #88D0F0, #007ABF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

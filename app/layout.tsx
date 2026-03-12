@@ -20,7 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FarmMind AI — Tu Agente de Granja de Bots",
+  title: "TRUST MIND AI — Tu Agente de Granja de Bots",
   description: "Agente AI especializado en granjas de bots. Gestiona GenFarmer, proxies y dispositivos desde un chat.",
 };
 

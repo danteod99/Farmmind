@@ -4,7 +4,7 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const FARMMIND_SYSTEM_PROMPT = `Eres FarmMind, el agente AI más avanzado para operadores de granjas de bots (BoxPhoneFarm). Eres el asistente técnico de confianza para la comunidad Artificial Humans.
+const FARMMIND_SYSTEM_PROMPT = `Eres TRUST MIND, el agente AI más avanzado para operadores de granjas de bots (BoxPhoneFarm). Eres el asistente técnico de confianza para la comunidad Artificial Humans.
 
 ## Conocimiento técnico detallado:
 

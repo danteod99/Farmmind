@@ -87,7 +87,7 @@ function getPlatformColor(category: string): string {
   for (const [key, val] of Object.entries(PLATFORM_COLORS)) {
     if (category.toLowerCase().includes(key.toLowerCase())) return val.color;
   }
-  return "#7c3aed";
+  return "#007ABF";
 }
 
 export default function ServicesPage() {
@@ -203,7 +203,7 @@ export default function ServicesPage() {
   if (loading) {
     return (
       <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center", background: "#07070e", flexDirection: "column", gap: "16px" }}>
-        <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "3px solid #7c3aed30", borderTopColor: "#7c3aed", animation: "spin 0.8s linear infinite" }} />
+        <div style={{ width: "48px", height: "48px", borderRadius: "50%", border: "3px solid #007ABF30", borderTopColor: "#007ABF", animation: "spin 0.8s linear infinite" }} />
         <p style={{ color: "#5a6480", fontSize: "13px", fontWeight: 500 }}>Cargando catálogo...</p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -222,8 +222,8 @@ export default function ServicesPage() {
 
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse-glow {
-          0%, 100% { box-shadow: 0 0 12px #7c3aed40; }
-          50% { box-shadow: 0 0 28px #7c3aed80, 0 0 50px #7c3aed25; }
+          0%, 100% { box-shadow: 0 0 12px #007ABF40; }
+          50% { box-shadow: 0 0 28px #007ABF80, 0 0 50px #007ABF25; }
         }
         @keyframes float {
           0%, 100% { transform: translateY(0); }
@@ -234,16 +234,16 @@ export default function ServicesPage() {
           to { opacity: 1; transform: translateY(0); }
         }
 
-        .nav-link:hover { color: #c4b5fd !important; background: #7c3aed15 !important; }
+        .nav-link:hover { color: #88D0F0 !important; background: #007ABF15 !important; }
         .cat-pill { transition: all 0.15s ease; cursor: pointer; }
         .cat-pill:hover { transform: scale(1.05); }
         .premium-card { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease !important; }
         .premium-card:hover { transform: translateY(-5px) !important; }
         .service-card { transition: all 0.15s ease !important; }
-        .service-card:hover { background: #110c1e !important; border-color: #7c3aed !important; transform: translateY(-2px); box-shadow: 0 8px 30px #7c3aed20 !important; }
-        .order-btn:hover { background: linear-gradient(135deg, #8b5cf6, #7c3aed) !important; transform: scale(1.03) !important; box-shadow: 0 0 20px #7c3aed60 !important; }
-        .search-input:focus { border-color: #7c3aed70 !important; box-shadow: 0 0 0 3px #7c3aed15 !important; }
-        .toggle-btn:hover { border-color: #7c3aed !important; background: #7c3aed18 !important; }
+        .service-card:hover { background: #000C18 !important; border-color: #007ABF !important; transform: translateY(-2px); box-shadow: 0 8px 30px #007ABF20 !important; }
+        .order-btn:hover { background: linear-gradient(135deg, #1E90D4, #007ABF) !important; transform: scale(1.03) !important; box-shadow: 0 0 20px #007ABF60 !important; }
+        .search-input:focus { border-color: #007ABF70 !important; box-shadow: 0 0 0 3px #007ABF15 !important; }
+        .toggle-btn:hover { border-color: #007ABF !important; background: #007ABF18 !important; }
         .whatsapp-btn:hover { background: #20bd5a !important; box-shadow: 0 4px 20px #25d36650 !important; }
 
         @media (max-width: 768px) {
@@ -274,7 +274,7 @@ export default function ServicesPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <Link href="/" style={{ display: "flex", alignItems: "center" }}>
               <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(6px)" }} />
+                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(6px)" }} />
                 <FarmMindLogo size={34} />
               </div>
             </Link>
@@ -292,9 +292,9 @@ export default function ServicesPage() {
                   style={{
                     padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s",
                     fontWeight: item.active ? 700 : 500,
-                    color: item.active ? "#c4b5fd" : "#5a6480",
-                    background: item.active ? "#7c3aed20" : "transparent",
-                    border: `1px solid ${item.active ? "#7c3aed40" : "transparent"}`,
+                    color: item.active ? "#88D0F0" : "#5a6480",
+                    background: item.active ? "#007ABF20" : "transparent",
+                    border: `1px solid ${item.active ? "#007ABF40" : "transparent"}`,
                   }}>
                   {item.label}
                 </Link>
@@ -318,51 +318,51 @@ export default function ServicesPage() {
         {/* ━━━ HERO BANNER ━━━ */}
         <div className="svc-hero" style={{
           position: "relative", overflow: "hidden",
-          background: "linear-gradient(160deg, #0e0125 0%, #1b0545 35%, #0c0120 65%, #07070e 100%)",
-          borderBottom: "1px solid #2d1060",
+          background: "linear-gradient(160deg, #000C18 0%, #001530 35%, #000A14 65%, #07070e 100%)",
+          borderBottom: "1px solid #002860",
           padding: "52px 28px 44px",
         }}>
           {/* Decorative background orbs */}
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-            <div style={{ position: "absolute", top: "-100px", right: "-60px", width: "420px", height: "420px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55 0%, transparent 65%)", filter: "blur(60px)" }} />
+            <div style={{ position: "absolute", top: "-100px", right: "-60px", width: "420px", height: "420px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55 0%, transparent 65%)", filter: "blur(60px)" }} />
             <div style={{ position: "absolute", bottom: "-80px", left: "25%", width: "280px", height: "280px", borderRadius: "50%", background: "radial-gradient(circle, #a855f730 0%, transparent 70%)", filter: "blur(50px)" }} />
-            <div style={{ position: "absolute", top: "30px", left: "10%", width: "160px", height: "160px", borderRadius: "50%", background: "radial-gradient(circle, #6d28d920 0%, transparent 70%)", filter: "blur(40px)" }} />
+            <div style={{ position: "absolute", top: "30px", left: "10%", width: "160px", height: "160px", borderRadius: "50%", background: "radial-gradient(circle, #005F9620 0%, transparent 70%)", filter: "blur(40px)" }} />
             {/* Grid lines */}
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(#7c3aed08 1px, transparent 1px), linear-gradient(90deg, #7c3aed08 1px, transparent 1px)", backgroundSize: "60px 60px", maskImage: "radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)" }} />
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(#007ABF08 1px, transparent 1px), linear-gradient(90deg, #007ABF08 1px, transparent 1px)", backgroundSize: "60px 60px", maskImage: "radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 100%)" }} />
           </div>
 
           <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
             {/* Back link */}
-            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#8b5cf6", fontWeight: 600, marginBottom: "20px", padding: "5px 12px", borderRadius: "8px", background: "#7c3aed18", border: "1px solid #7c3aed30" }}>
+            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#1E90D4", fontWeight: 600, marginBottom: "20px", padding: "5px 12px", borderRadius: "8px", background: "#007ABF18", border: "1px solid #007ABF30" }}>
               <ArrowLeft size={12} /> Dashboard
             </Link>
 
             <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "24px" }}>
               <div>
                 {/* Tag */}
-                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", borderRadius: "20px", background: "linear-gradient(135deg, #7c3aed25, #a855f715)", border: "1px solid #7c3aed50", marginBottom: "16px" }}>
-                  <Zap size={11} color="#a78bfa" />
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#a78bfa", letterSpacing: "0.8px", textTransform: "uppercase" }}>Catálogo SMM</span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", borderRadius: "20px", background: "linear-gradient(135deg, #007ABF25, #a855f715)", border: "1px solid #007ABF50", marginBottom: "16px" }}>
+                  <Zap size={11} color="#56B4E0" />
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#56B4E0", letterSpacing: "0.8px", textTransform: "uppercase" }}>Catálogo SMM</span>
                 </div>
 
                 {/* Heading */}
                 <h1 style={{ fontSize: "48px", fontWeight: 800, color: "white", letterSpacing: "-1.5px", lineHeight: "1.02", marginBottom: "14px" }}>
                   Impulsa tus<br />
-                  <span style={{ background: "linear-gradient(90deg, #e9d5ff 0%, #a855f7 40%, #7c3aed 80%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                  <span style={{ background: "linear-gradient(90deg, #e9d5ff 0%, #a855f7 40%, #007ABF 80%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                     redes sociales.
                   </span>
                 </h1>
 
                 <p style={{ fontSize: "15px", color: "#8892a4", lineHeight: "1.7", maxWidth: "520px" }}>
                   {services.length > 0 ? (
-                    <><strong style={{ color: "#c4b5fd" }}>{services.length.toLocaleString()} servicios SMM</strong> + cuentas premium exclusivas. Entrega rápida garantizada.</>
+                    <><strong style={{ color: "#88D0F0" }}>{services.length.toLocaleString()} servicios SMM</strong> + cuentas premium exclusivas. Entrega rápida garantizada.</>
                   ) : "Catálogo completo de servicios SMM. Entrega rápida garantizada."}
                 </p>
               </div>
 
               {/* Platform filter pills */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxWidth: "420px" }}>
-                {[{ name: "all", label: "✦ Todos", color: "#7c3aed", glow: "#7c3aed" }, ...POPULAR_CATEGORIES.map((c) => ({ name: c, label: c, color: PLATFORM_COLORS[c].color, glow: PLATFORM_COLORS[c].glow }))].map((cat) => {
+                {[{ name: "all", label: "✦ Todos", color: "#007ABF", glow: "#007ABF" }, ...POPULAR_CATEGORIES.map((c) => ({ name: c, label: c, color: PLATFORM_COLORS[c].color, glow: PLATFORM_COLORS[c].glow }))].map((cat) => {
                   const active = selectedCategory === cat.name;
                   return (
                     <button key={cat.name} onClick={() => setSelectedCategory(active && cat.name !== "all" ? "all" : cat.name)}
@@ -485,7 +485,7 @@ export default function ServicesPage() {
           <section>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg, #7c3aed, #6d28d9)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px #7c3aed50", animation: "pulse-glow 3s ease infinite", flexShrink: 0 }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg, #007ABF, #005F96)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px #007ABF50", animation: "pulse-glow 3s ease infinite", flexShrink: 0 }}>
                   <Zap size={18} color="white" />
                 </div>
                 <div>
@@ -500,7 +500,7 @@ export default function ServicesPage() {
 
               {!search && selectedCategory === "all" && (
                 <button onClick={() => setShowAllJAP(!showAllJAP)} className="toggle-btn"
-                  style={{ padding: "9px 18px", borderRadius: "10px", border: "1px solid #2a2a42", background: "transparent", color: "#a78bfa", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", transition: "all 0.15s", fontFamily: "inherit" }}>
+                  style={{ padding: "9px 18px", borderRadius: "10px", border: "1px solid #2a2a42", background: "transparent", color: "#56B4E0", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", transition: "all 0.15s", fontFamily: "inherit" }}>
                   <ChevronDown size={13} style={{ transform: showAllJAP ? "rotate(180deg)" : "none", transition: "transform 0.25s" }} />
                   {showAllJAP ? "Ver menos" : `Ver todos (${services.length.toLocaleString()})`}
                 </button>
@@ -559,7 +559,7 @@ export default function ServicesPage() {
                       <div style={{ padding: "10px 18px 14px", borderTop: "1px solid #141424", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <span style={{ fontSize: "11px", color: "#3d4a5c", fontWeight: 500 }}>{service.type}</span>
                         <button onClick={() => openModal(service)} className="order-btn"
-                          style={{ background: "linear-gradient(135deg, #7c3aed, #6d28d9)", border: "none", borderRadius: "9px", padding: "8px 18px", color: "white", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 14px #7c3aed35", transition: "all 0.15s", fontFamily: "inherit" }}>
+                          style={{ background: "linear-gradient(135deg, #007ABF, #005F96)", border: "none", borderRadius: "9px", padding: "8px 18px", color: "white", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 14px #007ABF35", transition: "all 0.15s", fontFamily: "inherit" }}>
                           <ShoppingCart size={12} /> Ordenar
                         </button>
                       </div>
@@ -612,9 +612,9 @@ export default function ServicesPage() {
                 style={{ width: "100%", background: "#07070e", border: "1px solid #1e1e30", borderRadius: "12px", padding: "11px 14px", color: "white", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
             </div>
 
-            <div style={{ background: "linear-gradient(135deg, #7c3aed18, #a855f710)", border: "1px solid #7c3aed30", borderRadius: "12px", padding: "14px 18px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "linear-gradient(135deg, #007ABF18, #a855f710)", border: "1px solid #007ABF30", borderRadius: "12px", padding: "14px 18px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
-                <p style={{ fontSize: "11px", color: "#8b5cf6", fontWeight: 600, marginBottom: "4px" }}>Costo estimado</p>
+                <p style={{ fontSize: "11px", color: "#1E90D4", fontWeight: 600, marginBottom: "4px" }}>Costo estimado</p>
                 <p style={{ fontSize: "24px", fontWeight: 800, color: "white", letterSpacing: "-0.5px" }}>${calcCost(modal.service, modal.quantity)}</p>
               </div>
               <div style={{ textAlign: "right" }}>
@@ -638,7 +638,7 @@ export default function ServicesPage() {
                 Cancelar
               </button>
               <button onClick={placeOrder} disabled={placing}
-                style={{ flex: 2, padding: "13px", borderRadius: "12px", border: "none", background: placing ? "#5b21b6" : "linear-gradient(135deg, #7c3aed, #6d28d9)", color: "white", fontSize: "14px", fontWeight: 700, cursor: placing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: placing ? "none" : "0 4px 20px #7c3aed40", fontFamily: "inherit" }}>
+                style={{ flex: 2, padding: "13px", borderRadius: "12px", border: "none", background: placing ? "#5b21b6" : "linear-gradient(135deg, #007ABF, #005F96)", color: "white", fontSize: "14px", fontWeight: 700, cursor: placing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: placing ? "none" : "0 4px 20px #007ABF40", fontFamily: "inherit" }}>
                 {placing
                   ? <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid #ffffff50", borderTopColor: "white", animation: "spin 0.6s linear infinite" }} /> Procesando...</>
                   : <><Zap size={14} /> Confirmar pedido</>
@@ -712,8 +712,8 @@ export default function ServicesPage() {
         position: "fixed", bottom: "24px", right: "24px", zIndex: 60,
         display: "flex", alignItems: "center", gap: "10px",
         padding: "12px 20px", borderRadius: "100px",
-        background: "linear-gradient(135deg, #7c3aed, #4f46e5)",
-        boxShadow: "0 0 0 1px #7c3aed80, 0 8px 32px #7c3aed50",
+        background: "linear-gradient(135deg, #007ABF, #005FA4)",
+        boxShadow: "0 0 0 1px #007ABF80, 0 8px 32px #007ABF50",
         color: "white", fontWeight: 700, fontSize: "14px",
         textDecoration: "none",
         animation: "pulse-glow 2.5s ease-in-out infinite",
