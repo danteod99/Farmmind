@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
-import { ShoppingCart, Clock, DollarSign, TrendingUp, Plus, ArrowRight, Bot, LogOut, Zap, CheckCircle, AlertCircle, Loader } from "lucide-react";
+import { ShoppingCart, Clock, DollarSign, TrendingUp, Plus, ArrowRight, LogOut, Zap, CheckCircle, AlertCircle, Loader } from "lucide-react";
+import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
 interface Order {
   id: string;
@@ -115,11 +116,11 @@ export default function SMMDashboard() {
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ width: "38px", height: "38px", borderRadius: "12px", background: "linear-gradient(135deg, #7c3aed, #5b21b6)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px #7c3aed50" }}>
-                <Bot size={18} color="white" />
+            <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #7c3aed55, transparent 70%)", filter: "blur(6px)" }} />
+                <FarmMindLogo size={34} />
               </div>
-              <span style={{ fontWeight: 800, color: "white", fontSize: "15px", letterSpacing: "-0.3px" }}>FarmMind</span>
             </Link>
             <div style={{ width: "1px", height: "22px", background: "#1e1e30" }} />
             <div style={{ display: "flex", gap: "2px" }}>
