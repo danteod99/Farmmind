@@ -352,7 +352,7 @@ export default function ServicesPage() {
 
               {/* Platform filter pills */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxWidth: "420px" }}>
-                {[{ name: "all", label: "✦ Todos", color: "#7c3aed", glow: "#7c3aed" }, ...POPULAR_CATEGORIES.map((c) => ({ name: c, label: c, ...PLATFORM_COLORS[c] }))].map((cat) => {
+                {[{ name: "all", label: "✦ Todos", color: "#7c3aed", glow: "#7c3aed" }, ...POPULAR_CATEGORIES.map((c) => ({ name: c, label: c, color: PLATFORM_COLORS[c].color, glow: PLATFORM_COLORS[c].glow }))].map((cat) => {
                   const active = selectedCategory === cat.name;
                   return (
                     <button key={cat.name} onClick={() => setSelectedCategory(active && cat.name !== "all" ? "all" : cat.name)}
