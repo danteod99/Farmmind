@@ -83,3 +83,41 @@ CREATE TRIGGER smm_orders_updated_at
 CREATE TRIGGER smm_balances_updated_at
   BEFORE UPDATE ON smm_balances
   FOR EACH ROW EXECUTE FUNCTION update_smm_updated_at();
+
+-- ============================
+-- Tabla: smm_transactions (historial de recargas crypto)
+-- Agregar DESPUÉS de ejecutar el schema inicial
+-- ============================
+
+CREATE TABLE IF NOT EXISTS smm_transactions (
+  id                UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id           UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  payment_id        TEXT,
+  amount            NUMERIC(12, 4) NOT NULL,
+  currency          TEXT DEFAULT 'usdttrc20',
+  status            TEXT DEFAULT 'waiting',
+  credited          BOOLEAN DEFAULT false,
+  actually_paid     NUMERIC(18, 8),
+  nowpayments_data  JSONB,
+  created_at        TIMESTAMPTZ DEFAULT NOW(),
+  updated_at        TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_smm_transactions_user_id    ON smm_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_smm_transactions_payment_id ON smm_transactions(payment_id);
+CREATE INDEX IF NOT EXISTS idx_smm_transactions_status     ON smm_transactions(status);
+
+ALTER TABLE smm_transactions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own transactions"
+  ON smm_transactions FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Service role can manage transactions"
+  ON smm_transactions FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+CREATE TRIGGER smm_transactions_updated_at
+  BEFORE UPDATE ON smm_transactions
+  FOR EACH ROW EXECUTE FUNCTION update_smm_updated_at();

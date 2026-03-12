@@ -135,6 +135,7 @@ export default function OrdersPage() {
                 { href: "/smm", label: "Dashboard", active: false },
                 { href: "/smm/services", label: "Servicios", active: false },
                 { href: "/smm/orders", label: "Mis pedidos", active: true },
+                { href: "/smm/funds", label: "Recargar", active: false },
               ].map((item) => (
                 <Link key={item.href} href={item.href} style={{ padding: "6px 12px", borderRadius: "8px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#a78bfa" : "#94a3b8", background: item.active ? "#7c3aed20" : "transparent" }}>
                   {item.label}
