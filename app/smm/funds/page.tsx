@@ -173,7 +173,7 @@ export default function FundsPage() {
         {/* Glassmorphism Navbar */}
         <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(124,58,237,0.15)", padding: "0 28px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
-            <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+            <Link href="/smm/services" style={{ display: "flex", alignItems: "center" }}>
               <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(6px)" }} />
                 <FarmMindLogo size={34} />

@@ -519,7 +519,7 @@ export default function ServicesPage() {
           display: "flex", alignItems: "center", justifyContent: "space-between",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <Link href="/" style={{ display: "flex", alignItems: "center" }}>
+            <Link href="/smm/services" style={{ display: "flex", alignItems: "center" }}>
               <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(6px)" }} />
                 <FarmMindLogo size={34} />

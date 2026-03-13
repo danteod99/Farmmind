@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles, ShoppingCart, Menu } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
@@ -391,6 +392,7 @@ function LoginScreen() {
 }
 
 export default function TrustMindChat() {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -639,6 +641,14 @@ export default function TrustMindChat() {
   }
 
   if (!user) return <LoginScreen />;
+
+  // Authenticated users go directly to the services page
+  router.replace("/smm/services");
+  return (
+    <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
+      <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+    </div>
+  );
 
   const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario";
   const userAvatar = user.user_metadata?.avatar_url;
