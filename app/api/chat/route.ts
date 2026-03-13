@@ -269,12 +269,10 @@ async function executeTool(
         status: "pending",
       });
 
-      // Deduct balance
-      await admin.from("smm_balances").upsert({
-        user_id: userId,
-        balance: userBalance - orderCost,
-        updated_at: new Date().toISOString(),
-      });
+      // Deduct balance — UPDATE directo para evitar bug de upsert sin onConflict
+      await admin.from("smm_balances")
+        .update({ balance: userBalance - orderCost, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
 
       return JSON.stringify({
         success: true,

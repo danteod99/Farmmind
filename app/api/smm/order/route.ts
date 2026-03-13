@@ -80,14 +80,11 @@ export async function POST(req: Request) {
       .select()
       .single();
 
-    // Descontar balance
+    // Descontar balance — UPDATE directo para evitar bug de upsert sin onConflict
     await admin
       .from("smm_balances")
-      .upsert({
-        user_id: user.id,
-        balance: userBalance - orderCost,
-        updated_at: new Date().toISOString(),
-      });
+      .update({ balance: userBalance - orderCost, updated_at: new Date().toISOString() })
+      .eq("user_id", user.id);
 
     return Response.json({ success: true, order, japOrderId: japResult.order });
   } catch (error) {
