@@ -186,6 +186,7 @@ export default function FundsPage() {
                 { href: "/smm/orders", label: "Mis pedidos" },
                 { href: "/smm/funds", label: "Recargar", active: true },
                 { href: "/smm/ai", label: "🤖 Asistente IA" },
+                { href: "/smm/reseller", label: "🔗 Revendedor" },
                 { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
               ].map((item) => (
                 <Link key={item.href} href={item.href}

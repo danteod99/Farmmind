@@ -4,6 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { Users, DollarSign, TrendingUp, LogOut, RefreshCw, Search, UserCheck, UserX, Clock, ChevronDown, ChevronUp, X } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
@@ -155,6 +156,10 @@ export default function AdminPage() {
           <span style={{ fontSize:"11px", fontWeight:700, color:"#f59e0b", letterSpacing:"1px", textTransform:"uppercase", padding:"3px 8px", background:"#f59e0b15", border:"1px solid #f59e0b30", borderRadius:"6px" }}>Admin Panel</span>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+          <Link href="/admin/resellers"
+            style={{ display:"flex", alignItems:"center", gap:"6px", padding:"6px 12px", borderRadius:"8px", background:"#34d39915", border:"1px solid #34d39930", color:"#34d399", fontSize:"12px", fontWeight:600, textDecoration:"none" }}>
+            🔗 Revendedores
+          </Link>
           <button onClick={() => loadData(true)} disabled={refreshing}
             style={{ display:"flex", alignItems:"center", gap:"6px", padding:"6px 12px", borderRadius:"8px", background:"#007ABF15", border:"1px solid #007ABF30", color:"#56B4E0", fontSize:"12px", fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
             <RefreshCw size={13} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} /> Actualizar

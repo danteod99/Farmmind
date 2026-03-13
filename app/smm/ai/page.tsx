@@ -136,6 +136,7 @@ export default function AIPage() {
     { href: "/smm/orders", label: "Pedidos" },
     { href: "/smm/funds", label: "Recargar" },
     { href: "/smm/ai", label: "🤖 Asistente IA", active: true },
+    { href: "/smm/reseller", label: "🔗 Revendedor" },
     { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
   ];
 

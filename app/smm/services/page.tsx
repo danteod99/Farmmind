@@ -534,6 +534,7 @@ export default function ServicesPage() {
                 { href: "/smm/orders", label: "Pedidos" },
                 { href: "/smm/funds", label: "Recargar" },
                 { href: "/smm/ai", label: "🤖 Asistente IA" },
+                { href: "/smm/reseller", label: "🔗 Revendedor" },
                 { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="nav-link"
