@@ -46,10 +46,8 @@ export default function SMMDashboard() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
-    setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
-    setUserAvatar(user.user_metadata?.avatar_url || "");
-    setUserEmail(user.email || "");
-    fetchData();
+    // Services is now the main entry point
+    router.replace("/smm/services");
   };
 
   const fetchData = async () => {

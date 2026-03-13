@@ -144,10 +144,10 @@ export default function OrdersPage() {
             <div style={{ width: "1px", height: "22px", background: "#1e1e30" }} />
             <div style={{ display: "flex", gap: "2px" }}>
               {[
-                { href: "/smm", label: "Dashboard" },
                 { href: "/smm/services", label: "Servicios" },
                 { href: "/smm/orders", label: "Pedidos", active: true },
                 { href: "/smm/funds", label: "Recargar" },
+                { href: "/smm/ai", label: "🤖 Asistente IA" },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="nav-link"
                   style={{ padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s", fontWeight: item.active ? 700 : 500, color: item.active ? "#88D0F0" : "#5a6480", background: item.active ? "#007ABF20" : "transparent", border: `1px solid ${item.active ? "#007ABF40" : "transparent"}` }}>

@@ -530,10 +530,10 @@ export default function ServicesPage() {
 
             <div className="svc-nav-links" style={{ display: "flex", gap: "2px" }}>
               {[
-                { href: "/smm", label: "Dashboard" },
                 { href: "/smm/services", label: "Servicios", active: true },
                 { href: "/smm/orders", label: "Pedidos" },
                 { href: "/smm/funds", label: "Recargar" },
+                { href: "/smm/ai", label: "🤖 Asistente IA" },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="nav-link"
                   style={{

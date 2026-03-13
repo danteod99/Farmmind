@@ -182,10 +182,10 @@ export default function FundsPage() {
             <div style={{ width: "1px", height: "22px", background: "rgba(124,58,237,0.3)" }} />
             <div className="funds-nav-links" style={{ display: "flex", gap: "2px" }}>
               {[
-                { href: "/smm", label: "Dashboard" },
                 { href: "/smm/services", label: "Servicios" },
                 { href: "/smm/orders", label: "Mis pedidos" },
                 { href: "/smm/funds", label: "Recargar", active: true },
+                { href: "/smm/ai", label: "🤖 Asistente IA" },
               ].map((item) => (
                 <Link key={item.href} href={item.href} style={{ padding: "7px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#88D0F0" : "#64748b", background: item.active ? "rgba(124,58,237,0.18)" : "transparent", border: item.active ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent", transition: "all 0.15s" }}>{item.label}</Link>
               ))}
