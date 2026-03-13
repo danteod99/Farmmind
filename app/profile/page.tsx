@@ -622,10 +622,10 @@ export default function ProfilePage() {
                   <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "8px", letterSpacing: "0.5px" }}>
                     <Globe size={11} style={{ display: "inline", marginRight: 5 }} />DOMINIO PERSONALIZADO
                   </label>
-                  <input className="focusable" type="text" value={editDomain} onChange={(e) => setEditDomain(e.target.value)} placeholder="panel.tudominio.com"
+                  <input className="focusable" type="text" value={editDomain} onChange={(e) => setEditDomain(e.target.value)} placeholder="miempresa.com"
                     style={{ width: "100%", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "12px", padding: "12px 16px", color: "white", fontSize: "15px", fontFamily: "inherit", boxSizing: "border-box", transition: "border-color 0.15s" }} />
                   <p style={{ margin: "6px 0 0", fontSize: "11px", color: "#5a6480" }}>
-                    Apunta un CNAME de tu dominio a <code style={{ color: "#56B4E0" }}>trustmind.online</code> y escribe el subdominio aquí.
+                    Tu dominio propio donde tus clientes verán tu empresa (ej: miempresa.com). Puedes apuntar tu dominio a Trust Mind desde el DNS de tu proveedor.
                   </p>
                 </div>
 

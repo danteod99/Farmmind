@@ -46,23 +46,36 @@ export async function POST(req: Request) {
     const creditAmount = parseFloat(amount);
 
     // Obtener balance actual
-    const { data: balance } = await admin
+    const { data: balanceRow, error: fetchError } = await admin
       .from("smm_balances")
       .select("balance")
       .eq("user_id", target_user_id)
       .single();
 
-    const currentBalance = balance?.balance || 0;
+    const currentBalance = Number(balanceRow?.balance ?? 0);
     const newBalance = currentBalance + creditAmount;
 
-    // Actualizar balance
-    await admin
-      .from("smm_balances")
-      .upsert({
-        user_id: target_user_id,
-        balance: newBalance,
-        updated_at: new Date().toISOString(),
-      });
+    let dbError;
+
+    if (balanceRow) {
+      // Fila existente → UPDATE directo
+      const { error } = await admin
+        .from("smm_balances")
+        .update({ balance: newBalance, updated_at: new Date().toISOString() })
+        .eq("user_id", target_user_id);
+      dbError = error;
+    } else {
+      // No existe → INSERT
+      const { error } = await admin
+        .from("smm_balances")
+        .insert({ user_id: target_user_id, balance: newBalance, updated_at: new Date().toISOString() });
+      dbError = error;
+    }
+
+    if (dbError) {
+      console.error("Error actualizando balance:", dbError);
+      return Response.json({ error: "Error al actualizar balance: " + dbError.message }, { status: 500 });
+    }
 
     // Registrar transacción manual
     await admin
@@ -77,7 +90,7 @@ export async function POST(req: Request) {
         nowpayments_data: { note: note || "Acreditación manual por administrador", admin: user.email },
       });
 
-    console.log(`Admin credit: user=${target_user_id}, +$${creditAmount}, admin=${user.email}, note=${note}`);
+    console.log(`Admin credit OK: user=${target_user_id}, +$${creditAmount}, prev=$${currentBalance}, new=$${newBalance}, admin=${user.email}`);
 
     return Response.json({
       success: true,
