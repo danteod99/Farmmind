@@ -261,6 +261,8 @@ export default function ServicesPage() {
   const [userAvatar, setUserAvatar] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [sortBy, setSortBy] = useState<"popular" | "price_asc" | "price_desc">("popular");
+  const [serviceOrderCounts, setServiceOrderCounts] = useState<Record<string, number>>({});
   const [modal, setModal] = useState<OrderModal | null>(null);
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
@@ -296,9 +298,10 @@ export default function ServicesPage() {
 
   const fetchData = async (userId: string) => {
     try {
-      const [servRes, ordRes] = await Promise.all([
+      const [servRes, ordRes, statsRes] = await Promise.all([
         fetch("/api/smm/services"),
         fetch("/api/smm/orders"),
+        fetch("/api/smm/service-stats"),
       ]);
       if (servRes.ok) {
         const data = await servRes.json();
@@ -308,6 +311,10 @@ export default function ServicesPage() {
       if (ordRes.ok) {
         const data = await ordRes.json();
         setBalance(data.balance || 0);
+      }
+      if (statsRes.ok) {
+        const data = await statsRes.json();
+        setServiceOrderCounts(data.counts || {});
       }
       void userId;
     } finally {
@@ -322,11 +329,12 @@ export default function ServicesPage() {
 
   const filtered = useMemo(() => {
     let list = services.filter((s) => {
-      // Fix: use contains match so "Instagram" pill matches "Instagram - Followers", etc.
       const matchCat = selectedCategory === "all" || s.category.toLowerCase().includes(selectedCategory.toLowerCase());
       const matchSearch = !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.category.toLowerCase().includes(search.toLowerCase());
       return matchCat && matchSearch;
     });
+
+    // Default view (no search, no category filter): show featured curated list
     if (!search && selectedCategory === "all" && !showAllJAP) {
       const featured: Service[] = [];
       for (const cat of FEATURED_CATEGORIES) {
@@ -334,10 +342,25 @@ export default function ServicesPage() {
         if (catServices.length > 0) featured.push(...catServices.slice(0, 3));
         if (featured.length >= 10) break;
       }
-      return featured.slice(0, 10);
+      list = featured.slice(0, 10);
     }
+
+    // Apply sorting
+    if (sortBy === "price_asc") {
+      list = [...list].sort((a, b) => parseFloat(a.rate) - parseFloat(b.rate));
+    } else if (sortBy === "price_desc") {
+      list = [...list].sort((a, b) => parseFloat(b.rate) - parseFloat(a.rate));
+    } else {
+      // popular: sort by global order count descending
+      list = [...list].sort((a, b) => {
+        const ca = serviceOrderCounts[String(a.service)] || 0;
+        const cb = serviceOrderCounts[String(b.service)] || 0;
+        return cb - ca;
+      });
+    }
+
     return list;
-  }, [services, selectedCategory, search, showAllJAP]);
+  }, [services, selectedCategory, search, showAllJAP, sortBy, serviceOrderCounts]);
 
   // Search suggestions: top 8 matching service names
   const suggestions = useMemo(() => {
@@ -700,6 +723,26 @@ export default function ServicesPage() {
                 </select>
                 <ChevronDown size={14} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480", pointerEvents: "none" }} />
               </div>
+
+              {/* Sort buttons */}
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {([
+                  { key: "popular",    label: "🔥 Más pedido" },
+                  { key: "price_asc",  label: "↑ Menor precio" },
+                  { key: "price_desc", label: "↓ Mayor precio" },
+                ] as const).map(({ key, label }) => (
+                  <button key={key} onClick={() => setSortBy(key)}
+                    style={{
+                      padding: "10px 16px", borderRadius: "14px", fontSize: "13px", fontWeight: sortBy === key ? 700 : 500, cursor: "pointer", border: "1px solid",
+                      background: sortBy === key ? "#007ABF20" : "transparent",
+                      borderColor: sortBy === key ? "#007ABF60" : "#1e1e30",
+                      color: sortBy === key ? "#56B4E0" : "#5a6480",
+                      transition: "all 0.15s",
+                    }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -789,6 +832,10 @@ export default function ServicesPage() {
                     {!search && selectedCategory === "all"
                       ? (showAllJAP ? `${services.length.toLocaleString()} servicios disponibles` : "Top 10 destacados")
                       : `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""}`}
+                    {" · "}
+                    <span style={{ color: "#56B4E0" }}>
+                      {sortBy === "popular" ? "🔥 Más pedido" : sortBy === "price_asc" ? "↑ Menor precio" : "↓ Mayor precio"}
+                    </span>
                   </p>
                 </div>
               </div>
