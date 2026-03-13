@@ -60,7 +60,8 @@ export default function AdminPage() {
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) { router.push("/"); return; }
+    if (!user) { router.push("/smm"); return; }
+    if (!ADMIN_EMAILS.includes(user.email || "")) { router.push("/smm"); return; }
     loadData();
   };
 

@@ -39,6 +39,7 @@ export default function SMMDashboard() {
   const [balance, setBalance] = useState(0);
   const [userName, setUserName] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -47,6 +48,7 @@ export default function SMMDashboard() {
     if (!user) { router.push("/"); return; }
     setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
     setUserAvatar(user.user_metadata?.avatar_url || "");
+    setUserEmail(user.email || "");
     fetchData();
   };
 
@@ -166,6 +168,11 @@ export default function SMMDashboard() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
               )}
             </Link>
+            {userEmail === "danteod99@gmail.com" && (
+              <Link href="/admin" style={{ padding: "6px 12px", borderRadius: "8px", background: "#1a0a2e", border: "1px solid #3a1a5e", color: "#a78bfa", fontSize: "12px", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
+                ⚙️ Admin
+              </Link>
+            )}
             <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
               style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
               <LogOut size={14} />
