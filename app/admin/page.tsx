@@ -2,338 +2,298 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
-import { Users, Crown, MessageSquare, DollarSign, TrendingUp, Bot, LogOut, RefreshCw, ArrowLeft } from "lucide-react";
+import { Users, DollarSign, TrendingUp, LogOut, RefreshCw, Search, UserCheck, UserX, Clock, ChevronDown, ChevronUp, X } from "lucide-react";
+import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
 const ADMIN_EMAILS = ["danteod99@gmail.com"];
 
 interface Stats {
-  totalUsers: number;
-  proUsers: number;
-  freeUsers: number;
-  totalMessages: number;
-  messagesThisMonth: number;
-  totalConversations: number;
-  estimatedRevenue: number;
+  totalUsers: number; buyers: number; nonBuyers: number;
+  totalRevenue: number; totalRecharged: number; newThisWeek: number;
 }
-
+interface RecentOrder { service_name: string; charge: number; status: string; created_at: string; }
 interface UserRow {
-  id: string;
-  email: string;
-  name: string;
-  avatar: string;
-  created_at: string;
-  plan: "free" | "pro";
-  subscription_status: string;
-  messages_this_month: number;
-  last_sign_in: string;
+  id: string; email: string; name: string; avatar: string;
+  created_at: string; last_sign_in: string | null;
+  balance: number; total_orders: number; total_spent: number;
+  total_recharged: number; last_order_at: string | null;
+  last_order_name: string | null; recent_orders: RecentOrder[];
 }
 
-function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string | number; sub?: string; color: string }) {
-  return (
-    <div className="rounded-2xl p-5" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
-        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: color + "20" }}>
-          <span style={{ color }}>{icon}</span>
-        </div>
-      </div>
-      <p className="text-3xl font-bold text-white">{value}</p>
-      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
-    </div>
-  );
+function fmt(d: string | null) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
 }
+function timeAgo(d: string | null) {
+  if (!d) return "—";
+  const diff = Date.now() - new Date(d).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 60) return `hace ${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `hace ${h}h`;
+  return `hace ${Math.floor(h / 24)}d`;
+}
+const SC: Record<string, string> = {
+  completed: "#34d399", inprogress: "#56B4E0", processing: "#f59e0b",
+  pending: "#8892a4", partial: "#a78bfa", canceled: "#f87171",
+};
+
+type SortCol = "created_at" | "total_spent" | "total_orders" | "balance";
 
 export default function AdminPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [users, setUsers] = useState<UserRow[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<"all" | "buyers" | "non-buyers" | "new">("all");
+  const [sortBy, setSortBy] = useState<SortCol>("created_at");
+  const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
-      router.push("/");
-      return;
-    }
-    setAuthorized(true);
-    fetchData();
+    if (!user || !ADMIN_EMAILS.includes(user.email || "")) { router.push("/"); return; }
+    loadData();
   };
 
-  const fetchData = async () => {
-    setRefreshing(true);
+  const loadData = async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true); else setLoading(true);
+    setError(null);
     try {
-      const res = await fetch("/api/admin/stats");
-      if (res.ok) {
-        const data = await res.json();
-        setStats(data.stats);
-        setUsers(data.users);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setRefreshing(false);
-      setLoading(false);
+      const res = await fetch("/api/admin/smm-users");
+      if (!res.ok) throw new Error("Error al cargar datos");
+      const data = await res.json();
+      setStats(data.stats); setUsers(data.users);
+    } catch (e) { setError(e instanceof Error ? e.message : "Error"); }
+    finally { setLoading(false); setRefreshing(false); }
+  };
+
+  const filtered = useMemo(() => {
+    let list = [...users];
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter((u) => u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q));
     }
+    if (filter === "buyers") list = list.filter((u) => u.total_orders > 0);
+    if (filter === "non-buyers") list = list.filter((u) => u.total_orders === 0);
+    if (filter === "new") {
+      const w = new Date(); w.setDate(w.getDate() - 7);
+      list = list.filter((u) => new Date(u.created_at) > w);
+    }
+    list.sort((a, b) => {
+      const va = a[sortBy] ?? 0; const vb = b[sortBy] ?? 0;
+      if (typeof va === "string" && typeof vb === "string")
+        return sortDir === "desc" ? vb.localeCompare(va) : va.localeCompare(vb);
+      return sortDir === "desc" ? Number(vb) - Number(va) : Number(va) - Number(vb);
+    });
+    return list;
+  }, [users, search, filter, sortBy, sortDir]);
+
+  const toggleSort = (col: SortCol) => {
+    if (sortBy === col) setSortDir((d) => d === "desc" ? "asc" : "desc");
+    else { setSortBy(col); setSortDir("desc"); }
   };
 
-  useEffect(() => {
-    checkAuth();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-  };
-
-  const filteredUsers = users.filter((u) =>
-    u.email?.toLowerCase().includes(search.toLowerCase()) ||
-    u.name?.toLowerCase().includes(search.toLowerCase())
+  if (loading) return (
+    <div style={{ height: "100vh", background: "#07070e", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: "12px" }}>
+      <div style={{ width: "36px", height: "36px", borderRadius: "50%", border: "3px solid #007ABF20", borderTopColor: "#56B4E0", animation: "spin 0.8s linear infinite" }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
   );
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "—";
-    return new Date(dateStr).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" });
-  };
-
-  const formatRelative = (dateStr: string) => {
-    if (!dateStr) return "Nunca";
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const days = Math.floor(diff / 86400000);
-    if (days === 0) return "Hoy";
-    if (days === 1) return "Ayer";
-    if (days < 7) return `Hace ${days} días`;
-    return formatDate(dateStr);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
-        <div className="text-center">
-          <div className="w-10 h-10 rounded-full border-2 border-purple-500 border-t-transparent animate-spin mx-auto mb-4" />
-          <p className="text-gray-400 text-sm">Cargando panel de admin...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!authorized) return null;
-
   return (
-    <>
+    <div style={{ minHeight: "100vh", background: "#07070e", color: "white", fontFamily: "system-ui,-apple-system,sans-serif" }}>
       <style>{`
-        :root { --background: #0a0a0f; --surface: #111118; --surface-2: #1a1a2e; --border: #2d2d44; --accent: #007ABF; --accent-light: #56B4E0; --foreground: #e2e8f0; }
-        body { background: var(--background); color: var(--foreground); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; }
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        .sc:hover{transform:translateY(-3px)!important;box-shadow:0 12px 40px #00000060!important}
+        .ur:hover{background:#0a0a14!important}
       `}</style>
 
-      <div className="min-h-screen" style={{ background: "var(--background)" }}>
+      {/* NAV */}
+      <nav style={{ position:"sticky", top:0, zIndex:50, borderBottom:"1px solid #0d1117", background:"rgba(7,7,14,0.97)", backdropFilter:"blur(12px)", padding:"0 28px", height:"56px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
+          <FarmMindLogo size={28} />
+          <div style={{ width:"1px", height:"20px", background:"#1e1e30" }} />
+          <span style={{ fontSize:"11px", fontWeight:700, color:"#f59e0b", letterSpacing:"1px", textTransform:"uppercase", padding:"3px 8px", background:"#f59e0b15", border:"1px solid #f59e0b30", borderRadius:"6px" }}>Admin Panel</span>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+          <button onClick={() => loadData(true)} disabled={refreshing}
+            style={{ display:"flex", alignItems:"center", gap:"6px", padding:"6px 12px", borderRadius:"8px", background:"#007ABF15", border:"1px solid #007ABF30", color:"#56B4E0", fontSize:"12px", fontWeight:600, cursor:"pointer", fontFamily:"inherit" }}>
+            <RefreshCw size={13} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} /> Actualizar
+          </button>
+          <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
+            style={{ width:"34px", height:"34px", borderRadius:"8px", background:"#1a1a2e", border:"1px solid #1e1e30", color:"#5a6480", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <LogOut size={14} />
+          </button>
+        </div>
+      </nav>
 
-        {/* Header */}
-        <div className="border-b px-6 py-4 flex items-center justify-between sticky top-0 z-10" style={{ background: "var(--surface)", borderColor: "var(--border)" }}>
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push("/")} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm">
-              <ArrowLeft size={16} />
-              Volver al chat
-            </button>
-            <div className="w-px h-5 bg-gray-700" />
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "var(--accent)" }}>
-                <Bot size={16} className="text-white" />
+      <div style={{ maxWidth:"1300px", margin:"0 auto", padding:"28px 24px", animation:"fi 0.5s ease-out" }}>
+
+        {/* STAT CARDS */}
+        {stats && (
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(175px,1fr))", gap:"14px", marginBottom:"28px" }}>
+            {[
+              { label:"Total Usuarios",   val: stats.totalUsers,                   icon:<Users size={17}/>,     color:"#56B4E0", sub:`+${stats.newThisWeek} esta semana` },
+              { label:"Compraron",        val: stats.buyers,                        icon:<UserCheck size={17}/>, color:"#34d399", sub:`${stats.totalUsers>0?Math.round(stats.buyers/stats.totalUsers*100):0}% del total` },
+              { label:"Sin compras",      val: stats.nonBuyers,                     icon:<UserX size={17}/>,     color:"#f87171", sub:"Usuarios inactivos" },
+              { label:"Revenue SMM",      val:`$${stats.totalRevenue.toFixed(2)}`,  icon:<DollarSign size={17}/>,color:"#a78bfa", sub:"Total gastado" },
+              { label:"Total Recargado",  val:`$${stats.totalRecharged.toFixed(2)}`,icon:<TrendingUp size={17}/>,color:"#f59e0b", sub:"Depósitos crypto" },
+              { label:"Nuevos 7d",        val: stats.newThisWeek,                   icon:<Clock size={17}/>,     color:"#00e5ff", sub:"Registros recientes" },
+            ].map((s) => (
+              <div key={s.label} className="sc" style={{ background:"#0d0d1a", border:"1px solid #1a1a2e", borderRadius:"14px", padding:"18px", transition:"all 0.2s" }}>
+                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"10px" }}>
+                  <span style={{ fontSize:"10px", fontWeight:700, color:"#5a6480", textTransform:"uppercase", letterSpacing:"0.5px" }}>{s.label}</span>
+                  <div style={{ width:"30px", height:"30px", borderRadius:"8px", background:`${s.color}15`, border:`1px solid ${s.color}30`, display:"flex", alignItems:"center", justifyContent:"center", color:s.color }}>{s.icon}</div>
+                </div>
+                <p style={{ fontSize:"26px", fontWeight:800, color:"white", letterSpacing:"-1px", lineHeight:"1" }}>{s.val}</p>
+                <p style={{ fontSize:"10px", color:"#3a3a5c", marginTop:"5px" }}>{s.sub}</p>
               </div>
-              <div>
-                <h1 className="font-bold text-white text-sm">TRUST MIND Admin</h1>
-                <p className="text-xs text-gray-500">Panel de administración</p>
-              </div>
-            </div>
+            ))}
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={fetchData}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-              style={{ background: "var(--surface-2)", color: "#94a3b8", border: "1px solid var(--border)" }}
-            >
-              <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
-              Actualizar
-            </button>
-            <button onClick={handleLogout} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors" style={{ background: "var(--surface-2)", color: "#f87171", border: "1px solid var(--border)" }}>
-              <LogOut size={13} />
-              Salir
-            </button>
+        )}
+
+        {/* SEARCH + FILTERS */}
+        <div style={{ display:"flex", gap:"10px", marginBottom:"16px", flexWrap:"wrap", alignItems:"center" }}>
+          <div style={{ position:"relative", flex:1, minWidth:"200px" }}>
+            <Search size={14} style={{ position:"absolute", left:"11px", top:"50%", transform:"translateY(-50%)", color:"#5a6480" }} />
+            <input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Buscar email o nombre..."
+              style={{ width:"100%", background:"#0d0d18", border:"1px solid #1e1e30", borderRadius:"9px", padding:"9px 11px 9px 32px", color:"white", fontSize:"13px", outline:"none", fontFamily:"inherit", boxSizing:"border-box" }} />
+            {search && <button onClick={()=>setSearch("")} style={{ position:"absolute", right:"9px", top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"#5a6480", cursor:"pointer" }}><X size={12}/></button>}
+          </div>
+          <div style={{ display:"flex", gap:"5px" }}>
+            {(["all","buyers","non-buyers","new"] as const).map((f)=>{
+              const lbl = { all:`Todos (${users.length})`, buyers:`Compraron (${stats?.buyers||0})`, "non-buyers":`Sin compras (${stats?.nonBuyers||0})`, new:`Nuevos (${stats?.newThisWeek||0})` };
+              const on = filter===f;
+              return <button key={f} onClick={()=>setFilter(f)}
+                style={{ padding:"7px 12px", borderRadius:"7px", border:`1px solid ${on?"#007ABF":"#1e1e30"}`, background:on?"#007ABF20":"transparent", color:on?"#88D0F0":"#5a6480", fontSize:"11px", fontWeight:on?700:500, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", transition:"all 0.15s" }}>
+                {lbl[f]}
+              </button>;
+            })}
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        {error && <div style={{ background:"#f8717115", border:"1px solid #f8717140", borderRadius:"10px", padding:"10px 14px", marginBottom:"16px", color:"#f87171", fontSize:"13px" }}>⚠️ {error}</div>}
 
-          {/* Stats Grid */}
-          {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <StatCard
-                icon={<Users size={18} />}
-                label="Usuarios totales"
-                value={stats.totalUsers}
-                sub={`${stats.freeUsers} free · ${stats.proUsers} pro`}
-                color="#56B4E0"
-              />
-              <StatCard
-                icon={<Crown size={18} />}
-                label="Usuarios Pro"
-                value={stats.proUsers}
-                sub={stats.totalUsers > 0 ? `${Math.round((stats.proUsers / stats.totalUsers) * 100)}% conversión` : "0% conversión"}
-                color="#fbbf24"
-              />
-              <StatCard
-                icon={<MessageSquare size={18} />}
-                label="Mensajes este mes"
-                value={stats.messagesThisMonth.toLocaleString()}
-                sub={`${stats.totalMessages.toLocaleString()} total`}
-                color="#34d399"
-              />
-              <StatCard
-                icon={<DollarSign size={18} />}
-                label="Ingresos estimados"
-                value={`$${stats.estimatedRevenue}`}
-                sub="USD / mes"
-                color="#60a5fa"
-              />
-            </div>
-          )}
-
-          {/* Extra stats row */}
-          {stats && (
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#56B4E020" }}>
-                  <TrendingUp size={18} style={{ color: "#56B4E0" }} />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Conversaciones totales</p>
-                  <p className="text-xl font-bold text-white">{stats.totalConversations}</p>
-                </div>
-              </div>
-              <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#34d39920" }}>
-                  <MessageSquare size={18} style={{ color: "#34d399" }} />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Msgs promedio / usuario</p>
-                  <p className="text-xl font-bold text-white">
-                    {stats.totalUsers > 0 ? Math.round(stats.messagesThisMonth / stats.totalUsers) : 0}
-                  </p>
-                </div>
-              </div>
-              <div className="rounded-2xl p-4 flex items-center gap-4" style={{ background: "linear-gradient(135deg, #1e1b4b, #2e1065)", border: "1px solid #4c1d95" }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#fbbf2420" }}>
-                  <Crown size={18} style={{ color: "#fbbf24" }} />
-                </div>
-                <div>
-                  <p className="text-xs text-purple-300">MRR objetivo</p>
-                  <p className="text-xl font-bold text-white">${stats.proUsers * 19} <span className="text-sm font-normal text-gray-400">/ mes</span></p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Users Table */}
-          <div className="rounded-2xl overflow-hidden" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-            <div className="px-6 py-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border)" }}>
-              <div>
-                <h2 className="font-semibold text-white">Usuarios</h2>
-                <p className="text-xs text-gray-500 mt-0.5">{users.length} usuarios registrados</p>
-              </div>
-              <input
-                type="text"
-                placeholder="Buscar usuario..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm text-white placeholder-gray-500 outline-none"
-                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", width: "220px" }}
-              />
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Usuario</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Plan</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Msgs este mes</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Último acceso</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Registro</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="text-center py-12 text-gray-500 text-sm">
-                        {search ? "No se encontraron usuarios" : "No hay usuarios registrados aún"}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredUsers
-                      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                      .map((u) => (
-                        <tr key={u.id} style={{ borderBottom: "1px solid var(--border)" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                        >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              {u.avatar ? (
-                                <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full" />
-                              ) : (
-                                <div className="w-8 h-8 rounded-full bg-purple-700 flex items-center justify-center text-white text-xs font-bold">
-                                  {u.name?.[0]?.toUpperCase() || "?"}
-                                </div>
-                              )}
-                              <div>
-                                <p className="text-sm font-medium text-white">{u.name}</p>
-                                <p className="text-xs text-gray-500">{u.email}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            {u.plan === "pro" ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold" style={{ background: "#fbbf2420", color: "#fbbf24", border: "1px solid #fbbf2440" }}>
-                                <Crown size={10} /> Pro
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold" style={{ background: "#2d2d44", color: "#94a3b8" }}>
-                                Free
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <div className="h-1.5 w-20 rounded-full" style={{ background: "var(--border)" }}>
-                                <div
-                                  className="h-1.5 rounded-full"
-                                  style={{
-                                    background: u.plan === "pro" ? "#34d399" : "#56B4E0",
-                                    width: u.plan === "pro" ? "100%" : `${Math.min(100, (u.messages_this_month / 30) * 100)}%`,
-                                  }}
-                                />
-                              </div>
-                              <span className="text-sm text-white">{u.messages_this_month}</span>
-                              {u.plan !== "pro" && <span className="text-xs text-gray-500">/ 30</span>}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-400">{formatRelative(u.last_sign_in)}</td>
-                          <td className="px-6 py-4 text-sm text-gray-400">{formatDate(u.created_at)}</td>
-                        </tr>
-                      ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+        {/* TABLE */}
+        <div style={{ background:"#0a0a14", border:"1px solid #1a1a2e", borderRadius:"14px", overflow:"hidden" }}>
+          {/* Header */}
+          <div style={{ display:"grid", gridTemplateColumns:"2.2fr 0.9fr 0.8fr 0.7fr 0.9fr 0.8fr", gap:"10px", padding:"11px 18px", borderBottom:"1px solid #1a1a2e", background:"#07070e" }}>
+            {([["Usuario",null],["Registro","created_at"],["Balance","balance"],["Pedidos","total_orders"],["Gastado","total_spent"],["Último acceso",null]] as [string, SortCol|null][]).map(([lbl,col])=>(
+              <button key={lbl} onClick={()=>col&&toggleSort(col)}
+                style={{ background:"none", border:"none", color:col&&sortBy===col?"#88D0F0":"#3a3a5c", fontSize:"10px", fontWeight:700, cursor:col?"pointer":"default", fontFamily:"inherit", textTransform:"uppercase", letterSpacing:"0.5px", display:"flex", alignItems:"center", gap:"3px", padding:0 }}>
+                {lbl} {col&&sortBy===col&&(sortDir==="desc"?<ChevronDown size={11}/>:<ChevronUp size={11}/>)}
+              </button>
+            ))}
           </div>
+
+          {/* Rows */}
+          {filtered.length===0 ? (
+            <div style={{ padding:"36px", textAlign:"center", color:"#3a3a5c", fontSize:"13px" }}>No se encontraron usuarios</div>
+          ) : filtered.map((u)=>{
+            const buyer = u.total_orders>0;
+            const exp = expanded===u.id;
+            return (
+              <div key={u.id}>
+                <div className="ur" onClick={()=>setExpanded(exp?null:u.id)}
+                  style={{ display:"grid", gridTemplateColumns:"2.2fr 0.9fr 0.8fr 0.7fr 0.9fr 0.8fr", gap:"10px", padding:"13px 18px", borderBottom:"1px solid #0d0d1a", cursor:"pointer", transition:"background 0.15s", alignItems:"center" }}>
+                  {/* User */}
+                  <div style={{ display:"flex", alignItems:"center", gap:"9px", minWidth:0 }}>
+                    {u.avatar
+                      ? <img src={u.avatar} alt="" style={{ width:"32px", height:"32px", borderRadius:"50%", objectFit:"cover", border:"2px solid #1e1e30", flexShrink:0 }}/>
+                      : <div style={{ width:"32px", height:"32px", borderRadius:"50%", background:"#1a1a2e", border:"2px solid #1e1e30", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><span style={{ fontSize:"12px", fontWeight:700, color:"#56B4E0" }}>{u.name[0]?.toUpperCase()}</span></div>
+                    }
+                    <div style={{ minWidth:0 }}>
+                      <p style={{ fontSize:"13px", fontWeight:600, color:"white", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.name}</p>
+                      <p style={{ fontSize:"11px", color:"#5a6480", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.email}</p>
+                    </div>
+                    <span style={{ padding:"2px 7px", borderRadius:"5px", background:buyer?"#34d39915":"#f8717115", border:`1px solid ${buyer?"#34d39930":"#f8717130"}`, fontSize:"9px", fontWeight:700, color:buyer?"#34d399":"#f87171", whiteSpace:"nowrap", flexShrink:0 }}>{buyer?"Comprador":"Sin compras"}</span>
+                  </div>
+                  <p style={{ fontSize:"12px", color:"#8892a4" }}>{fmt(u.created_at)}</p>
+                  <p style={{ fontSize:"13px", fontWeight:700, color:u.balance>0?"#34d399":"#3a3a5c" }}>${u.balance.toFixed(2)}</p>
+                  <p style={{ fontSize:"13px", fontWeight:700, color:u.total_orders>0?"#56B4E0":"#3a3a5c" }}>{u.total_orders}</p>
+                  <p style={{ fontSize:"13px", fontWeight:700, color:u.total_spent>0?"#a78bfa":"#3a3a5c" }}>${u.total_spent.toFixed(2)}</p>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                    <p style={{ fontSize:"11px", color:"#5a6480" }}>{timeAgo(u.last_sign_in)}</p>
+                    <div style={{ color:"#3a3a5c", transform:exp?"rotate(180deg)":"none", transition:"transform 0.2s" }}><ChevronDown size={13}/></div>
+                  </div>
+                </div>
+
+                {/* Expanded */}
+                {exp && (
+                  <div style={{ background:"#070710", borderBottom:"1px solid #0d0d1a", padding:"14px 18px 18px" }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))", gap:"14px" }}>
+                      {/* Info */}
+                      <div style={{ background:"#0a0a14", border:"1px solid #1a1a2e", borderRadius:"11px", padding:"13px" }}>
+                        <p style={{ fontSize:"10px", fontWeight:700, color:"#3a3a5c", marginBottom:"9px", textTransform:"uppercase", letterSpacing:"0.5px" }}>Datos del usuario</p>
+                        {[["ID",u.id.slice(0,12)+"..."],["Registro",fmt(u.created_at)],["Último acceso",fmt(u.last_sign_in)],["Balance","$"+u.balance.toFixed(4)],["Total recargado","$"+u.total_recharged.toFixed(2)]].map(([k,v])=>(
+                          <div key={k} style={{ display:"flex", justifyContent:"space-between", marginBottom:"5px" }}>
+                            <span style={{ fontSize:"11px", color:"#5a6480" }}>{k}</span>
+                            <span style={{ fontSize:"11px", color:"#8892a4", fontFamily:k==="ID"?"monospace":"inherit" }}>{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Orders */}
+                      <div style={{ background:"#0a0a14", border:"1px solid #1a1a2e", borderRadius:"11px", padding:"13px" }}>
+                        <p style={{ fontSize:"10px", fontWeight:700, color:"#3a3a5c", marginBottom:"9px", textTransform:"uppercase", letterSpacing:"0.5px" }}>Últimos pedidos</p>
+                        {u.recent_orders.length===0
+                          ? <p style={{ fontSize:"12px", color:"#3a3a5c" }}>Sin pedidos aún</p>
+                          : u.recent_orders.map((o,i)=>(
+                            <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"7px", gap:"8px" }}>
+                              <div style={{ minWidth:0 }}>
+                                <p style={{ fontSize:"12px", color:"white", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{o.service_name}</p>
+                                <p style={{ fontSize:"10px", color:"#5a6480" }}>{fmt(o.created_at)}</p>
+                              </div>
+                              <div style={{ display:"flex", alignItems:"center", gap:"5px", flexShrink:0 }}>
+                                <span style={{ fontSize:"12px", fontWeight:700, color:"#a78bfa" }}>${o.charge.toFixed(2)}</span>
+                                <span style={{ fontSize:"9px", padding:"1px 5px", borderRadius:"4px", background:`${SC[o.status]||"#5a6480"}20`, color:SC[o.status]||"#5a6480", fontWeight:700 }}>{o.status}</span>
+                              </div>
+                            </div>
+                          ))
+                        }
+                      </div>
+                      {/* Summary */}
+                      <div style={{ background:"#0a0a14", border:"1px solid #1a1a2e", borderRadius:"11px", padding:"13px" }}>
+                        <p style={{ fontSize:"10px", fontWeight:700, color:"#3a3a5c", marginBottom:"9px", textTransform:"uppercase", letterSpacing:"0.5px" }}>Resumen SMM</p>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"7px" }}>
+                          <span style={{ fontSize:"11px", color:"#5a6480" }}>Total pedidos</span>
+                          <span style={{ fontSize:"22px", fontWeight:800, color:"#56B4E0" }}>{u.total_orders}</span>
+                        </div>
+                        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"7px" }}>
+                          <span style={{ fontSize:"11px", color:"#5a6480" }}>Total gastado</span>
+                          <span style={{ fontSize:"22px", fontWeight:800, color:"#a78bfa" }}>${u.total_spent.toFixed(2)}</span>
+                        </div>
+                        <div style={{ display:"flex", justifyContent:"space-between", marginBottom:"10px" }}>
+                          <span style={{ fontSize:"11px", color:"#5a6480" }}>Último pedido</span>
+                          <span style={{ fontSize:"11px", color:"#8892a4" }}>{timeAgo(u.last_order_at)}</span>
+                        </div>
+                        <div style={{ padding:"7px 10px", borderRadius:"7px", background:buyer?"#34d39912":"#f8717112", border:`1px solid ${buyer?"#34d39930":"#f8717130"}`, textAlign:"center" }}>
+                          <span style={{ fontSize:"11px", fontWeight:700, color:buyer?"#34d399":"#f87171" }}>
+                            {buyer?"✅ Usuario comprador":"⚪ Aún no ha comprado"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
+
+        <p style={{ textAlign:"center", color:"#3a3a5c", fontSize:"11px", marginTop:"14px" }}>
+          Mostrando {filtered.length} de {users.length} usuarios
+        </p>
       </div>
-    </>
+    </div>
   );
 }
