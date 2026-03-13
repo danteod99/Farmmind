@@ -11,6 +11,7 @@ import {
   DollarSign, Users, ArrowLeft, Package, MessageCircle, Crown
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import ChatPopup from "@/app/components/ChatPopup";
 
 interface Service {
   service: number;
@@ -96,6 +97,8 @@ export default function ServicesPage() {
   const [placing, setPlacing] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [balance, setBalance] = useState(0);
+  const [userName, setUserName] = useState("");
+  const [userAvatar, setUserAvatar] = useState("");
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [modal, setModal] = useState<OrderModal | null>(null);
@@ -126,6 +129,8 @@ export default function ServicesPage() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
+    setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
+    setUserAvatar(user.user_metadata?.avatar_url || "");
     fetchData(user.id);
   };
 
@@ -362,12 +367,18 @@ export default function ServicesPage() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px" }}>
+            <Link href="/smm/funds" style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px", textDecoration: "none", cursor: "pointer" }}>
               <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399" }} />
               <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
-            </div>
-            <button
-              onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
+            </Link>
+            <Link href="/profile" style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", border: "2px solid #2a2a42", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a1a2e", flexShrink: 0, textDecoration: "none" }}>
+              {userAvatar ? (
+                <img src={userAvatar} alt={userName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              )}
+            </Link>
+            <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
               style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
               <LogOut size={14} />
             </button>
@@ -401,7 +412,7 @@ export default function ServicesPage() {
                 {/* Tag */}
                 <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", borderRadius: "20px", background: "linear-gradient(135deg, #007ABF25, #a855f715)", border: "1px solid #007ABF50", marginBottom: "16px" }}>
                   <Zap size={11} color="#56B4E0" />
-                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#56B4E0", letterSpacing: "0.8px", textTransform: "uppercase" }}>Catálogo SMM</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#56B4E0", letterSpacing: "0.8px", textTransform: "uppercase" }}>Catálogo Social Media</span>
                 </div>
 
                 {/* Heading */}
@@ -414,8 +425,8 @@ export default function ServicesPage() {
 
                 <p style={{ fontSize: "15px", color: "#8892a4", lineHeight: "1.7", maxWidth: "520px" }}>
                   {services.length > 0 ? (
-                    <><strong style={{ color: "#88D0F0" }}>{services.length.toLocaleString()} servicios SMM</strong> + cuentas premium exclusivas. Entrega rápida garantizada.</>
-                  ) : "Catálogo completo de servicios SMM. Entrega rápida garantizada."}
+                    <><strong style={{ color: "#88D0F0" }}>{services.length.toLocaleString()} servicios Social Media</strong> + cuentas premium exclusivas. Entrega rápida garantizada.</>
+                  ) : "Catálogo completo de Social Media. Entrega rápida garantizada."}
                 </p>
               </div>
 
@@ -448,7 +459,7 @@ export default function ServicesPage() {
           {/* ── TABS ── */}
           <div style={{ display: "flex", gap: "4px", marginBottom: "32px", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", padding: "5px" }}>
             {[
-              { id: "services", label: "⚡ Servicios SMM", count: services.length },
+              { id: "services", label: "⚡ Servicios Social Media", count: services.length },
               { id: "cuentas", label: "👑 Cuentas Premium", count: PREMIUM_ACCOUNTS.length },
             ].map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as "services" | "cuentas")}
@@ -613,7 +624,7 @@ export default function ServicesPage() {
                   <Zap size={18} color="white" />
                 </div>
                 <div>
-                  <h2 style={{ fontSize: "24px", fontWeight: 800, color: "white", letterSpacing: "-0.5px", lineHeight: "1.1" }}>Servicios SMM</h2>
+                  <h2 style={{ fontSize: "24px", fontWeight: 800, color: "white", letterSpacing: "-0.5px", lineHeight: "1.1" }}>Servicios Social Media</h2>
                   <p style={{ fontSize: "12px", color: "#5a6480", marginTop: "2px", fontWeight: 500 }}>
                     {!search && selectedCategory === "all"
                       ? (showAllJAP ? `${services.length.toLocaleString()} servicios disponibles` : "Top 10 destacados")
@@ -863,20 +874,7 @@ export default function ServicesPage() {
         </div>
       )}
 
-      {/* ── Floating AI button ── */}
-      <Link href="/" style={{
-        position: "fixed", bottom: "24px", right: "24px", zIndex: 60,
-        display: "flex", alignItems: "center", gap: "10px",
-        padding: "12px 20px", borderRadius: "100px",
-        background: "linear-gradient(135deg, #007ABF, #005FA4)",
-        boxShadow: "0 0 0 1px #007ABF80, 0 8px 32px #007ABF50",
-        color: "white", fontWeight: 700, fontSize: "14px",
-        textDecoration: "none",
-        animation: "pulse-glow 2.5s ease-in-out infinite",
-      }}>
-        <FarmMindLogo size={22} />
-        <span>Hablar con AI</span>
-      </Link>
+      <ChatPopup />
     </>
   );
 }

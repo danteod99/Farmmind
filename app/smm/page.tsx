@@ -8,6 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { ShoppingCart, Clock, DollarSign, TrendingUp, Plus, ArrowRight, LogOut, Zap, CheckCircle, AlertCircle, Loader } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import ChatPopup from "@/app/components/ChatPopup";
 
 interface Order {
   id: string;
@@ -154,13 +155,19 @@ export default function SMMDashboard() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px" }}>
+            <Link href="/smm/funds" style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px", textDecoration: "none", cursor: "pointer" }}>
               <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399" }} />
               <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
-            </div>
-            {userAvatar && <img src={userAvatar} alt={userName} style={{ width: "34px", height: "34px", borderRadius: "50%", border: "2px solid #2a2a42" }} />}
+            </Link>
+            <Link href="/profile" style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", border: "2px solid #2a2a42", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a1a2e", flexShrink: 0, textDecoration: "none" }}>
+              {userAvatar ? (
+                <img src={userAvatar} alt={userName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              )}
+            </Link>
             <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
-              style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
               <LogOut size={14} />
             </button>
           </div>
@@ -268,7 +275,7 @@ export default function SMMDashboard() {
                   <span style={{ fontSize: "10px", fontWeight: 700, color: "#56B4E0", letterSpacing: "0.5px" }}>NUEVO PEDIDO</span>
                 </div>
                 <p style={{ fontWeight: 800, color: "white", fontSize: "18px", letterSpacing: "-0.4px", lineHeight: "1.2" }}>Explorar catálogo</p>
-                <p style={{ fontSize: "13px", color: "#1E90D4", marginTop: "4px", fontWeight: 500 }}>SMM + Cuentas premium</p>
+                <p style={{ fontSize: "13px", color: "#1E90D4", marginTop: "4px", fontWeight: 500 }}>Social Media + Cuentas premium</p>
               </div>
               <div style={{ width: "52px", height: "52px", borderRadius: "16px", background: "linear-gradient(135deg, #007ABF, #005F96)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 24px #007ABF60", animation: "pulse-glow 3s ease infinite", flexShrink: 0, zIndex: 1 }}>
                 <Plus size={22} color="white" />
@@ -358,20 +365,7 @@ export default function SMMDashboard() {
         </div>
       </div>
 
-      {/* ── Floating AI button ── */}
-      <Link href="/" style={{
-        position: "fixed", bottom: "24px", right: "24px", zIndex: 60,
-        display: "flex", alignItems: "center", gap: "10px",
-        padding: "12px 20px", borderRadius: "100px",
-        background: "linear-gradient(135deg, #007ABF, #005FA4)",
-        boxShadow: "0 0 0 1px #007ABF80, 0 8px 32px #007ABF50",
-        color: "white", fontWeight: 700, fontSize: "14px",
-        textDecoration: "none",
-        animation: "pulse-glow 2.5s ease-in-out infinite",
-      }}>
-        <FarmMindLogo size={22} />
-        <span>Hablar con AI</span>
-      </Link>
+      <ChatPopup />
     </>
   );
 }

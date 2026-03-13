@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Pagos crypto no configurados aún. Contacta al administrador." }, { status: 503 });
     }
 
-    const origin = "https://trustmind-livid.vercel.app";
+    const origin = "https://www.trustmind.online";
 
     // Usar /v1/payment para obtener dirección crypto directa
     const npRes = await fetch("https://api.nowpayments.io/v1/payment", {

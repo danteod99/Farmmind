@@ -69,20 +69,19 @@ const FARMMIND_SYSTEM_PROMPT = `Eres TRUST MIND, el agente AI más avanzado para
 - Usa las herramientas disponibles para buscar servicios disponibles, consultar saldo y crear pedidos.
 - Formato de confirmación: "Voy a crear el siguiente pedido:\n- Servicio: [nombre]\n- Link: [url]\n- Cantidad: [n]\n- Costo: $[x]\n¿Confirmas? (s/n)"
 
-## Estilo de comunicación:
-- Español directo y técnico, como un colega experto
-- Siempre dar números concretos, no rangos vagos
-- Usar markdown: headers (##), listas (-), código (\`\`\`) para organizar respuestas
-- Diagnosticar causa raíz antes de dar solución
-- Emojis técnicos moderados: ⚙️ 🔧 📱 🌐 🚨 ✅ ⏱️ 🔄
+## Estilo de comunicación — MUY IMPORTANTE:
+- **RESPUESTAS CORTAS Y DIRECTAS**: Máximo 3-5 líneas por respuesta. Sin introducciones, sin relleno.
+- Ve directo al punto. Si la respuesta es un número o dato, dale solo eso.
+- Solo expandes si el usuario explícitamente pide más detalle.
+- Español técnico y casual, como un colega experto en chat.
+- Números concretos siempre (no rangos vagos).
+- Emojis mínimos: ✅ ⚙️ 🚨 solo cuando aporten claridad.
 
 ## Para ejecutar acciones:
-- Confirmar siempre: "Voy a ejecutar: [lista de acciones]. ¿Confirmas? (s/n)"
-- Si no hay conexión activa a herramientas, describir los pasos manuales exactos
-- NUNCA ejecutar acciones irreversibles sin confirmación explícita
-- Prioridad: no quemar cuentas > velocidad
+- Confirmar siempre: "Voy a ejecutar: [acción]. ¿Confirmas?"
+- NUNCA ejecutar acciones irreversibles sin confirmación explícita.
 
-Responde siempre con información técnica precisa, pasos accionables y datos concretos.`;
+Responde de forma ultra-concisa. Menos es más.`;
 
 // Tool definitions for SMM operations
 const SMM_TOOLS: Anthropic.Tool[] = [
@@ -172,7 +171,7 @@ async function executeTool(
     const limit = (toolInput.limit as number) || 5;
 
     // Fetch services from our API (includes markup)
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://farmmind-livid.vercel.app";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.trustmind.online";
     try {
       // We fetch internal services — use getServices from jap lib directly
       const { getServices } = await import("@/app/lib/jap");
@@ -383,10 +382,8 @@ export async function POST(req: Request) {
               const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
               for (const toolBlock of toolUseBlocks) {
-                // Notify client that a tool is being used
-                const toolMsg = JSON.stringify({
-                  text: `\n\n*⚙️ Ejecutando herramienta: ${toolBlock.name}...*\n\n`,
-                });
+                // Notify client that a tool is being used (special event, not text)
+                const toolMsg = JSON.stringify({ tool_loading: true, tool_name: toolBlock.name });
                 controller.enqueue(encoder.encode(`data: ${toolMsg}\n\n`));
 
                 const result = await executeTool(
@@ -401,6 +398,9 @@ export async function POST(req: Request) {
                   content: result,
                 });
               }
+
+              // Signal tool loading done before final response
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ tool_loading: false })}\n\n`));
 
               // Add assistant message with tool use to conversation
               currentMessages = [

@@ -11,6 +11,7 @@ import {
   ShoppingCart, ArrowLeft, ExternalLink, Search, Filter
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import ChatPopup from "@/app/components/ChatPopup";
 
 interface Order {
   id: string;
@@ -55,6 +56,8 @@ export default function OrdersPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [balance, setBalance] = useState(0);
+  const [userName, setUserName] = useState("");
+  const [userAvatar, setUserAvatar] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusKey | "all">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -67,6 +70,8 @@ export default function OrdersPage() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
+    setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
+    setUserAvatar(user.user_metadata?.avatar_url || "");
     fetchOrders();
   };
 
@@ -152,12 +157,19 @@ export default function OrdersPage() {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px" }}>
+            <Link href="/smm/funds" style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px", textDecoration: "none", cursor: "pointer" }}>
               <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399" }} />
               <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
-            </div>
+            </Link>
+            <Link href="/profile" style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", border: "2px solid #2a2a42", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a1a2e", flexShrink: 0, textDecoration: "none" }}>
+              {userAvatar ? (
+                <img src={userAvatar} alt={userName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              )}
+            </Link>
             <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
-              style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
               <LogOut size={14} />
             </button>
           </div>
@@ -352,22 +364,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* ── Floating AI button ── */}
-      <Link href="/" style={{
-        position: "fixed", bottom: "24px", right: "24px", zIndex: 60,
-        display: "flex", alignItems: "center", gap: "10px",
-        padding: "12px 20px", borderRadius: "100px",
-        background: "linear-gradient(135deg, #007ABF, #005FA4)",
-        boxShadow: "0 0 0 1px #007ABF80, 0 8px 32px #007ABF50",
-        color: "white", fontWeight: 700, fontSize: "14px",
-        textDecoration: "none",
-        animation: "pulse-glow 2.5s ease-in-out infinite",
-      }}>
-        <FarmMindLogo size={22} />
-        <span>Hablar con AI</span>
-      </Link>
-
-      <style>{`@keyframes pulse-glow { 0%,100% { box-shadow: 0 0 0 1px #007ABF80, 0 8px 32px #007ABF50; } 50% { box-shadow: 0 0 0 1px #007ABFcc, 0 8px 48px #007ABF80; } }`}</style>
+      <ChatPopup />
     </>
   );
 }

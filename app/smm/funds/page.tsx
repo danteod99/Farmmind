@@ -11,6 +11,7 @@ import {
   Clock, ExternalLink, Copy, Check, ShoppingCart, TrendingUp, AlertCircle
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import ChatPopup from "@/app/components/ChatPopup";
 
 const PRESET_AMOUNTS = [11, 20, 25, 50, 100, 200];
 const MIN_AMOUNT = 11;
@@ -44,7 +45,8 @@ export default function FundsPage() {
   const router = useRouter();
   const [balance, setBalance] = useState(0);
   const [userName, setUserName] = useState("");
-  const [amount, setAmount] = useState(10);
+  const [userAvatar, setUserAvatar] = useState("");
+  const [amount, setAmount] = useState(11);
   const [customAmount, setCustomAmount] = useState("");
   const [useCustom, setUseCustom] = useState(false);
   const [selectedCrypto, setSelectedCrypto] = useState("usdttrc20");
@@ -61,6 +63,7 @@ export default function FundsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
     setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
+    setUserAvatar(user.user_metadata?.avatar_url || "");
     fetchData();
   };
 
@@ -166,6 +169,13 @@ export default function FundsPage() {
               <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", animation: "pulse-glow 2s ease-in-out infinite" }} />
               <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
             </div>
+            <Link href="/profile" style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", border: "2px solid #2a2a42", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a1a2e", flexShrink: 0, textDecoration: "none" }}>
+              {userAvatar ? (
+                <img src={userAvatar} alt={userName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              )}
+            </Link>
             <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "8px", color: "#64748b", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><LogOut size={15} /></button>
           </div>
         </nav>
@@ -348,7 +358,7 @@ export default function FundsPage() {
                   { n: "1", text: "Elige el monto y el método de pago" },
                   { n: "2", text: "Envía el crypto a la dirección generada" },
                   { n: "3", text: "El saldo se acredita automáticamente en minutos" },
-                  { n: "4", text: "Úsalo para hacer pedidos en el panel SMM" },
+                  { n: "4", text: "Úsalo para hacer pedidos en el panel Social Media" },
                 ].map((s) => (
                   <div key={s.n} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
                     <div style={{ width: "22px", height: "22px", borderRadius: "6px", background: "#007ABF20", border: "1px solid #007ABF40", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -410,22 +420,7 @@ export default function FundsPage() {
         </div>
       </div>
 
-      {/* ── Floating AI button ── */}
-      <Link href="/" style={{
-        position: "fixed", bottom: "24px", right: "24px", zIndex: 60,
-        display: "flex", alignItems: "center", gap: "10px",
-        padding: "12px 20px", borderRadius: "100px",
-        background: "linear-gradient(135deg, #007ABF, #005FA4)",
-        boxShadow: "0 0 0 1px #007ABF80, 0 8px 32px #007ABF50",
-        color: "white", fontWeight: 700, fontSize: "14px",
-        textDecoration: "none",
-        animation: "pulse-glow-btn 2.5s ease-in-out infinite",
-      }}>
-        <FarmMindLogo size={22} />
-        <span>Hablar con AI</span>
-      </Link>
-
-      <style>{`@keyframes pulse-glow-btn { 0%,100% { box-shadow: 0 0 0 1px #007ABF80, 0 8px 32px #007ABF50; } 50% { box-shadow: 0 0 0 1px #007ABFcc, 0 8px 48px #007ABF80; } }`}</style>
+      <ChatPopup />
     </>
   );
 }
