@@ -318,10 +318,18 @@ export async function POST(req: Request) {
           let currentMessages = [...messages];
           let continueLoop = true;
 
+          // ── MIXED MODEL STRATEGY ──────────────────────────────────────
+          // Haiku: general chat, search, balance queries  → 73% cheaper
+          // Sonnet: ONLY when place_smm_order is called   → reliability on financial actions
+          const MODEL_HAIKU  = "claude-haiku-4-5-20251001";
+          const MODEL_SONNET = "claude-sonnet-4-6";
+          let useModel = MODEL_HAIKU; // start cheap
+          // ─────────────────────────────────────────────────────────────
+
           while (continueLoop) {
             // Only use tools if user is authenticated
             const streamParams: Anthropic.MessageStreamParams = {
-              model: "claude-sonnet-4-6",
+              model: useModel,
               max_tokens: 2048,
               system: FARMMIND_SYSTEM_PROMPT,
               messages: currentMessages,
@@ -381,6 +389,13 @@ export async function POST(req: Request) {
               // Execute each tool
               const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
+              // ── Switch to Sonnet if any tool is place_smm_order (financial action) ──
+              const hasOrderTool = toolUseBlocks.some(t => t.name === "place_smm_order");
+              if (hasOrderTool) {
+                useModel = MODEL_SONNET;
+                console.log("[chat] Switching to Sonnet for place_smm_order execution");
+              }
+
               for (const toolBlock of toolUseBlocks) {
                 // Notify client that a tool is being used (special event, not text)
                 const toolMsg = JSON.stringify({ tool_loading: true, tool_name: toolBlock.name });
@@ -414,6 +429,9 @@ export async function POST(req: Request) {
                   content: toolResults,
                 },
               ];
+
+              // After order execution: reset to Haiku for follow-up messages
+              if (hasOrderTool) useModel = MODEL_HAIKU;
 
               // Continue loop to get Claude's response to tool results
               continueLoop = true;
