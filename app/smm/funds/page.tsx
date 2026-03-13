@@ -56,6 +56,8 @@ export default function FundsPage() {
   const [copied, setCopied] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyMsg, setVerifyMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line
 
@@ -103,6 +105,31 @@ export default function FundsPage() {
     await navigator.clipboard.writeText(payment.pay_address);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const verifyPayment = async () => {
+    if (!payment?.payment_id) return;
+    setVerifying(true);
+    setVerifyMsg(null);
+    try {
+      const res = await fetch("/api/smm/check-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payment_id: payment.payment_id }),
+      });
+      const data = await res.json();
+      if (data.credited) {
+        setVerifyMsg({ text: data.message || "¡Saldo acreditado!", ok: true });
+        // Recargar balance y transacciones
+        await fetchData();
+      } else {
+        setVerifyMsg({ text: data.message || data.status, ok: false });
+      }
+    } catch {
+      setVerifyMsg({ text: "Error al verificar. Intenta de nuevo.", ok: false });
+    } finally {
+      setVerifying(false);
+    }
   };
 
   const STATUS_STYLE: Record<string, { color: string; bg: string; label: string }> = {
@@ -340,7 +367,21 @@ export default function FundsPage() {
                       <ExternalLink size={14} /> Abrir página de pago
                     </a>
                   )}
-                  <button onClick={() => setPayment(null)}
+                  {/* Verify payment status */}
+                  <button onClick={verifyPayment} disabled={verifying}
+                    style={{ width: "100%", padding: "12px", borderRadius: "12px", background: verifying ? "#1a1a2e" : "#34d39915", border: "1px solid #34d39935", color: verifying ? "#64748b" : "#34d399", fontSize: "13px", fontWeight: 600, cursor: verifying ? "not-allowed" : "pointer", marginBottom: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: "7px" }}>
+                    {verifying ? (
+                      <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Verificando...</>
+                    ) : (
+                      <>✓ Ya pagué — verificar saldo</>
+                    )}
+                  </button>
+                  {verifyMsg && (
+                    <div style={{ background: verifyMsg.ok ? "#34d39915" : "#fbbf2415", border: `1px solid ${verifyMsg.ok ? "#34d39935" : "#fbbf2430"}`, borderRadius: "10px", padding: "10px 14px", marginBottom: "10px", fontSize: "12px", color: verifyMsg.ok ? "#34d399" : "#fbbf24", textAlign: "center" }}>
+                      {verifyMsg.ok ? "✅ " : "⏳ "}{verifyMsg.text}
+                    </div>
+                  )}
+                  <button onClick={() => { setPayment(null); setVerifyMsg(null); }}
                     style={{ width: "100%", padding: "11px", borderRadius: "12px", border: "1px solid #1e1e30", background: "transparent", color: "#94a3b8", fontSize: "13px", cursor: "pointer" }}>
                     ← Crear otro pago
                   </button>

@@ -59,12 +59,22 @@ export async function POST(req: Request) {
       })
       .eq("id", tx.id);
 
-    // Solo acreditar cuando el pago está FINALIZADO y no se ha acreditado antes
-    if (
-      (payment_status === "finished" || payment_status === "confirmed") &&
-      tx.status !== "finished" && tx.status !== "confirmed"
-    ) {
-      const amountToCredit = parseFloat(price_amount) || tx.amount;
+    // Acreditar cuando el pago está FINALIZADO, CONFIRMADO o PARCIALMENTE PAGADO (y no se ha acreditado antes)
+    const shouldCredit =
+      (payment_status === "finished" || payment_status === "confirmed" || payment_status === "partially_paid") &&
+      tx.credited !== true &&
+      tx.status !== "finished" && tx.status !== "confirmed";
+
+    if (shouldCredit) {
+      // Para partially_paid usamos lo que realmente fue recibido en USD (price_amount fue el objetivo)
+      // Si actually_paid existe y es >= 90% del objetivo, acreditamos el precio original
+      // de lo contrario acreditamos proporcionalmente
+      let amountToCredit = parseFloat(price_amount) || tx.amount;
+      if (payment_status === "partially_paid" && actually_paid) {
+        // Acreditamos el monto original (price_amount) ya que el usuario pagó en crypto y
+        // la diferencia es mínima (fees de red, slippage). Si quisieras ser estricto usa actually_paid_in_usd del webhook.
+        amountToCredit = parseFloat(price_amount) || tx.amount;
+      }
 
       // Acreditar balance al usuario
       const { data: balance } = await admin

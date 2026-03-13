@@ -55,6 +55,10 @@ export default function AdminPage() {
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [creditAmount, setCreditAmount] = useState<Record<string, string>>({});
+  const [creditNote, setCreditNote] = useState<Record<string, string>>({});
+  const [creditLoading, setCreditLoading] = useState<string | null>(null);
+  const [creditMsg, setCreditMsg] = useState<Record<string, { text: string; ok: boolean }>>({});
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -75,6 +79,30 @@ export default function AdminPage() {
       setStats(data.stats); setUsers(data.users);
     } catch (e) { setError(e instanceof Error ? e.message : "Error"); }
     finally { setLoading(false); setRefreshing(false); }
+  };
+
+  const handleCredit = async (userId: string) => {
+    const amt = parseFloat(creditAmount[userId] || "");
+    if (!amt || amt <= 0) { setCreditMsg(m => ({ ...m, [userId]: { text: "Ingresa un monto válido", ok: false } })); return; }
+    setCreditLoading(userId);
+    setCreditMsg(m => ({ ...m, [userId]: { text: "", ok: false } }));
+    try {
+      const res = await fetch("/api/admin/credit-balance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ target_user_id: userId, amount: amt, note: creditNote[userId] || "" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCreditMsg(m => ({ ...m, [userId]: { text: `✅ Acreditado $${amt.toFixed(2)} USD. Nuevo balance: $${data.new_balance.toFixed(2)}`, ok: true } }));
+        setCreditAmount(a => ({ ...a, [userId]: "" }));
+        setCreditNote(n => ({ ...n, [userId]: "" }));
+        loadData(true);
+      } else {
+        setCreditMsg(m => ({ ...m, [userId]: { text: data.error || "Error", ok: false } }));
+      }
+    } catch { setCreditMsg(m => ({ ...m, [userId]: { text: "Error de conexión", ok: false } })); }
+    finally { setCreditLoading(null); }
   };
 
   const filtered = useMemo(() => {
@@ -282,6 +310,40 @@ export default function AdminPage() {
                             {buyer?"✅ Usuario comprador":"⚪ Aún no ha comprado"}
                           </span>
                         </div>
+                      </div>
+
+                      {/* Manual credit */}
+                      <div style={{ background:"#0a0a14", border:"1px solid #2a1a3e", borderRadius:"11px", padding:"13px" }}>
+                        <p style={{ fontSize:"10px", fontWeight:700, color:"#a78bfa80", marginBottom:"9px", textTransform:"uppercase", letterSpacing:"0.5px" }}>⚡ Acreditar saldo manualmente</p>
+                        <div style={{ display:"flex", gap:"7px", marginBottom:"7px" }}>
+                          <input
+                            type="number" min="0" step="0.01"
+                            placeholder="Monto USD"
+                            value={creditAmount[u.id]||""}
+                            onChange={e=>setCreditAmount(a=>({...a,[u.id]:e.target.value}))}
+                            onClick={e=>e.stopPropagation()}
+                            style={{ flex:1, background:"#07070e", border:"1px solid #2a1a3e", borderRadius:"7px", padding:"7px 9px", color:"white", fontSize:"12px", outline:"none" }}
+                          />
+                          <button
+                            onClick={e=>{e.stopPropagation();handleCredit(u.id);}}
+                            disabled={creditLoading===u.id}
+                            style={{ padding:"7px 12px", borderRadius:"7px", background:"#a78bfa20", border:"1px solid #a78bfa40", color:"#a78bfa", fontSize:"12px", fontWeight:700, cursor:"pointer", whiteSpace:"nowrap" }}>
+                            {creditLoading===u.id?"...":"+ Acreditar"}
+                          </button>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Nota (opcional)"
+                          value={creditNote[u.id]||""}
+                          onChange={e=>setCreditNote(n=>({...n,[u.id]:e.target.value}))}
+                          onClick={e=>e.stopPropagation()}
+                          style={{ width:"100%", background:"#07070e", border:"1px solid #1a1a2e", borderRadius:"7px", padding:"6px 9px", color:"white", fontSize:"11px", outline:"none", boxSizing:"border-box" }}
+                        />
+                        {creditMsg[u.id]?.text && (
+                          <div style={{ marginTop:"7px", padding:"6px 9px", borderRadius:"7px", background:creditMsg[u.id].ok?"#34d39912":"#f8717112", border:`1px solid ${creditMsg[u.id].ok?"#34d39930":"#f8717130"}`, fontSize:"11px", color:creditMsg[u.id].ok?"#34d399":"#f87171" }}>
+                            {creditMsg[u.id].text}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
