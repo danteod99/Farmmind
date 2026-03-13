@@ -2,11 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Send, ImagePlus, X } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { TrustFooter } from "@/app/components/TrustFooter";
+import { SmmNav } from "@/app/components/SmmNav";
 
 interface PendingImage {
   base64: string;
@@ -209,38 +209,13 @@ export default function AIPage() {
       `}</style>
 
       {/* NAVBAR */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "#07070eee", backdropFilter: "blur(12px)", borderBottom: "1px solid #1e1e30", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
-          <Link href="/smm/services" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
-            <FarmMindLogo size={24} />
-            <span style={{ fontSize: "15px", fontWeight: 800, color: "white", letterSpacing: "-0.3px" }}>TRUST MIND</span>
-          </Link>
-          <div style={{ display: "flex", gap: "4px" }}>
-            {NAV_LINKS.map(({ href, label, active, external }) => (
-              <Link key={href} href={href}
-                {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                style={{ padding: "6px 13px", borderRadius: "10px", fontSize: "13px", fontWeight: active ? 700 : 500, color: active ? "#56B4E0" : "#5a6480", background: active ? "#007ABF15" : "transparent", border: `1px solid ${active ? "#007ABF30" : "transparent"}`, textDecoration: "none", transition: "all 0.15s", whiteSpace: "nowrap" }}>
-                {label}
-              </Link>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <Link href="/smm/funds" style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px", textDecoration: "none" }}>
-            <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399" }} />
-            <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
-          </Link>
-          {userEmail === "danteod99@gmail.com" && (
-            <Link href="/admin" style={{ padding: "6px 12px", borderRadius: "8px", background: "#1a0a2e", border: "1px solid #3a1a5e", color: "#a78bfa", fontSize: "12px", fontWeight: 700, textDecoration: "none" }}>⚙️ Admin</Link>
-          )}
-          <Link href="/profile" style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", border: "2px solid #2a2a42", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a1a2e", flexShrink: 0, textDecoration: "none" }}>
-            {userAvatar ? <img src={userAvatar} alt={userName} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>}
-          </Link>
-          <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }} style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          </button>
-        </div>
-      </nav>
+      <SmmNav
+        balance={balance}
+        userAvatar={userAvatar}
+        userName={userName}
+        userEmail={userEmail}
+        links={NAV_LINKS}
+      />
 
       {/* CHAT AREA */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", maxWidth: "760px", width: "100%", margin: "0 auto", padding: "0 16px", minHeight: 0 }}>

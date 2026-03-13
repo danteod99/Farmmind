@@ -1,14 +1,21 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, X, User, Minus } from "lucide-react";
+import { Send, X, User, Minus, ImagePlus } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
 interface PopupMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: { base64: string; mediaType: string };
   toolLoading?: boolean;
+}
+
+interface PendingImg {
+  base64: string;
+  mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+  preview: string;
 }
 
 function renderMarkdown(content: string): string {
@@ -38,7 +45,9 @@ export default function ChatPopup() {
   const [messages, setMessages] = useState<PopupMessage[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [pendingImg, setPendingImg] = useState<PendingImg | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open && !minimized) {
@@ -46,13 +55,36 @@ export default function ChatPopup() {
     }
   }, [messages, open, minimized]);
 
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!["image/jpeg","image/png","image/gif","image/webp"].includes(file.type)) { alert("Solo JPG, PNG, GIF o WebP."); return; }
+    if (file.size > 5 * 1024 * 1024) { alert("Máximo 5MB."); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      const [header, base64] = dataUrl.split(",");
+      const mediaType = header.split(":")[1].split(";")[0] as PendingImg["mediaType"];
+      setPendingImg({ base64, mediaType, preview: URL.createObjectURL(file) });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
   const sendMessage = async (text?: string) => {
     const msg = text || input.trim();
-    if (!msg || isStreaming) return;
+    if ((!msg && !pendingImg) || isStreaming) return;
     setInput("");
+    const capturedImg = pendingImg;
+    setPendingImg(null);
+    if (capturedImg) URL.revokeObjectURL(capturedImg.preview);
     setIsStreaming(true);
 
-    const userMsg: PopupMessage = { id: Date.now().toString(), role: "user", content: msg };
+    const userMsg: PopupMessage = {
+      id: Date.now().toString(), role: "user",
+      content: msg || "📸 Analiza este perfil",
+      ...(capturedImg ? { image: { base64: capturedImg.base64, mediaType: capturedImg.mediaType } } : {}),
+    };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
 
@@ -62,7 +94,15 @@ export default function ChatPopup() {
     try {
       const apiMessages = allMessages
         .filter((m) => m.id !== "welcome")
-        .map((m) => ({ role: m.role, content: m.content }));
+        .map((m) => {
+          if (m.image) {
+            return { role: m.role, content: [
+              { type: "image", source: { type: "base64", media_type: m.image.mediaType, data: m.image.base64 } },
+              { type: "text", text: m.content !== "📸 Analiza este perfil" ? m.content : "Analiza este screenshot. Detecta el perfil social (usuario, plataforma, seguidores) y sugiere el servicio más adecuado." },
+            ]};
+          }
+          return { role: m.role, content: m.content };
+        });
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -250,24 +290,51 @@ export default function ChatPopup() {
               )}
 
               {/* Input */}
-              <div style={{ padding: "12px 14px", borderTop: "1px solid #1a1a2e", display: "flex", gap: "8px", alignItems: "flex-end", flexShrink: 0 }}>
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-                  placeholder="Escribe tu mensaje..."
-                  rows={1}
-                  style={{ flex: 1, background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "12px", padding: "9px 12px", color: "white", fontSize: "13px", outline: "none", fontFamily: "inherit", resize: "none", lineHeight: "1.4", maxHeight: "80px", overflowY: "auto" }}
-                />
-                <button
-                  onClick={() => sendMessage()}
-                  disabled={!input.trim() || isStreaming}
-                  style={{ width: "36px", height: "36px", borderRadius: "10px", background: input.trim() && !isStreaming ? "linear-gradient(135deg, #007ABF, #005F96)" : "#1a1a2e", border: "none", color: input.trim() && !isStreaming ? "white" : "#3d4a5c", cursor: input.trim() && !isStreaming ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
-                  {isStreaming
-                    ? <div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid #3d4a5c", borderTopColor: "#56B4E0", animation: "spin-popup 0.7s linear infinite" }} />
-                    : <Send size={14} />
-                  }
-                </button>
+              <div style={{ padding: "10px 14px 12px", borderTop: "1px solid #1a1a2e", flexShrink: 0 }}>
+                {/* Image preview strip */}
+                {pendingImg && (
+                  <div style={{ marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px", padding: "7px 10px", background: "#07070e", border: "1px solid #007ABF40", borderRadius: "10px" }}>
+                    <div style={{ position: "relative", flexShrink: 0 }}>
+                      <img src={pendingImg.preview} alt="preview" style={{ width: "40px", height: "40px", borderRadius: "6px", objectFit: "cover", display: "block", border: "1px solid #2a2a42" }} />
+                      <button onClick={() => { URL.revokeObjectURL(pendingImg.preview); setPendingImg(null); }}
+                        style={{ position: "absolute", top: "-5px", right: "-5px", width: "16px", height: "16px", borderRadius: "50%", background: "#ef4444", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <X size={8} color="white" />
+                      </button>
+                    </div>
+                    <p style={{ fontSize: "11px", color: "#56B4E0", fontWeight: 600 }}>📸 La IA analizará el perfil</p>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: "7px", alignItems: "flex-end" }}>
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleFile} style={{ display: "none" }} />
+
+                  {/* Image button */}
+                  <button
+                    onClick={() => fileRef.current?.click()}
+                    disabled={isStreaming}
+                    title="Enviar screenshot de perfil"
+                    style={{ width: "32px", height: "32px", borderRadius: "9px", flexShrink: 0, background: pendingImg ? "#007ABF25" : "transparent", border: `1px solid ${pendingImg ? "#007ABF60" : "#2a2a42"}`, color: pendingImg ? "#56B4E0" : "#5a6480", cursor: isStreaming ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
+                    <ImagePlus size={13} />
+                  </button>
+
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                    placeholder={pendingImg ? "Comentario opcional..." : "Escribe tu mensaje..."}
+                    rows={1}
+                    style={{ flex: 1, background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "12px", padding: "9px 12px", color: "white", fontSize: "13px", outline: "none", fontFamily: "inherit", resize: "none", lineHeight: "1.4", maxHeight: "80px", overflowY: "auto" }}
+                  />
+                  <button
+                    onClick={() => sendMessage()}
+                    disabled={(!input.trim() && !pendingImg) || isStreaming}
+                    style={{ width: "36px", height: "36px", borderRadius: "10px", background: (input.trim() || pendingImg) && !isStreaming ? "linear-gradient(135deg, #007ABF, #005F96)" : "#1a1a2e", border: "none", color: (input.trim() || pendingImg) && !isStreaming ? "white" : "#3d4a5c", cursor: (input.trim() || pendingImg) && !isStreaming ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
+                    {isStreaming
+                      ? <div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid #3d4a5c", borderTopColor: "#56B4E0", animation: "spin-popup 0.7s linear infinite" }} />
+                      : <Send size={14} />
+                    }
+                  </button>
+                </div>
               </div>
             </>
           )}
