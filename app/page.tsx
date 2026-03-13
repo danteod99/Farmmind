@@ -14,6 +14,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  toolLoading?: boolean;
 }
 
 interface Conversation {
@@ -235,7 +236,7 @@ function LoginScreen() {
           </h1>
 
           <p style={{ fontSize: "18px", color: "#94a3b8", lineHeight: 1.7, maxWidth: "560px", margin: "0 auto 40px" }}>
-            Controla GenFarmer, gestiona proxies, detecta anomalías y pide servicios SMM — todo desde una sola conversación con IA.
+            Controla GenFarmer, gestiona proxies, detecta anomalías y pide servicios Social Media — todo desde una sola conversación con IA.
           </p>
 
           {/* CTA */}
@@ -287,7 +288,7 @@ function LoginScreen() {
           <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff, #56B4E0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "12px" }}>
             Todo lo que necesita tu granja
           </h2>
-          <p style={{ color: "#64748b", fontSize: "15px", maxWidth: "440px", margin: "0 auto", lineHeight: 1.6 }}>Desde optimización de bots hasta pedidos SMM masivos — TRUST MIND lo gestiona todo.</p>
+          <p style={{ color: "#64748b", fontSize: "15px", maxWidth: "440px", margin: "0 auto", lineHeight: 1.6 }}>Desde optimización de bots hasta pedidos Social Media masivos — TRUST MIND lo gestiona todo.</p>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
@@ -604,7 +605,17 @@ export default function TrustMindChat() {
           if (line.startsWith("data: ")) {
             const data = line.slice(6);
             if (data === "[DONE]") break;
-            try { fullContent += JSON.parse(data).text; setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: fullContent } : m)); } catch {}
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.tool_loading === true) {
+                setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, toolLoading: true } : m));
+              } else if (parsed.tool_loading === false) {
+                setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, toolLoading: false } : m));
+              } else if (parsed.text) {
+                fullContent += parsed.text;
+                setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: fullContent, toolLoading: false } : m));
+              }
+            } catch {}
           }
         }
       }
@@ -930,7 +941,15 @@ export default function TrustMindChat() {
                       : { background: "var(--surface-2)", color: "var(--foreground)", border: "1px solid var(--border)" }
                     )
                   }}>
-                    {msg.content === "" && isStreaming ? (
+                    {msg.toolLoading ? (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {msg.content && <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.content) }} />}
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", borderRadius: "10px", background: "#007ABF12", border: "1px solid #007ABF30" }}>
+                          <div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid #007ABF40", borderTopColor: "#56B4E0", animation: "spin 0.7s linear infinite", flexShrink: 0 }} />
+                          <span style={{ fontSize: "12px", color: "#56B4E0", fontWeight: 500 }}>Consultando datos...</span>
+                        </div>
+                      </div>
+                    ) : msg.content === "" && isStreaming ? (
                       <div style={{ display: "flex", alignItems: "center", gap: "5px", padding: "4px 0" }}>
                         <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#56B4E0" }} className="typing-dot" />
                         <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#56B4E0" }} className="typing-dot" />
@@ -1071,7 +1090,7 @@ export default function TrustMindChat() {
               <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                 <Link href="/smm" onClick={() => setShowProfile(false)}
                   style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "12px", background: "#1a1a2e", border: "1px solid #2a2a42", color: "#88D0F0", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
-                  <span>🚀 Growth Dashboard (SMM)</span>
+                  <span>🚀 Growth Dashboard (Social Media)</span>
                   <span style={{ color: "#5a6480" }}>→</span>
                 </Link>
                 {!isPro && (
