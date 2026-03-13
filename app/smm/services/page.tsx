@@ -498,11 +498,37 @@ export default function ServicesPage() {
           .svc-nav-links { display: none !important; }
           .svc-hero { padding: 40px 20px 32px !important; }
           .svc-hero h1 { font-size: 28px !important; }
-          .svc-cat-pills { gap: 6px !important; flex-wrap: wrap; }
           .svc-grid { grid-template-columns: 1fr !important; }
           .svc-premium-grid { grid-template-columns: 1fr !important; }
           .svc-content { padding: 20px 16px !important; }
           nav { padding: 0 16px !important; }
+
+          /* Hero row: title + pills stack vertically */
+          .svc-hero-row { flex-direction: column !important; align-items: flex-start !important; gap: 16px !important; }
+
+          /* Platform pills: horizontal scroll, no wrap */
+          .svc-platform-pills {
+            overflow-x: auto !important; flex-wrap: nowrap !important;
+            max-width: 100% !important; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; padding-bottom: 4px; width: 100%;
+          }
+          .svc-platform-pills::-webkit-scrollbar { display: none; }
+
+          /* Filter row: search on top, dropdowns below */
+          .svc-filter-row { flex-direction: column !important; gap: 10px !important; }
+          .svc-search-wrap { min-width: 0 !important; width: 100% !important; }
+          .svc-bottom-filters { display: flex !important; gap: 8px !important; width: 100% !important; }
+          .svc-cat-select-wrap { flex: 1 !important; min-width: 0 !important; }
+          .svc-cat-select-wrap select { min-width: 0 !important; width: 100% !important; }
+
+          /* Sort buttons: horizontal scroll row */
+          .svc-sort-btns {
+            overflow-x: auto !important; flex-wrap: nowrap !important;
+            -webkit-overflow-scrolling: touch; scrollbar-width: none;
+            padding-bottom: 2px;
+          }
+          .svc-sort-btns::-webkit-scrollbar { display: none; }
+          .svc-sort-btns button { flex-shrink: 0 !important; white-space: nowrap !important; }
         }
         @media (max-width: 480px) {
           .svc-hero h1 { font-size: 22px !important; }
@@ -594,7 +620,7 @@ export default function ServicesPage() {
               <ArrowLeft size={12} /> Dashboard
             </Link>
 
-            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "24px" }}>
+            <div className="svc-hero-row" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "24px" }}>
               <div>
                 {/* Tag */}
                 <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "5px 14px", borderRadius: "20px", background: "linear-gradient(135deg, #007ABF25, #a855f715)", border: "1px solid #007ABF50", marginBottom: "16px" }}>
@@ -618,7 +644,7 @@ export default function ServicesPage() {
               </div>
 
               {/* Platform filter pills */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxWidth: "420px" }}>
+              <div className="svc-platform-pills" style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxWidth: "420px" }}>
                 {[{ name: "all", label: "✦ Todos", color: "#007ABF", glow: "#007ABF" }, ...POPULAR_CATEGORIES.map((c) => ({ name: c, label: c, color: PLATFORM_COLORS[c].color, glow: PLATFORM_COLORS[c].glow }))].map((cat) => {
                   const active = selectedCategory === cat.name;
                   return (
@@ -661,8 +687,8 @@ export default function ServicesPage() {
 
           {/* ── SEARCH BAR (only for services tab) ── */}
           {activeTab === "services" && (
-            <div style={{ display: "flex", gap: "12px", marginBottom: "32px" }}>
-              <div ref={searchRef} style={{ flex: 1, position: "relative" }}>
+            <div className="svc-filter-row" style={{ display: "flex", gap: "12px", marginBottom: "32px" }}>
+              <div className="svc-search-wrap" ref={searchRef} style={{ flex: 1, position: "relative" }}>
                 <Search size={16} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480", zIndex: 1 }} />
                 <input
                   className="search-input"
@@ -717,35 +743,37 @@ export default function ServicesPage() {
                   </div>
                 )}
               </div>
-              <div style={{ position: "relative" }}>
-                <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setSearch(""); setShowSuggestions(false); }}
-                  style={{ appearance: "none", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "13px 44px 13px 16px", color: selectedCategory === "all" ? "#5a6480" : "white", fontSize: "14px", cursor: "pointer", outline: "none", minWidth: "220px", fontFamily: "inherit" }}>
-                  <option value="all">Todas las categorías</option>
-                  {["Instagram", "TikTok", "YouTube", "Facebook", "Twitter", "Telegram", "Spotify", "Discord", "Twitch", "Kick", "Pinterest", "LinkedIn", "Snapchat"].map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-                <ChevronDown size={14} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480", pointerEvents: "none" }} />
-              </div>
+              <div className="svc-bottom-filters" style={{ display: "flex", gap: "8px" }}>
+                <div className="svc-cat-select-wrap" style={{ position: "relative" }}>
+                  <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setSearch(""); setShowSuggestions(false); }}
+                    style={{ appearance: "none", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "13px 44px 13px 16px", color: selectedCategory === "all" ? "#5a6480" : "white", fontSize: "14px", cursor: "pointer", outline: "none", minWidth: "160px", fontFamily: "inherit" }}>
+                    <option value="all">Todas las categorías</option>
+                    {["Instagram", "TikTok", "YouTube", "Facebook", "Twitter", "Telegram", "Spotify", "Discord", "Twitch", "Kick", "Pinterest", "LinkedIn", "Snapchat"].map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <ChevronDown size={14} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", color: "#5a6480", pointerEvents: "none" }} />
+                </div>
 
-              {/* Sort buttons */}
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {([
-                  { key: "popular",    label: "🔥 Más pedido" },
-                  { key: "price_asc",  label: "↑ Menor precio" },
-                  { key: "price_desc", label: "↓ Mayor precio" },
-                ] as const).map(({ key, label }) => (
-                  <button key={key} onClick={() => setSortBy(key)}
-                    style={{
-                      padding: "10px 16px", borderRadius: "14px", fontSize: "13px", fontWeight: sortBy === key ? 700 : 500, cursor: "pointer", border: "1px solid",
-                      background: sortBy === key ? "#007ABF20" : "transparent",
-                      borderColor: sortBy === key ? "#007ABF60" : "#1e1e30",
-                      color: sortBy === key ? "#56B4E0" : "#5a6480",
-                      transition: "all 0.15s",
-                    }}>
-                    {label}
-                  </button>
-                ))}
+                {/* Sort buttons */}
+                <div className="svc-sort-btns" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {([
+                    { key: "popular",    label: "🔥 Más pedido" },
+                    { key: "price_asc",  label: "↑ Precio ↑" },
+                    { key: "price_desc", label: "↓ Precio ↓" },
+                  ] as const).map(({ key, label }) => (
+                    <button key={key} onClick={() => setSortBy(key)}
+                      style={{
+                        padding: "10px 14px", borderRadius: "14px", fontSize: "13px", fontWeight: sortBy === key ? 700 : 500, cursor: "pointer", border: "1px solid",
+                        background: sortBy === key ? "#007ABF20" : "transparent",
+                        borderColor: sortBy === key ? "#007ABF60" : "#1e1e30",
+                        color: sortBy === key ? "#56B4E0" : "#5a6480",
+                        transition: "all 0.15s", whiteSpace: "nowrap",
+                      }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
