@@ -3,28 +3,36 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Send } from "lucide-react";
+import { Send, ImagePlus, X } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { TrustFooter } from "@/app/components/TrustFooter";
+
+interface PendingImage {
+  base64: string;
+  mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+  preview: string;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
+  image?: { base64: string; mediaType: string };
   toolLoading?: boolean;
 }
 
 function renderMarkdown(content: string): string {
   let html = content;
-  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
+  html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_: string, lang: string, code: string) => {
     const escaped = code.trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    void lang;
     return `<pre style="background:#07070e;border:1px solid #1e1e30;border-radius:8px;padding:10px;margin:6px 0;overflow-x:auto;font-size:12px;"><code>${escaped}</code></pre>`;
   });
   html = html.replace(/`([^`\n]+)`/g, '<code style="background:#07070e;border:1px solid #1e1e30;border-radius:4px;padding:1px 5px;font-size:12px;">$1</code>');
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/^[-•] (.+)$/gm, "<li>$1</li>");
-  html = html.replace(/(<li>.*?<\/li>\n?)+/g, (match) => `<ul style="padding-left:16px;margin:4px 0;">${match}</ul>`);
+  html = html.replace(/(<li>.*?<\/li>\n?)+/g, (match: string) => `<ul style="padding-left:16px;margin:4px 0;">${match}</ul>`);
   html = html.replace(/\n\n/g, "<br /><br />");
   html = html.replace(/\n/g, "<br />");
   return html;
@@ -33,14 +41,14 @@ function renderMarkdown(content: string): string {
 const WELCOME: Message = {
   id: "welcome",
   role: "assistant",
-  content: "¡Hola! Soy el **Asistente IA de TRUST MIND**. Puedo ayudarte a buscar servicios, revisar tu saldo, hacer pedidos y responder cualquier duda. ¿En qué te ayudo hoy?",
+  content: "¡Hola! Soy el **Asistente IA de TRUST MIND**.\n\nPuedo buscar servicios, revisar tu saldo y hacer pedidos.\n\n📸 **Nuevo:** Envíame un screenshot de cualquier perfil de Instagram, TikTok o YouTube y detectaré el usuario automáticamente para hacer tu pedido.",
 };
 
 const QUICK_QUESTIONS = [
   "¿Cuáles son los servicios más populares?",
-  "¿Cómo funciona el proceso de pedido?",
   "¿Cuánto cuesta 1000 seguidores de Instagram?",
   "¿Cuánto saldo tengo?",
+  "¿Cómo funciona el proceso de pedido?",
 ];
 
 export default function AIPage() {
@@ -52,13 +60,13 @@ export default function AIPage() {
   const [messages, setMessages] = useState<Message[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -70,12 +78,42 @@ export default function AIPage() {
     if (res.ok) { const d = await res.json(); setBalance(d.balance || 0); }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!validTypes.includes(file.type)) { alert("Solo JPG, PNG, GIF o WebP."); return; }
+    if (file.size > 5 * 1024 * 1024) { alert("La imagen debe ser menor a 5MB."); return; }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      const [header, base64] = dataUrl.split(",");
+      const mediaType = header.split(":")[1].split(";")[0] as PendingImage["mediaType"];
+      setPendingImage({ base64, mediaType, preview: URL.createObjectURL(file) });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const removePendingImage = () => {
+    if (pendingImage) URL.revokeObjectURL(pendingImage.preview);
+    setPendingImage(null);
+  };
+
   const sendMessage = async (text?: string) => {
     const msg = (text || input).trim();
-    if (!msg || isStreaming) return;
+    if ((!msg && !pendingImage) || isStreaming) return;
     setInput("");
+    const capturedImage = pendingImage;
+    setPendingImage(null);
+    if (capturedImage) URL.revokeObjectURL(capturedImage.preview);
 
-    const userMsg: Message = { id: Date.now().toString(), role: "user", content: msg };
+    const userMsg: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: msg || "📸 Analiza este perfil",
+      ...(capturedImage ? { image: { base64: capturedImage.base64, mediaType: capturedImage.mediaType } } : {}),
+    };
     const allMessages = [...messages, userMsg];
     setMessages(allMessages);
     setIsStreaming(true);
@@ -86,7 +124,16 @@ export default function AIPage() {
     try {
       const apiMessages = allMessages
         .filter((m) => m.id !== "welcome")
-        .map((m) => ({ role: m.role, content: m.content }));
+        .map((m) => {
+          if (m.image) {
+            const blocks: object[] = [
+              { type: "image", source: { type: "base64", media_type: m.image.mediaType, data: m.image.base64 } },
+              { type: "text", text: m.content && m.content !== "📸 Analiza este perfil" ? m.content : "Analiza este screenshot. Detecta el perfil social (usuario, plataforma, seguidores) y sugiere el servicio más adecuado." },
+            ];
+            return { role: m.role, content: blocks };
+          }
+          return { role: m.role, content: m.content };
+        });
 
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -132,12 +179,13 @@ export default function AIPage() {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   };
 
-  const NAV_LINKS = [
+  const canSend = (input.trim().length > 0 || pendingImage !== null) && !isStreaming;
+
+  const NAV_LINKS: { href: string; label: string; active?: boolean; external?: boolean }[] = [
     { href: "/smm/services", label: "Servicios" },
     { href: "/smm/orders", label: "Pedidos" },
     { href: "/smm/funds", label: "Recargar" },
     { href: "/smm/ai", label: "🤖 Asistente IA", active: true },
-    
     { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
   ];
 
@@ -157,9 +205,10 @@ export default function AIPage() {
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #2a2a42; border-radius: 99px; }
         textarea:focus { outline: none; }
+        .img-btn:hover { background: #007ABF20 !important; border-color: #007ABF60 !important; color: #56B4E0 !important; }
       `}</style>
 
-      {/* ━━━ NAVBAR ━━━ */}
+      {/* NAVBAR */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "#07070eee", backdropFilter: "blur(12px)", borderBottom: "1px solid #1e1e30", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: "60px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
           <Link href="/smm/services" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
@@ -193,7 +242,7 @@ export default function AIPage() {
         </div>
       </nav>
 
-      {/* ━━━ CHAT AREA ━━━ */}
+      {/* CHAT AREA */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", maxWidth: "760px", width: "100%", margin: "0 auto", padding: "0 16px", minHeight: 0 }}>
 
         {/* Header */}
@@ -202,14 +251,13 @@ export default function AIPage() {
             <FarmMindLogo size={30} />
           </div>
           <h1 style={{ fontSize: "22px", fontWeight: 800, color: "white", letterSpacing: "-0.5px" }}>Asistente IA</h1>
-          <p style={{ fontSize: "13px", color: "#5a6480", marginTop: "4px" }}>Búsqueda de servicios, pedidos, saldo y más</p>
+          <p style={{ fontSize: "13px", color: "#5a6480", marginTop: "4px" }}>Servicios · Pedidos · Saldo · 📸 Análisis de perfiles</p>
         </div>
 
         {/* Messages */}
         <div style={{ flex: 1, overflowY: "auto", paddingBottom: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
           {messages.map((m) => (
             <div key={m.id} style={{ display: "flex", gap: "10px", alignItems: "flex-start", flexDirection: m.role === "user" ? "row-reverse" : "row" }}>
-              {/* Avatar */}
               <div style={{ width: "32px", height: "32px", borderRadius: "50%", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: m.role === "assistant" ? "linear-gradient(135deg,#007ABF,#005FA4)" : "#1a1a2e", border: "1px solid #2a2a42" }}>
                 {m.role === "assistant"
                   ? <FarmMindLogo size={18} />
@@ -217,7 +265,6 @@ export default function AIPage() {
                 }
               </div>
 
-              {/* Bubble */}
               <div style={{
                 maxWidth: "72%", padding: "12px 16px", borderRadius: m.role === "user" ? "18px 4px 18px 18px" : "4px 18px 18px 18px",
                 background: m.role === "user" ? "linear-gradient(135deg,#007ABF,#005FA4)" : "#0d0d18",
@@ -225,6 +272,17 @@ export default function AIPage() {
                 fontSize: "14px", lineHeight: "1.6", color: "white",
                 boxShadow: m.role === "user" ? "0 4px 16px #007ABF30" : "none",
               }}>
+                {/* Image thumbnail */}
+                {m.image && (
+                  <div style={{ marginBottom: "8px" }}>
+                    <img
+                      src={`data:${m.image.mediaType};base64,${m.image.base64}`}
+                      alt="Screenshot"
+                      style={{ maxWidth: "220px", maxHeight: "280px", borderRadius: "10px", display: "block", border: "1px solid #ffffff20", objectFit: "cover" }}
+                    />
+                  </div>
+                )}
+
                 {m.toolLoading ? (
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#56B4E0", fontSize: "13px" }}>
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -234,16 +292,16 @@ export default function AIPage() {
                   <div style={{ display: "flex", gap: "4px", alignItems: "center", height: "20px" }}>
                     {[0, 1, 2].map((i) => <span key={i} className="td" style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#56B4E0", display: "inline-block", animationDelay: `${i * 0.15}s` }} />)}
                   </div>
-                ) : (
+                ) : m.content && m.content !== "📸 Analiza este perfil" ? (
                   <div dangerouslySetInnerHTML={{ __html: renderMarkdown(m.content) }} />
-                )}
+                ) : null}
               </div>
             </div>
           ))}
           <div ref={bottomRef} />
         </div>
 
-        {/* Quick questions (only shown at start) */}
+        {/* Quick questions */}
         {messages.length === 1 && (
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", paddingBottom: "16px" }}>
             {QUICK_QUESTIONS.map((q) => (
@@ -255,30 +313,69 @@ export default function AIPage() {
           </div>
         )}
 
-        {/* Input bar */}
+        {/* Input area */}
         <div style={{ padding: "12px 0 20px", position: "sticky", bottom: 0, background: "#07070e" }}>
-          <div style={{ display: "flex", gap: "10px", alignItems: "flex-end", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", padding: "10px 12px 10px 16px" }}>
+
+          {/* Image preview */}
+          {pendingImage && (
+            <div style={{ marginBottom: "10px", display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "#0a0a18", border: "1px solid #007ABF40", borderRadius: "12px" }}>
+              <div style={{ position: "relative", flexShrink: 0 }}>
+                <img src={pendingImage.preview} alt="preview" style={{ width: "56px", height: "56px", borderRadius: "8px", objectFit: "cover", border: "1px solid #2a2a42", display: "block" }} />
+                <button onClick={removePendingImage} style={{ position: "absolute", top: "-6px", right: "-6px", width: "18px", height: "18px", borderRadius: "50%", background: "#ef4444", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <X size={10} color="white" />
+                </button>
+              </div>
+              <div>
+                <p style={{ fontSize: "12px", color: "#56B4E0", fontWeight: 600 }}>📸 Imagen lista</p>
+                <p style={{ fontSize: "11px", color: "#5a6480", marginTop: "2px" }}>La IA detectará el perfil automáticamente</p>
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: "8px", alignItems: "flex-end", background: "#0d0d18", border: `1px solid ${pendingImage ? "#007ABF50" : "#1e1e30"}`, borderRadius: "16px", padding: "10px 12px", transition: "border-color 0.15s" }}>
+
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleFileSelect} style={{ display: "none" }} />
+
+            {/* Camera/image button */}
+            <button
+              className="img-btn"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isStreaming}
+              title="Adjuntar screenshot de perfil social"
+              style={{
+                width: "36px", height: "36px", borderRadius: "10px", flexShrink: 0,
+                background: pendingImage ? "#007ABF25" : "transparent",
+                border: `1px solid ${pendingImage ? "#007ABF60" : "#2a2a42"}`,
+                color: pendingImage ? "#56B4E0" : "#5a6480",
+                cursor: isStreaming ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all 0.15s",
+              }}>
+              <ImagePlus size={16} />
+            </button>
+
             <textarea
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Escribe tu pregunta... (Enter para enviar)"
+              placeholder={pendingImage ? "Agrega un comentario (opcional)..." : "Escribe tu pregunta... (Enter para enviar)"}
               rows={1}
               style={{ flex: 1, background: "transparent", border: "none", color: "white", fontSize: "14px", resize: "none", lineHeight: "1.5", maxHeight: "120px", fontFamily: "inherit", paddingTop: "2px" }}
             />
-            <button onClick={() => sendMessage()} disabled={!input.trim() || isStreaming}
-              style={{ width: "38px", height: "38px", borderRadius: "12px", background: input.trim() && !isStreaming ? "linear-gradient(135deg,#007ABF,#005FA4)" : "#1a1a2e", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: input.trim() && !isStreaming ? "pointer" : "not-allowed", flexShrink: 0, transition: "all 0.15s", boxShadow: input.trim() && !isStreaming ? "0 0 16px #007ABF40" : "none" }}>
+
+            <button onClick={() => sendMessage()} disabled={!canSend}
+              style={{ width: "38px", height: "38px", borderRadius: "12px", background: canSend ? "linear-gradient(135deg,#007ABF,#005FA4)" : "#1a1a2e", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: canSend ? "pointer" : "not-allowed", flexShrink: 0, transition: "all 0.15s", boxShadow: canSend ? "0 0 16px #007ABF40" : "none" }}>
               {isStreaming
                 ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#56B4E0" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                : <Send size={15} color={input.trim() ? "white" : "#3a3a5c"} />
+                : <Send size={15} color={canSend ? "white" : "#3a3a5c"} />
               }
             </button>
           </div>
-          <p style={{ textAlign: "center", fontSize: "11px", color: "#3a3a5c", marginTop: "8px" }}>Enter para enviar · Shift+Enter para nueva línea</p>
+          <p style={{ textAlign: "center", fontSize: "11px", color: "#3a3a5c", marginTop: "8px" }}>Enter para enviar · Shift+Enter para nueva línea · 📸 Adjunta screenshots de perfiles</p>
         </div>
       </div>
-    <TrustFooter />
+      <TrustFooter />
     </div>
   );
 }
