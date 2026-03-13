@@ -998,9 +998,9 @@ export default function ServicesPage() {
               </div>
 
               <div style={{ background: "#007ABF10", border: "1px solid #007ABF30", borderRadius: "12px", padding: "13px 16px", marginBottom: "18px" }}>
-                <p style={{ fontSize: "12px", color: "#56B4E0", fontWeight: 700, marginBottom: "4px" }}>⚡ Entrega en menos de 24h</p>
+                <p style={{ fontSize: "12px", color: "#56B4E0", fontWeight: 700, marginBottom: "4px" }}>⏱️ Tiempo de entrega: 3 a 12 horas</p>
                 <p style={{ fontSize: "12px", color: "#8892a4", lineHeight: "1.6" }}>
-                  El pago se descuenta de tu saldo inmediatamente. Recibirás los accesos por email o vía soporte.
+                  El pago se descuenta de tu saldo inmediatamente. Recibirás los accesos por email o vía soporte en un plazo de 3 a 12 horas.
                 </p>
               </div>
 
@@ -1011,7 +1011,7 @@ export default function ServicesPage() {
               )}
               {buySuccess && (
                 <div style={{ background: "#34d39915", border: "1px solid #34d39940", borderRadius: "10px", padding: "10px 14px", marginBottom: "12px", fontSize: "13px", color: "#34d399", display: "flex", alignItems: "center", gap: "8px" }}>
-                  ✅ ¡Compra realizada! Procesaremos tu pedido en menos de 24h.
+                  ✅ ¡Compra realizada! Recibirás los accesos en 3 a 12 horas por email o soporte.
                 </div>
               )}
 
