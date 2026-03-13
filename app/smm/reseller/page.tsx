@@ -36,7 +36,7 @@ interface ResellerOrder {
 
 // ── Nav ────────────────────────────────────────────────────────────────────
 
-const NAV_LINKS = [
+const NAV_LINKS: { href: string; label: string; active?: boolean; external?: boolean }[] = [
   { href: "/smm/services", label: "Servicios" },
   { href: "/smm/orders",   label: "Pedidos" },
   { href: "/smm/funds",    label: "Recargar" },

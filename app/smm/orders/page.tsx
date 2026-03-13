@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import ChatPopup from "@/app/components/ChatPopup";
+import { TrustFooter } from "@/app/components/TrustFooter";
 
 interface Order {
   id: string;
@@ -148,7 +149,7 @@ export default function OrdersPage() {
                 { href: "/smm/orders", label: "Pedidos", active: true },
                 { href: "/smm/funds", label: "Recargar" },
                 { href: "/smm/ai", label: "🤖 Asistente IA" },
-                { href: "/smm/reseller", label: "🔗 Revendedor" },
+                
                 { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="nav-link"
@@ -367,6 +368,7 @@ export default function OrdersPage() {
         </div>
       </div>
 
+      <TrustFooter />
       <ChatPopup />
     </>
   );

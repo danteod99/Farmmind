@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Send } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import { TrustFooter } from "@/app/components/TrustFooter";
 
 interface Message {
   id: string;
@@ -136,7 +137,7 @@ export default function AIPage() {
     { href: "/smm/orders", label: "Pedidos" },
     { href: "/smm/funds", label: "Recargar" },
     { href: "/smm/ai", label: "🤖 Asistente IA", active: true },
-    { href: "/smm/reseller", label: "🔗 Revendedor" },
+    
     { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
   ];
 
@@ -277,6 +278,7 @@ export default function AIPage() {
           <p style={{ textAlign: "center", fontSize: "11px", color: "#3a3a5c", marginTop: "8px" }}>Enter para enviar · Shift+Enter para nueva línea</p>
         </div>
       </div>
+    <TrustFooter />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import {
   Lock, Eye, EyeOff, Key, Copy, ExternalLink,
   Globe, AlertCircle, Palette, Type, FileText,
   LayoutDashboard, Zap, Save, ChevronRight,
+  Tag, DollarSign, Search as SearchIcon, RefreshCw,
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
@@ -30,6 +31,16 @@ interface ResellerInfo {
   balance: number;
   is_active: boolean;
 }
+
+interface ServicePrice {
+  service_id: number;
+  name: string;
+  category: string;
+  jap_rate: number;
+  reseller_rate: number | null;
+}
+
+type ResellerSection = "branding" | "precios" | "api";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "perfil",     label: "Mi perfil",   icon: "👤" },
@@ -96,6 +107,16 @@ export default function ProfilePage() {
   const [brandingSaving,  setBrandingSaving]  = useState(false);
   const [brandingSaved,   setBrandingSaved]   = useState(false);
   const [brandingError,   setBrandingError]   = useState<string | null>(null);
+
+  // ── Prices ───────────────────────────────────────────────────────────
+  const [resellerSection, setResellerSection] = useState<ResellerSection>("branding");
+  const [services,        setServices]        = useState<ServicePrice[]>([]);
+  const [pricesLoading,   setPricesLoading]   = useState(false);
+  const [pricesQuery,     setPricesQuery]     = useState("");
+  const [editedPrices,    setEditedPrices]    = useState<Record<number, string>>({});
+  const [pricesSaving,    setPricesSaving]    = useState(false);
+  const [pricesSaved,     setPricesSaved]     = useState(false);
+  const [pricesError,     setPricesError]     = useState<string | null>(null);
 
   // ── Load ──────────────────────────────────────────────────────────────
 
@@ -248,6 +269,60 @@ export default function ProfilePage() {
     } catch (err: unknown) {
       setBrandingError(err instanceof Error ? err.message : "Error al guardar");
     } finally { setBrandingSaving(false); }
+  };
+
+  // ── Load prices ──────────────────────────────────────────────────────
+
+  const loadPrices = async () => {
+    if (services.length > 0) return; // already loaded
+    setPricesLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/reseller/prices", {
+        headers: { Authorization: `Bearer ${session?.access_token}` },
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Error al cargar servicios");
+      setServices(json.services ?? []);
+      // Pre-fill edited prices with existing reseller rates
+      const initial: Record<number, string> = {};
+      for (const s of json.services ?? []) {
+        if (s.reseller_rate !== null) initial[s.service_id] = String(s.reseller_rate);
+      }
+      setEditedPrices(initial);
+    } catch (err: unknown) {
+      setPricesError(err instanceof Error ? err.message : "Error");
+    } finally {
+      setPricesLoading(false);
+    }
+  };
+
+  // ── Save prices ───────────────────────────────────────────────────────
+
+  const handleSavePrices = async () => {
+    setPricesSaving(true); setPricesError(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const svcMap = Object.fromEntries(services.map((s) => [s.service_id, s]));
+      const prices = Object.entries(editedPrices)
+        .filter(([, v]) => v && parseFloat(v) > 0)
+        .map(([id, rate]) => ({
+          service_id: Number(id),
+          name:       svcMap[Number(id)]?.name ?? "",
+          category:   svcMap[Number(id)]?.category ?? "",
+          rate:       parseFloat(rate),
+        }));
+      const res = await fetch("/api/reseller/prices", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ prices }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Error al guardar");
+      setPricesSaved(true); setTimeout(() => setPricesSaved(false), 2500);
+    } catch (err: unknown) {
+      setPricesError(err instanceof Error ? err.message : "Error al guardar");
+    } finally { setPricesSaving(false); }
   };
 
   const copyKey = () => {
@@ -463,8 +538,22 @@ export default function ProfilePage() {
                 </div>
               </div>
 
+              {/* ── Sub-nav: Branding / Precios / API ── */}
+              <div style={{ display: "flex", gap: "6px" }}>
+                {([
+                  { id: "branding", icon: <Palette size={13} />, label: "Marca" },
+                  { id: "precios",  icon: <Tag size={13} />,     label: "Mis precios" },
+                  { id: "api",      icon: <Key size={13} />,     label: "API" },
+                ] as { id: ResellerSection; icon: React.ReactNode; label: string }[]).map((s) => (
+                  <button key={s.id} onClick={() => { setResellerSection(s.id); if (s.id === "precios") loadPrices(); }}
+                    style={{ padding: "7px 14px", borderRadius: "9px", fontSize: "12px", fontWeight: 600, cursor: "pointer", border: "1px solid", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "5px", background: resellerSection === s.id ? "#007ABF18" : "transparent", borderColor: resellerSection === s.id ? "#007ABF50" : "#1e1e30", color: resellerSection === s.id ? "#56B4E0" : "#5a6480", transition: "all 0.15s" }}>
+                    {s.icon}{s.label}
+                  </button>
+                ))}
+              </div>
+
               {/* ── Branding editor ── */}
-              <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "22px" }}>
+              {resellerSection === "branding" && <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "22px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", paddingBottom: "18px", borderBottom: "1px solid #1a1a2e" }}>
                   <Palette size={16} color="#007ABF" />
                   <span style={{ fontSize: "15px", fontWeight: 700, color: "#f0efff" }}>Personalización del panel</span>
@@ -546,25 +635,101 @@ export default function ProfilePage() {
                   style={{ width: "100%", padding: "13px", borderRadius: "13px", border: "none", background: brandingSaved ? "linear-gradient(135deg, #34d399, #059669)" : "linear-gradient(135deg, #007ABF, #005F9E)", color: "white", fontSize: "14px", fontWeight: 700, cursor: brandingSaving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", transition: "all 0.2s" }}>
                   {brandingSaving ? <><div style={{ width: "15px", height: "15px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /> Guardando...</> : brandingSaved ? <><Check size={15} /> ¡Cambios guardados!</> : <><Save size={15} /> Guardar configuración</>}
                 </button>
-              </div>
+              </div>}
 
-              {/* ── API key ── */}
-              <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "16px", padding: "22px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "14px" }}>
-                  <Key size={16} color="#007ABF" />
-                  <span style={{ fontWeight: 700, fontSize: "14px" }}>Tu API Key</span>
-                </div>
-                <div style={{ background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "12px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
-                  <code style={{ fontSize: "12px", color: "#56B4E0", flex: 1, wordBreak: "break-all", letterSpacing: "0.5px" }}>{reseller.api_key}</code>
-                  <button onClick={copyKey}
-                    style={{ padding: "6px 12px", borderRadius: "8px", background: copiedKey ? "#34d39918" : "#007ABF18", border: `1px solid ${copiedKey ? "#34d39940" : "#007ABF40"}`, color: copiedKey ? "#34d399" : "#007ABF", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap", flexShrink: 0, fontFamily: "inherit" }}>
-                    {copiedKey ? <><Check size={12} /> Copiado</> : <><Copy size={12} /> Copiar</>}
+              {/* ── Prices editor ── */}
+              {resellerSection === "precios" && (
+                <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "18px" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <Tag size={16} color="#007ABF" />
+                      <span style={{ fontSize: "15px", fontWeight: 700, color: "#f0efff" }}>Mis precios</span>
+                    </div>
+                    <button onClick={() => { setServices([]); loadPrices(); }} disabled={pricesLoading}
+                      style={{ background: "transparent", border: "none", cursor: "pointer", color: "#5a6480", display: "flex", alignItems: "center", gap: "5px", fontSize: "12px", fontFamily: "inherit" }}>
+                      <RefreshCw size={12} style={{ animation: pricesLoading ? "spin 0.8s linear infinite" : "none" }} /> Actualizar
+                    </button>
+                  </div>
+
+                  <p style={{ margin: 0, fontSize: "12px", color: "#5a6480", lineHeight: 1.6, background: "#007ABF08", border: "1px solid #007ABF20", borderRadius: "8px", padding: "10px 14px" }}>
+                    Establece el precio que cobrarás a tus clientes por cada servicio. Deja en blanco para usar el precio base. El precio que pongas debe ser mayor al precio JAP para cubrir tu margen.
+                  </p>
+
+                  {/* Search */}
+                  <div style={{ position: "relative" }}>
+                    <SearchIcon size={14} color="#5a6480" style={{ position: "absolute", left: "13px", top: "50%", transform: "translateY(-50%)" }} />
+                    <input className="focusable" type="text" value={pricesQuery} onChange={(e) => setPricesQuery(e.target.value)} placeholder="Buscar servicio... ej. Instagram followers"
+                      style={{ width: "100%", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 14px 10px 34px", color: "white", fontSize: "13px", fontFamily: "inherit", boxSizing: "border-box" }} />
+                  </div>
+
+                  {/* Services table */}
+                  {pricesLoading ? (
+                    <div style={{ padding: "32px", textAlign: "center" }}>
+                      <div style={{ width: "24px", height: "24px", borderRadius: "50%", border: "3px solid #007ABF30", borderTopColor: "#56B4E0", animation: "spin 0.8s linear infinite", margin: "0 auto 10px" }} />
+                      <p style={{ margin: 0, fontSize: "12px", color: "#5a6480" }}>Cargando servicios...</p>
+                    </div>
+                  ) : (
+                    <div style={{ maxHeight: "420px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {services
+                        .filter((s) => pricesQuery === "" || s.name.toLowerCase().includes(pricesQuery.toLowerCase()) || s.category.toLowerCase().includes(pricesQuery.toLowerCase()))
+                        .slice(0, 80)
+                        .map((s) => {
+                          const edited = editedPrices[s.service_id] ?? "";
+                          const editedNum = parseFloat(edited);
+                          const margin = edited && editedNum > s.jap_rate ? ((editedNum - s.jap_rate) / s.jap_rate * 100).toFixed(0) : null;
+                          return (
+                            <div key={s.service_id} style={{ background: "#09091a", border: `1px solid ${edited && editedNum > 0 ? "#007ABF30" : "#1a1a2e"}`, borderRadius: "10px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px" }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</p>
+                                <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "3px" }}>
+                                  <span style={{ fontSize: "10px", background: "#007ABF15", color: "#56B4E0", padding: "1px 7px", borderRadius: "4px" }}>{s.category}</span>
+                                  <span style={{ fontSize: "11px", color: "#5a6480" }}>Base: <b style={{ color: "#fbbf24" }}>${s.jap_rate.toFixed(4)}</b></span>
+                                  {margin && <span style={{ fontSize: "10px", color: "#34d399", fontWeight: 700 }}>+{margin}%</span>}
+                                </div>
+                              </div>
+                              <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
+                                <DollarSign size={12} color="#5a6480" />
+                                <input type="number" step="0.0001" min="0" value={edited} onChange={(e) => setEditedPrices((p) => ({ ...p, [s.service_id]: e.target.value }))}
+                                  placeholder={s.jap_rate.toFixed(4)}
+                                  style={{ width: "90px", background: "#0a0a0f", border: `1px solid ${edited ? "#007ABF50" : "#2d2d44"}`, borderRadius: "8px", padding: "6px 10px", color: "white", fontSize: "13px", fontFamily: "inherit", outline: "none" }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {pricesError && <div style={{ background: "#f8717115", border: "1px solid #f8717140", borderRadius: "8px", padding: "10px 14px", fontSize: "12px", color: "#f87171" }}>⚠️ {pricesError}</div>}
+
+                  <button className="save-btn" onClick={handleSavePrices} disabled={pricesSaving}
+                    style={{ width: "100%", padding: "13px", borderRadius: "12px", border: "none", background: pricesSaved ? "linear-gradient(135deg, #34d399, #059669)" : "linear-gradient(135deg, #007ABF, #005F9E)", color: "white", fontSize: "14px", fontWeight: 700, cursor: pricesSaving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", transition: "all 0.2s" }}>
+                    {pricesSaving ? <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /> Guardando...</> : pricesSaved ? <><Check size={14} /> ¡Precios guardados!</> : <><Save size={14} /> Guardar precios</>}
                   </button>
                 </div>
-                <p style={{ margin: "10px 0 0", fontSize: "11px", color: "#5a6480" }}>
-                  Endpoint: <code style={{ color: "#56B4E0" }}>https://trustmind.online/api/v2</code>
-                </p>
-              </div>
+              )}
+
+              {/* ── API key ── */}
+              {resellerSection === "api" && (
+                <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "18px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <Key size={16} color="#007ABF" />
+                    <span style={{ fontSize: "15px", fontWeight: 700, color: "#f0efff" }}>Credenciales API</span>
+                  </div>
+                  <div>
+                    <p style={{ margin: "0 0 10px", fontSize: "11px", color: "#8892a4", letterSpacing: "0.5px", fontWeight: 700 }}>TU API KEY</p>
+                    <div style={{ background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "12px 16px", display: "flex", alignItems: "center", gap: "10px" }}>
+                      <code style={{ fontSize: "12px", color: "#56B4E0", flex: 1, wordBreak: "break-all", letterSpacing: "0.5px" }}>{reseller.api_key}</code>
+                      <button onClick={copyKey}
+                        style={{ padding: "6px 12px", borderRadius: "8px", background: copiedKey ? "#34d39918" : "#007ABF18", border: `1px solid ${copiedKey ? "#34d39940" : "#007ABF40"}`, color: copiedKey ? "#34d399" : "#007ABF", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap", flexShrink: 0, fontFamily: "inherit" }}>
+                        {copiedKey ? <><Check size={12} /> Copiado</> : <><Copy size={12} /> Copiar</>}
+                      </button>
+                    </div>
+                    <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#5a6480" }}>
+                      Endpoint: <code style={{ color: "#56B4E0" }}>https://trustmind.online/api/v2</code>
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* ── Links ── */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>

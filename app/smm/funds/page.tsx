@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import ChatPopup from "@/app/components/ChatPopup";
+import { TrustFooter } from "@/app/components/TrustFooter";
 
 const PRESET_AMOUNTS = [11, 20, 25, 50, 100, 200];
 const MIN_AMOUNT = 11;
@@ -186,7 +187,7 @@ export default function FundsPage() {
                 { href: "/smm/orders", label: "Mis pedidos" },
                 { href: "/smm/funds", label: "Recargar", active: true },
                 { href: "/smm/ai", label: "🤖 Asistente IA" },
-                { href: "/smm/reseller", label: "🔗 Revendedor" },
+                
                 { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
               ].map((item) => (
                 <Link key={item.href} href={item.href}
@@ -465,6 +466,7 @@ export default function FundsPage() {
         </div>
       </div>
 
+      <TrustFooter />
       <ChatPopup />
     </>
   );
