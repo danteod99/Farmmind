@@ -310,7 +310,7 @@ export default function OrdersPage() {
                               {order.quantity.toLocaleString()}
                             </td>
                             <td style={{ padding: "13px 18px", fontSize: "13px", color: "#34d399", fontWeight: 600, whiteSpace: "nowrap" }}>
-                              ${order.charge.toFixed(4)}
+                              ${order.charge.toFixed(2)}
                             </td>
                             <td style={{ padding: "13px 18px", minWidth: "100px" }}>
                               <div style={{ height: "6px", background: "#2d2d44", borderRadius: "3px", overflow: "hidden" }}>
@@ -330,7 +330,7 @@ export default function OrdersPage() {
                               <td colSpan={8} style={{ padding: "16px 18px 18px 48px" }}>
                                 <div style={{ display: "flex", gap: "32px", flexWrap: "wrap" }}>
                                   {[
-                                    { label: "ID de pedido JAP", value: `#${order.jap_order_id}` },
+                                    { label: "ID de pedido", value: `#${order.jap_order_id}` },
                                     { label: "Inicio conteo", value: order.start_count || "—" },
                                     { label: "Restantes", value: order.remains || "—" },
                                     { label: "Actualizado", value: order.updated_at ? new Date(order.updated_at).toLocaleString("es-CO", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—" },

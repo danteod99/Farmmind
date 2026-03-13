@@ -445,7 +445,7 @@ export default function ServicesPage() {
   };
 
   const calcCost = (service: Service, qty: number) =>
-    ((parseFloat(service.rate) / 1000) * qty).toFixed(4);
+    ((parseFloat(service.rate) / 1000) * qty).toFixed(2);
 
   if (loading) {
     return (
@@ -705,7 +705,7 @@ export default function ServicesPage() {
                             </div>
                           </div>
                           <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <p style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${parseFloat(svc.rate).toFixed(4)}<span style={{ fontSize: "9px", color: "#5a6480" }}>/1K</span></p>
+                            <p style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${parseFloat(svc.rate).toFixed(2)}<span style={{ fontSize: "9px", color: "#5a6480" }}>/1K</span></p>
                           </div>
                         </button>
                       );
@@ -887,7 +887,7 @@ export default function ServicesPage() {
                         <div style={{ display: "flex", gap: "20px", marginBottom: "2px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                             <DollarSign size={12} color="#34d399" />
-                            <span style={{ fontSize: "14px", color: "#34d399", fontWeight: 800, textShadow: "0 0 12px #34d39950" }}>${cost1k.toFixed(4)}</span>
+                            <span style={{ fontSize: "14px", color: "#34d399", fontWeight: 800, textShadow: "0 0 12px #34d39950" }}>${cost1k.toFixed(2)}</span>
                             <span style={{ fontSize: "10px", color: "#3d4a5c" }}>/ 1K</span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
@@ -930,7 +930,7 @@ export default function ServicesPage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "20px" }}>
               {[
-                { label: "Precio / 1K", value: `$${parseFloat(modal.service.rate).toFixed(4)}` },
+                { label: "Precio / 1K", value: `$${parseFloat(modal.service.rate).toFixed(2)}` },
                 { label: "Mínimo", value: parseInt(modal.service.min).toLocaleString() },
                 { label: "Máximo", value: parseInt(modal.service.max).toLocaleString() },
               ].map((item) => (
@@ -962,7 +962,7 @@ export default function ServicesPage() {
               <div style={{ textAlign: "right" }}>
                 <p style={{ fontSize: "11px", color: "#5a6480", marginBottom: "4px" }}>Tu balance</p>
                 <p style={{ fontSize: "15px", fontWeight: 700, color: balance >= parseFloat(calcCost(modal.service, modal.quantity)) ? "#34d399" : "#f87171" }}>
-                  ${balance.toFixed(4)}
+                  ${balance.toFixed(2)}
                 </p>
               </div>
             </div>
