@@ -186,8 +186,11 @@ export default function FundsPage() {
                 { href: "/smm/orders", label: "Mis pedidos" },
                 { href: "/smm/funds", label: "Recargar", active: true },
                 { href: "/smm/ai", label: "🤖 Asistente IA" },
+                { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
               ].map((item) => (
-                <Link key={item.href} href={item.href} style={{ padding: "7px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#88D0F0" : "#64748b", background: item.active ? "rgba(124,58,237,0.18)" : "transparent", border: item.active ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent", transition: "all 0.15s" }}>{item.label}</Link>
+                <Link key={item.href} href={item.href}
+                  {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                  style={{ padding: "7px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#88D0F0" : "#64748b", background: item.active ? "rgba(124,58,237,0.18)" : "transparent", border: item.active ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent", transition: "all 0.15s" }}>{item.label}</Link>
               ))}
             </div>
           </div>

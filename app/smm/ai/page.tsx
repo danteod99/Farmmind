@@ -136,6 +136,7 @@ export default function AIPage() {
     { href: "/smm/orders", label: "Pedidos" },
     { href: "/smm/funds", label: "Recargar" },
     { href: "/smm/ai", label: "🤖 Asistente IA", active: true },
+    { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
   ];
 
   return (
@@ -164,8 +165,10 @@ export default function AIPage() {
             <span style={{ fontSize: "15px", fontWeight: 800, color: "white", letterSpacing: "-0.3px" }}>TRUST MIND</span>
           </Link>
           <div style={{ display: "flex", gap: "4px" }}>
-            {NAV_LINKS.map(({ href, label, active }) => (
-              <Link key={href} href={href} style={{ padding: "6px 13px", borderRadius: "10px", fontSize: "13px", fontWeight: active ? 700 : 500, color: active ? "#56B4E0" : "#5a6480", background: active ? "#007ABF15" : "transparent", border: `1px solid ${active ? "#007ABF30" : "transparent"}`, textDecoration: "none", transition: "all 0.15s", whiteSpace: "nowrap" }}>
+            {NAV_LINKS.map(({ href, label, active, external }) => (
+              <Link key={href} href={href}
+                {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                style={{ padding: "6px 13px", borderRadius: "10px", fontSize: "13px", fontWeight: active ? 700 : 500, color: active ? "#56B4E0" : "#5a6480", background: active ? "#007ABF15" : "transparent", border: `1px solid ${active ? "#007ABF30" : "transparent"}`, textDecoration: "none", transition: "all 0.15s", whiteSpace: "nowrap" }}>
                 {label}
               </Link>
             ))}

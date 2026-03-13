@@ -148,8 +148,10 @@ export default function OrdersPage() {
                 { href: "/smm/orders", label: "Pedidos", active: true },
                 { href: "/smm/funds", label: "Recargar" },
                 { href: "/smm/ai", label: "🤖 Asistente IA" },
+                { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
               ].map((item) => (
                 <Link key={item.href} href={item.href} className="nav-link"
+                  {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   style={{ padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s", fontWeight: item.active ? 700 : 500, color: item.active ? "#88D0F0" : "#5a6480", background: item.active ? "#007ABF20" : "transparent", border: `1px solid ${item.active ? "#007ABF40" : "transparent"}` }}>
                   {item.label}
                 </Link>
