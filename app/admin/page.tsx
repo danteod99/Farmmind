@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
-import { Users, DollarSign, TrendingUp, LogOut, RefreshCw, Search, UserCheck, UserX, Clock, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Users, DollarSign, TrendingUp, LogOut, RefreshCw, Search, UserCheck, UserX, Clock, ChevronDown, ChevronUp, X, Tag, Gift, Trash2, ToggleLeft, ToggleRight, Plus } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
 const ADMIN_EMAILS = ["danteod99@gmail.com"];
@@ -44,6 +44,12 @@ const SC: Record<string, string> = {
 
 type SortCol = "created_at" | "total_spent" | "total_orders" | "balance";
 
+interface PromoCode {
+  id: string; code: string; bonus_usd: number; min_recharge: number;
+  max_uses: number; current_uses: number; active: boolean;
+  expires_at: string | null; created_at: string;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -60,8 +66,17 @@ export default function AdminPage() {
   const [creditNote, setCreditNote] = useState<Record<string, string>>({});
   const [creditLoading, setCreditLoading] = useState<string | null>(null);
   const [creditMsg, setCreditMsg] = useState<Record<string, { text: string; ok: boolean }>>({});
+  // Tabs
+  const [activeTab, setActiveTab] = useState<"users" | "promos">("users");
+  // Promo codes
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoForm, setPromoForm] = useState({ code: "", bonus_usd: "", min_recharge: "20", max_uses: "100", expires_at: "" });
+  const [promoCreating, setPromoCreating] = useState(false);
+  const [promoMsg, setPromoMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (activeTab === "promos") loadPromoCodes(); }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -80,6 +95,42 @@ export default function AdminPage() {
       setStats(data.stats); setUsers(data.users);
     } catch (e) { setError(e instanceof Error ? e.message : "Error"); }
     finally { setLoading(false); setRefreshing(false); }
+  };
+
+  const loadPromoCodes = async () => {
+    setPromoLoading(true);
+    try {
+      const res = await fetch("/api/admin/promo-codes");
+      if (res.ok) { const d = await res.json(); setPromoCodes(d.codes || []); }
+    } finally { setPromoLoading(false); }
+  };
+
+  const createPromo = async () => {
+    if (!promoForm.code || !promoForm.bonus_usd) { setPromoMsg({ text: "Código y bono son requeridos", ok: false }); return; }
+    setPromoCreating(true); setPromoMsg(null);
+    try {
+      const res = await fetch("/api/admin/promo-codes", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...promoForm, bonus_usd: parseFloat(promoForm.bonus_usd), min_recharge: parseFloat(promoForm.min_recharge), max_uses: parseInt(promoForm.max_uses), expires_at: promoForm.expires_at || null }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        setPromoMsg({ text: `✅ Código "${promoForm.code.toUpperCase()}" creado`, ok: true });
+        setPromoForm({ code: "", bonus_usd: "", min_recharge: "20", max_uses: "100", expires_at: "" });
+        loadPromoCodes();
+      } else { setPromoMsg({ text: d.error || "Error", ok: false }); }
+    } finally { setPromoCreating(false); }
+  };
+
+  const togglePromo = async (id: string, active: boolean) => {
+    await fetch("/api/admin/promo-codes", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, active: !active }) });
+    loadPromoCodes();
+  };
+
+  const deletePromo = async (id: string, code: string) => {
+    if (!confirm(`¿Eliminar el código "${code}"?`)) return;
+    await fetch("/api/admin/promo-codes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    loadPromoCodes();
   };
 
   const handleCredit = async (userId: string) => {
@@ -195,6 +246,122 @@ export default function AdminPage() {
             ))}
           </div>
         )}
+
+        {/* TABS */}
+        <div style={{ display:"flex", gap:"8px", marginBottom:"24px", borderBottom:"1px solid #1a1a2e", paddingBottom:"0" }}>
+          {([["users","👥 Usuarios"],["promos","🎟️ Códigos Promo"]] as const).map(([tab, label]) => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              style={{ padding:"10px 18px", borderRadius:"10px 10px 0 0", border:"1px solid", borderBottom:"none", borderColor: activeTab===tab ? "#007ABF" : "transparent", background: activeTab===tab ? "#007ABF18" : "transparent", color: activeTab===tab ? "#56B4E0" : "#5a6480", fontSize:"13px", fontWeight: activeTab===tab ? 700 : 500, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" }}>
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* ── PROMOS TAB ── */}
+        {activeTab === "promos" && (
+          <div style={{ animation:"fi 0.3s ease-out" }}>
+            {/* Create form */}
+            <div style={{ background:"#0d0d1a", border:"1px solid #1a1a2e", borderRadius:"16px", padding:"22px", marginBottom:"20px" }}>
+              <p style={{ fontSize:"14px", fontWeight:700, color:"white", marginBottom:"16px", display:"flex", alignItems:"center", gap:"8px" }}><Plus size={14} color="#56B4E0"/> Crear nuevo código</p>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(160px,1fr))", gap:"10px", marginBottom:"12px" }}>
+                <div>
+                  <p style={{ fontSize:"11px", color:"#64748b", marginBottom:"5px", fontWeight:600 }}>CÓDIGO *</p>
+                  <input value={promoForm.code} onChange={e=>setPromoForm(f=>({...f,code:e.target.value.toUpperCase()}))} placeholder="Ej: LAUNCH50"
+                    style={{ width:"100%", background:"#07070e", border:"1px solid #2d2d44", borderRadius:"9px", padding:"9px 11px", color:"white", fontSize:"13px", fontWeight:700, letterSpacing:"1px", outline:"none", boxSizing:"border-box", fontFamily:"monospace" }}/>
+                </div>
+                <div>
+                  <p style={{ fontSize:"11px", color:"#64748b", marginBottom:"5px", fontWeight:600 }}>BONO USD *</p>
+                  <input type="number" value={promoForm.bonus_usd} onChange={e=>setPromoForm(f=>({...f,bonus_usd:e.target.value}))} placeholder="5.00"
+                    style={{ width:"100%", background:"#07070e", border:"1px solid #2d2d44", borderRadius:"9px", padding:"9px 11px", color:"white", fontSize:"13px", outline:"none", boxSizing:"border-box" }}/>
+                </div>
+                <div>
+                  <p style={{ fontSize:"11px", color:"#64748b", marginBottom:"5px", fontWeight:600 }}>RECARGA MÍNIMA</p>
+                  <input type="number" value={promoForm.min_recharge} onChange={e=>setPromoForm(f=>({...f,min_recharge:e.target.value}))} placeholder="20"
+                    style={{ width:"100%", background:"#07070e", border:"1px solid #2d2d44", borderRadius:"9px", padding:"9px 11px", color:"white", fontSize:"13px", outline:"none", boxSizing:"border-box" }}/>
+                </div>
+                <div>
+                  <p style={{ fontSize:"11px", color:"#64748b", marginBottom:"5px", fontWeight:600 }}>MÁXIMO DE USOS</p>
+                  <input type="number" value={promoForm.max_uses} onChange={e=>setPromoForm(f=>({...f,max_uses:e.target.value}))} placeholder="100"
+                    style={{ width:"100%", background:"#07070e", border:"1px solid #2d2d44", borderRadius:"9px", padding:"9px 11px", color:"white", fontSize:"13px", outline:"none", boxSizing:"border-box" }}/>
+                </div>
+                <div>
+                  <p style={{ fontSize:"11px", color:"#64748b", marginBottom:"5px", fontWeight:600 }}>EXPIRA (opcional)</p>
+                  <input type="date" value={promoForm.expires_at} onChange={e=>setPromoForm(f=>({...f,expires_at:e.target.value}))}
+                    style={{ width:"100%", background:"#07070e", border:"1px solid #2d2d44", borderRadius:"9px", padding:"9px 11px", color:"white", fontSize:"13px", outline:"none", boxSizing:"border-box" }}/>
+                </div>
+              </div>
+              <button onClick={createPromo} disabled={promoCreating}
+                style={{ padding:"10px 22px", borderRadius:"10px", background: promoCreating?"#1a1a2e":"#007ABF", border:"none", color:"white", fontSize:"13px", fontWeight:700, cursor: promoCreating?"not-allowed":"pointer", display:"flex", alignItems:"center", gap:"7px", fontFamily:"inherit" }}>
+                {promoCreating ? <><div style={{ width:"13px", height:"13px", borderRadius:"50%", border:"2px solid white", borderTopColor:"transparent", animation:"spin 0.6s linear infinite" }}/> Creando...</> : <><Plus size={14}/> Crear código</>}
+              </button>
+              {promoMsg && (
+                <div style={{ marginTop:"10px", padding:"8px 12px", borderRadius:"8px", background: promoMsg.ok?"#34d39912":"#f8717112", border:`1px solid ${promoMsg.ok?"#34d39930":"#f8717130"}`, color: promoMsg.ok?"#34d399":"#f87171", fontSize:"12px" }}>
+                  {promoMsg.text}
+                </div>
+              )}
+            </div>
+
+            {/* Codes list */}
+            <div style={{ background:"#0a0a14", border:"1px solid #1a1a2e", borderRadius:"14px", overflow:"hidden" }}>
+              <div style={{ padding:"14px 20px", borderBottom:"1px solid #1a1a2e", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <p style={{ fontSize:"13px", fontWeight:700, color:"white", display:"flex", alignItems:"center", gap:"7px" }}><Tag size={13} color="#56B4E0"/> {promoCodes.length} códigos creados</p>
+                <button onClick={loadPromoCodes} style={{ background:"none", border:"none", color:"#5a6480", cursor:"pointer", display:"flex", alignItems:"center", gap:"4px", fontSize:"11px", fontFamily:"inherit" }}>
+                  <RefreshCw size={11} style={{ animation: promoLoading?"spin 1s linear infinite":"none" }}/> Actualizar
+                </button>
+              </div>
+              {promoLoading ? (
+                <div style={{ padding:"32px", textAlign:"center" }}><div style={{ width:"24px", height:"24px", borderRadius:"50%", border:"2px solid #007ABF20", borderTopColor:"#56B4E0", animation:"spin 0.8s linear infinite", margin:"0 auto" }}/></div>
+              ) : promoCodes.length === 0 ? (
+                <div style={{ padding:"32px", textAlign:"center", color:"#3a3a5c", fontSize:"13px" }}>No hay códigos creados aún</div>
+              ) : (
+                <div>
+                  {/* Table header */}
+                  <div style={{ display:"grid", gridTemplateColumns:"1.5fr 0.8fr 0.8fr 1fr 0.7fr 0.9fr 80px", gap:"10px", padding:"9px 20px", background:"#07070e", borderBottom:"1px solid #1a1a2e" }}>
+                    {["CÓDIGO","BONO","RECARGA MÍN.","USOS","ESTADO","EXPIRA",""].map(h=>(
+                      <span key={h} style={{ fontSize:"9px", fontWeight:700, color:"#3a3a5c", textTransform:"uppercase", letterSpacing:"0.5px" }}>{h}</span>
+                    ))}
+                  </div>
+                  {promoCodes.map(pc => {
+                    const used = pc.current_uses >= pc.max_uses;
+                    const expired = pc.expires_at ? new Date(pc.expires_at) < new Date() : false;
+                    return (
+                      <div key={pc.id} style={{ display:"grid", gridTemplateColumns:"1.5fr 0.8fr 0.8fr 1fr 0.7fr 0.9fr 80px", gap:"10px", padding:"13px 20px", borderBottom:"1px solid #0d0d1a", alignItems:"center" }}>
+                        <span style={{ fontFamily:"monospace", fontWeight:700, fontSize:"14px", color:"white", letterSpacing:"1px" }}>{pc.code}</span>
+                        <span style={{ fontSize:"14px", fontWeight:700, color:"#34d399" }}>+${pc.bonus_usd.toFixed(2)}</span>
+                        <span style={{ fontSize:"12px", color:"#94a3b8" }}>${pc.min_recharge.toFixed(0)} min</span>
+                        <div>
+                          <div style={{ display:"flex", alignItems:"center", gap:"6px" }}>
+                            <div style={{ flex:1, height:"4px", borderRadius:"2px", background:"#1a1a2e", overflow:"hidden" }}>
+                              <div style={{ width:`${Math.min(100,(pc.current_uses/pc.max_uses)*100)}%`, height:"100%", background: used?"#f87171":"#007ABF", borderRadius:"2px" }}/>
+                            </div>
+                            <span style={{ fontSize:"11px", color: used?"#f87171":"#64748b", whiteSpace:"nowrap" }}>{pc.current_uses}/{pc.max_uses}</span>
+                          </div>
+                        </div>
+                        <span style={{ fontSize:"11px", fontWeight:700, padding:"3px 8px", borderRadius:"6px", background: pc.active&&!used&&!expired?"#34d39918":"#f8717118", color: pc.active&&!used&&!expired?"#34d399":"#f87171", whiteSpace:"nowrap" }}>
+                          {!pc.active?"Inactivo":used?"Agotado":expired?"Expirado":"Activo"}
+                        </span>
+                        <span style={{ fontSize:"11px", color:"#64748b" }}>{pc.expires_at?new Date(pc.expires_at).toLocaleDateString("es"):"Sin límite"}</span>
+                        <div style={{ display:"flex", gap:"6px" }}>
+                          <button onClick={()=>togglePromo(pc.id, pc.active)} title={pc.active?"Desactivar":"Activar"}
+                            style={{ width:"28px", height:"28px", borderRadius:"7px", background: pc.active?"#34d39918":"#f8717118", border:`1px solid ${pc.active?"#34d39930":"#f8717130"}`, color: pc.active?"#34d399":"#f87171", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                            {pc.active?<ToggleRight size={13}/>:<ToggleLeft size={13}/>}
+                          </button>
+                          <button onClick={()=>deletePromo(pc.id, pc.code)} title="Eliminar"
+                            style={{ width:"28px", height:"28px", borderRadius:"7px", background:"#f8717112", border:"1px solid #f8717130", color:"#f87171", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                            <Trash2 size={12}/>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── USERS TAB ── */}
+        {activeTab === "users" && <>
 
         {/* SEARCH + FILTERS */}
         <div style={{ display:"flex", gap:"10px", marginBottom:"16px", flexWrap:"wrap", alignItems:"center" }}>
@@ -361,6 +528,8 @@ export default function AdminPage() {
         <p style={{ textAlign:"center", color:"#3a3a5c", fontSize:"11px", marginTop:"14px" }}>
           Mostrando {filtered.length} de {users.length} usuarios
         </p>
+        </>}
+
       </div>
     </div>
   );

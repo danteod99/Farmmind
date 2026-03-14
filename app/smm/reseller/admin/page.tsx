@@ -9,7 +9,7 @@ import { supabase } from "@/app/lib/supabase";
 import {
   ArrowLeft, Users, ShoppingCart, DollarSign,
   RefreshCw, ChevronDown, ChevronUp, LogOut,
-  LayoutDashboard, Zap,
+  LayoutDashboard, Zap, Tag, Plus, Trash2, ToggleLeft, ToggleRight,
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
@@ -40,6 +40,12 @@ interface Stats {
   total_clients: number;
 }
 
+interface PromoCode {
+  id: string; code: string; bonus_usd: number; min_recharge: number;
+  max_uses: number; current_uses: number; active: boolean;
+  expires_at: string | null; created_at: string;
+}
+
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
   pending:    { bg: "#fbbf2418", color: "#fbbf24", label: "Pendiente" },
   processing: { bg: "#007ABF18", color: "#007ABF", label: "Procesando" },
@@ -68,8 +74,14 @@ export default function ResellerAdminPage() {
   const [stats,       setStats]       = useState<Stats | null>(null);
   const [resellerName, setResellerName] = useState("");
 
-  const [activeSection, setActiveSection] = useState<"orders" | "clients">("orders");
+  const [activeSection, setActiveSection] = useState<"orders" | "clients" | "promos">("orders");
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  // Promo codes
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [promoForm, setPromoForm] = useState({ code: "", bonus_usd: "", min_recharge: "20", max_uses: "50", expires_at: "" });
+  const [promoCreating, setPromoCreating] = useState(false);
+  const [promoMsg, setPromoMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   const fetchData = async (token: string) => {
     const res = await fetch("/api/reseller/clients", {
@@ -105,12 +117,49 @@ export default function ResellerAdminPage() {
       setLoading(false);
     })();
   }, [router]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (activeSection === "promos") loadPromoCodes(); }, [activeSection]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRefresh = async () => {
     setRefreshing(true);
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) await fetchData(session.access_token);
     setRefreshing(false);
+  };
+
+  const loadPromoCodes = async () => {
+    setPromoLoading(true);
+    try {
+      const res = await fetch("/api/reseller/promo-codes");
+      if (res.ok) { const d = await res.json(); setPromoCodes(d.codes || []); }
+    } finally { setPromoLoading(false); }
+  };
+
+  const createPromo = async () => {
+    if (!promoForm.code || !promoForm.bonus_usd) { setPromoMsg({ text: "Código y bono son requeridos", ok: false }); return; }
+    setPromoCreating(true); setPromoMsg(null);
+    try {
+      const res = await fetch("/api/reseller/promo-codes", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...promoForm, bonus_usd: parseFloat(promoForm.bonus_usd), min_recharge: parseFloat(promoForm.min_recharge), max_uses: parseInt(promoForm.max_uses), expires_at: promoForm.expires_at || null }),
+      });
+      const d = await res.json();
+      if (d.success) {
+        setPromoMsg({ text: `✅ Código "${promoForm.code.toUpperCase()}" creado`, ok: true });
+        setPromoForm({ code: "", bonus_usd: "", min_recharge: "20", max_uses: "50", expires_at: "" });
+        loadPromoCodes();
+      } else { setPromoMsg({ text: d.error || "Error", ok: false }); }
+    } finally { setPromoCreating(false); }
+  };
+
+  const togglePromo = async (id: string, active: boolean) => {
+    await fetch("/api/reseller/promo-codes", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, active: !active }) });
+    loadPromoCodes();
+  };
+
+  const deletePromo = async (id: string, code: string) => {
+    if (!confirm(`¿Eliminar el código "${code}"?`)) return;
+    await fetch("/api/reseller/promo-codes", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    loadPromoCodes();
   };
 
   const fmt = (d: string) => new Date(d).toLocaleDateString("es", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -185,10 +234,11 @@ export default function ResellerAdminPage() {
         )}
 
         {/* ── Section tabs ── */}
-        <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
+        <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
           {[
             { id: "orders"  as const, label: `Pedidos (${orders.length})`,   icon: <ShoppingCart size={14} /> },
             { id: "clients" as const, label: `Clientes (${clients.length})`, icon: <Users size={14} /> },
+            { id: "promos"  as const, label: `Códigos Promo (${promoCodes.length})`, icon: <Tag size={14} /> },
           ].map((s) => (
             <button key={s.id} onClick={() => setActiveSection(s.id)}
               style={{ padding: "8px 18px", borderRadius: "10px", fontSize: "13px", fontWeight: 600, cursor: "pointer", border: "1px solid", display: "flex", alignItems: "center", gap: "7px", fontFamily: "inherit", background: activeSection === s.id ? "#007ABF18" : "transparent", borderColor: activeSection === s.id ? "#007ABF50" : "#1e1e30", color: activeSection === s.id ? "#56B4E0" : "#5a6480" }}>
@@ -264,6 +314,95 @@ export default function ResellerAdminPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* ── Promo Codes section ── */}
+        {activeSection === "promos" && (
+          <div>
+            {/* Create form */}
+            <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "14px", padding: "20px", marginBottom: "16px" }}>
+              <p style={{ margin: "0 0 14px", fontSize: "14px", fontWeight: 700, color: "white", display: "flex", alignItems: "center", gap: "7px" }}><Plus size={14} color="#56B4E0"/> Crear código promo</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "10px", marginBottom: "12px" }}>
+                <div>
+                  <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "5px", fontWeight: 600 }}>CÓDIGO *</p>
+                  <input value={promoForm.code} onChange={e => setPromoForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="Ej: MI-PANEL10"
+                    style={{ width: "100%", background: "#07070e", border: "1px solid #2d2d44", borderRadius: "9px", padding: "9px 11px", color: "white", fontSize: "13px", fontWeight: 700, letterSpacing: "1px", outline: "none", boxSizing: "border-box", fontFamily: "monospace" }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "5px", fontWeight: 600 }}>BONO USD * (máx $50)</p>
+                  <input type="number" value={promoForm.bonus_usd} onChange={e => setPromoForm(f => ({ ...f, bonus_usd: e.target.value }))} placeholder="5.00"
+                    style={{ width: "100%", background: "#07070e", border: "1px solid #2d2d44", borderRadius: "9px", padding: "9px 11px", color: "white", fontSize: "13px", outline: "none", boxSizing: "border-box" }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "5px", fontWeight: 600 }}>RECARGA MÍNIMA</p>
+                  <input type="number" value={promoForm.min_recharge} onChange={e => setPromoForm(f => ({ ...f, min_recharge: e.target.value }))} placeholder="20"
+                    style={{ width: "100%", background: "#07070e", border: "1px solid #2d2d44", borderRadius: "9px", padding: "9px 11px", color: "white", fontSize: "13px", outline: "none", boxSizing: "border-box" }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "5px", fontWeight: 600 }}>MÁXIMO USOS</p>
+                  <input type="number" value={promoForm.max_uses} onChange={e => setPromoForm(f => ({ ...f, max_uses: e.target.value }))} placeholder="50"
+                    style={{ width: "100%", background: "#07070e", border: "1px solid #2d2d44", borderRadius: "9px", padding: "9px 11px", color: "white", fontSize: "13px", outline: "none", boxSizing: "border-box" }} />
+                </div>
+                <div>
+                  <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "5px", fontWeight: 600 }}>EXPIRA (opcional)</p>
+                  <input type="date" value={promoForm.expires_at} onChange={e => setPromoForm(f => ({ ...f, expires_at: e.target.value }))}
+                    style={{ width: "100%", background: "#07070e", border: "1px solid #2d2d44", borderRadius: "9px", padding: "9px 11px", color: "white", fontSize: "13px", outline: "none", boxSizing: "border-box" }} />
+                </div>
+              </div>
+              <button onClick={createPromo} disabled={promoCreating}
+                style={{ padding: "9px 20px", borderRadius: "9px", background: promoCreating ? "#1a1a2e" : "#007ABF", border: "none", color: "white", fontSize: "13px", fontWeight: 700, cursor: promoCreating ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "6px", fontFamily: "inherit" }}>
+                {promoCreating ? <><div style={{ width: "12px", height: "12px", borderRadius: "50%", border: "2px solid white", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Creando...</> : <><Plus size={13} /> Crear código</>}
+              </button>
+              {promoMsg && (
+                <div style={{ marginTop: "10px", padding: "8px 12px", borderRadius: "8px", background: promoMsg.ok ? "#34d39912" : "#f8717112", border: `1px solid ${promoMsg.ok ? "#34d39930" : "#f8717130"}`, color: promoMsg.ok ? "#34d399" : "#f87171", fontSize: "12px" }}>
+                  {promoMsg.text}
+                </div>
+              )}
+            </div>
+
+            {/* Codes list */}
+            <div style={{ background: "#0a0a14", border: "1px solid #1a1a2e", borderRadius: "14px", overflow: "hidden" }}>
+              <div style={{ padding: "13px 18px", borderBottom: "1px solid #1a1a2e", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <p style={{ margin: 0, fontSize: "13px", fontWeight: 700, color: "white", display: "flex", alignItems: "center", gap: "7px" }}><Tag size={13} color="#56B4E0" /> {promoCodes.length} códigos</p>
+                <button onClick={loadPromoCodes} style={{ background: "none", border: "none", color: "#5a6480", cursor: "pointer", fontSize: "11px", display: "flex", alignItems: "center", gap: "4px", fontFamily: "inherit" }}>
+                  <RefreshCw size={11} style={{ animation: promoLoading ? "spin 1s linear infinite" : "none" }} /> Actualizar
+                </button>
+              </div>
+              {promoLoading ? (
+                <div style={{ padding: "32px", textAlign: "center" }}><div style={{ width: "24px", height: "24px", borderRadius: "50%", border: "2px solid #007ABF20", borderTopColor: "#56B4E0", animation: "spin 0.8s linear infinite", margin: "0 auto" }} /></div>
+              ) : promoCodes.length === 0 ? (
+                <div style={{ padding: "32px", textAlign: "center", color: "#3a3a5c", fontSize: "13px" }}>No hay códigos creados aún</div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {promoCodes.map(pc => {
+                    const used = pc.current_uses >= pc.max_uses;
+                    const expired = pc.expires_at ? new Date(pc.expires_at) < new Date() : false;
+                    const statusLabel = !pc.active ? "Inactivo" : used ? "Agotado" : expired ? "Expirado" : "Activo";
+                    const statusColor = statusLabel === "Activo" ? "#34d399" : "#f87171";
+                    return (
+                      <div key={pc.id} style={{ padding: "14px 18px", borderBottom: "1px solid #0d0d1a", display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+                        <span style={{ fontFamily: "monospace", fontWeight: 800, fontSize: "15px", color: "white", letterSpacing: "1px", minWidth: "120px" }}>{pc.code}</span>
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#34d399" }}>+${pc.bonus_usd.toFixed(2)}</span>
+                        <span style={{ fontSize: "11px", color: "#64748b" }}>mín ${pc.min_recharge}</span>
+                        <span style={{ fontSize: "11px", color: pc.current_uses >= pc.max_uses ? "#f87171" : "#64748b" }}>{pc.current_uses}/{pc.max_uses} usos</span>
+                        <span style={{ fontSize: "11px", fontWeight: 700, padding: "3px 8px", borderRadius: "6px", background: `${statusColor}18`, color: statusColor }}>{statusLabel}</span>
+                        <div style={{ marginLeft: "auto", display: "flex", gap: "6px" }}>
+                          <button onClick={() => togglePromo(pc.id, pc.active)} title={pc.active ? "Desactivar" : "Activar"}
+                            style={{ width: "30px", height: "30px", borderRadius: "8px", background: pc.active ? "#34d39918" : "#f8717118", border: `1px solid ${pc.active ? "#34d39930" : "#f8717130"}`, color: pc.active ? "#34d399" : "#f87171", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {pc.active ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+                          </button>
+                          <button onClick={() => deletePromo(pc.id, pc.code)} title="Eliminar"
+                            style={{ width: "30px", height: "30px", borderRadius: "8px", background: "#f8717112", border: "1px solid #f8717130", color: "#f87171", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
