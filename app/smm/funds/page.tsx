@@ -13,6 +13,7 @@ import {
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import ChatPopup from "@/app/components/ChatPopup";
 import { TrustFooter } from "@/app/components/TrustFooter";
+import { SmmNav } from "@/app/components/SmmNav";
 
 const PRESET_AMOUNTS = [11, 20, 25, 50, 100, 200];
 const MIN_AMOUNT = 11;
@@ -46,6 +47,7 @@ export default function FundsPage() {
   const router = useRouter();
   const [balance, setBalance] = useState(0);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
   const [amount, setAmount] = useState(11);
   const [customAmount, setCustomAmount] = useState("");
@@ -66,6 +68,7 @@ export default function FundsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
     setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
+    setUserEmail(user.email || "");
     setUserAvatar(user.user_metadata?.avatar_url || "");
     fetchData();
   };
@@ -172,45 +175,19 @@ export default function FundsPage() {
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
 
         {/* Glassmorphism Navbar */}
-        <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(124,58,237,0.15)", padding: "0 28px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "28px" }}>
-            <Link href="/smm/services" style={{ display: "flex", alignItems: "center" }}>
-              <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(6px)" }} />
-                <FarmMindLogo size={34} />
-              </div>
-            </Link>
-            <div style={{ width: "1px", height: "22px", background: "rgba(124,58,237,0.3)" }} />
-            <div className="funds-nav-links" style={{ display: "flex", gap: "2px" }}>
-              {[
-                { href: "/smm/services", label: "Servicios" },
-                { href: "/smm/orders", label: "Mis pedidos" },
-                { href: "/smm/funds", label: "Recargar", active: true },
-                { href: "/smm/ai", label: "🤖 Asistente IA" },
-                
-                { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
-              ].map((item) => (
-                <Link key={item.href} href={item.href}
-                  {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  style={{ padding: "7px 14px", borderRadius: "10px", fontSize: "13px", fontWeight: item.active ? 600 : 400, color: item.active ? "#88D0F0" : "#64748b", background: item.active ? "rgba(124,58,237,0.18)" : "transparent", border: item.active ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent", transition: "all 0.15s" }}>{item.label}</Link>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "7px 16px", borderRadius: "10px", background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.25)" }}>
-              <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", animation: "pulse-glow 2s ease-in-out infinite" }} />
-              <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
-            </div>
-            <Link href="/profile" style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", border: "2px solid #2a2a42", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a1a2e", flexShrink: 0, textDecoration: "none" }}>
-              {userAvatar ? (
-                <img src={userAvatar} alt={userName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-              )}
-            </Link>
-            <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "8px", color: "#64748b", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><LogOut size={15} /></button>
-          </div>
-        </nav>
+        <SmmNav
+          balance={balance}
+          userAvatar={userAvatar}
+          userName={userName}
+          userEmail={userEmail}
+          links={[
+            { href: "/smm/services", label: "Servicios" },
+            { href: "/smm/orders", label: "Pedidos" },
+            { href: "/smm/funds", label: "Recargar", active: true },
+            { href: "/smm/ai", label: "🤖 Asistente IA" },
+            { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+          ]}
+        />
 
         {/* Hero Section */}
         <div className="funds-hero" style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #000C18 0%, #001530 30%, #000A14 70%, #07070e 100%)", padding: "48px 28px 40px", animation: "fade-in 0.6s ease-out" }}>

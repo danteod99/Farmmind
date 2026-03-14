@@ -13,6 +13,7 @@ import {
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import ChatPopup from "@/app/components/ChatPopup";
 import { TrustFooter } from "@/app/components/TrustFooter";
+import { SmmNav } from "@/app/components/SmmNav";
 
 interface Order {
   id: string;
@@ -58,6 +59,7 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [balance, setBalance] = useState(0);
   const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusKey | "all">("all");
@@ -72,6 +74,7 @@ export default function OrdersPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
     setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
+    setUserEmail(user.email || "");
     setUserAvatar(user.user_metadata?.avatar_url || "");
     fetchOrders();
   };
@@ -134,50 +137,19 @@ export default function OrdersPage() {
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
 
         {/* Navbar */}
-        <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid #1a1a2e", padding: "0 28px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <Link href="/smm/services" style={{ display: "flex", alignItems: "center" }}>
-              <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(6px)" }} />
-                <FarmMindLogo size={34} />
-              </div>
-            </Link>
-            <div style={{ width: "1px", height: "22px", background: "#1e1e30" }} />
-            <div style={{ display: "flex", gap: "2px" }}>
-              {[
-                { href: "/smm/services", label: "Servicios" },
-                { href: "/smm/orders", label: "Pedidos", active: true },
-                { href: "/smm/funds", label: "Recargar" },
-                { href: "/smm/ai", label: "🤖 Asistente IA" },
-                
-                { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
-              ].map((item) => (
-                <Link key={item.href} href={item.href} className="nav-link"
-                  {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  style={{ padding: "6px 14px", borderRadius: "8px", fontSize: "13px", transition: "all 0.15s", fontWeight: item.active ? 700 : 500, color: item.active ? "#88D0F0" : "#5a6480", background: item.active ? "#007ABF20" : "transparent", border: `1px solid ${item.active ? "#007ABF40" : "transparent"}` }}>
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <Link href="/smm/funds" style={{ padding: "7px 14px", borderRadius: "10px", background: "#34d39912", border: "1px solid #34d39935", display: "flex", alignItems: "center", gap: "7px", textDecoration: "none", cursor: "pointer" }}>
-              <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399" }} />
-              <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)} USD</span>
-            </Link>
-            <Link href="/profile" style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", border: "2px solid #2a2a42", display: "flex", alignItems: "center", justifyContent: "center", background: "#1a1a2e", flexShrink: 0, textDecoration: "none" }}>
-              {userAvatar ? (
-                <img src={userAvatar} alt={userName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-              )}
-            </Link>
-            <button onClick={async () => { await supabase.auth.signOut(); router.push("/"); }}
-              style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#1a1a2e", border: "1px solid #1e1e30", color: "#5a6480", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.15s" }}>
-              <LogOut size={14} />
-            </button>
-          </div>
-        </nav>
+        <SmmNav
+          balance={balance}
+          userAvatar={userAvatar}
+          userName={userName}
+          userEmail={userEmail}
+          links={[
+            { href: "/smm/services", label: "Servicios" },
+            { href: "/smm/orders", label: "Pedidos", active: true },
+            { href: "/smm/funds", label: "Recargar" },
+            { href: "/smm/ai", label: "🤖 Asistente IA" },
+            { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+          ]}
+        />
 
         {/* Hero */}
         <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #000C18 0%, #001530 35%, #000A14 65%, #07070e 100%)", borderBottom: "1px solid #002860", padding: "44px 28px 36px" }}>
