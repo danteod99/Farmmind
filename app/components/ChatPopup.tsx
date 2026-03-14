@@ -18,6 +18,36 @@ interface PendingImg {
   preview: string;
 }
 
+/**
+ * Comprime y redimensiona una imagen usando Canvas.
+ * Máximo 1280px en cualquier dimensión, calidad JPEG 0.7.
+ */
+function compressImage(file: File, maxDim = 1280, quality = 0.7): Promise<{ base64: string; mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+      const dataUrl = canvas.toDataURL(outputType, quality);
+      const [header, base64] = dataUrl.split(",");
+      const mediaType = header.split(":")[1].split(";")[0] as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+      resolve({ base64, mediaType });
+    };
+    img.onerror = () => reject(new Error("No se pudo leer la imagen"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 function renderMarkdown(content: string): string {
   let html = content;
   html = html.replace(/```(\w*)\n?([\s\S]*?)```/g, (_, lang, code) => {
@@ -55,19 +85,17 @@ export default function ChatPopup() {
     }
   }, [messages, open, minimized]);
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!["image/jpeg","image/png","image/gif","image/webp"].includes(file.type)) { alert("Solo JPG, PNG, GIF o WebP."); return; }
-    if (file.size > 5 * 1024 * 1024) { alert("Máximo 5MB."); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      const [header, base64] = dataUrl.split(",");
-      const mediaType = header.split(":")[1].split(";")[0] as PendingImg["mediaType"];
+    if (file.size > 20 * 1024 * 1024) { alert("Máximo 20MB."); return; }
+    try {
+      const { base64, mediaType } = await compressImage(file);
       setPendingImg({ base64, mediaType, preview: URL.createObjectURL(file) });
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      alert("Error al procesar la imagen. Intenta con otra.");
+    }
     e.target.value = "";
   };
 

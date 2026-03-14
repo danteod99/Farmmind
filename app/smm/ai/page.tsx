@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Send, ImagePlus, X } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
-import { TrustFooter } from "@/app/components/TrustFooter";
 import { SmmNav } from "@/app/components/SmmNav";
 
 interface PendingImage {
@@ -38,6 +37,39 @@ function renderMarkdown(content: string): string {
   return html;
 }
 
+/**
+ * Comprime y redimensiona una imagen usando Canvas.
+ * Esto asegura que las fotos de PC (que suelen ser grandes) no excedan
+ * el límite del body ni gasten tokens innecesarios en la API de Claude.
+ * Máximo 1280px en cualquier dimensión, calidad JPEG 0.7 (~200-400KB resultado).
+ */
+function compressImage(file: File, maxDim = 1280, quality = 0.7): Promise<{ base64: string; mediaType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" }> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim / width, maxDim / height);
+        width = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      // Siempre convertimos a JPEG para comprimir (excepto PNG con transparencia)
+      const outputType = file.type === "image/png" ? "image/png" : "image/jpeg";
+      const dataUrl = canvas.toDataURL(outputType, quality);
+      const [header, base64] = dataUrl.split(",");
+      const mediaType = header.split(":")[1].split(";")[0] as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+      resolve({ base64, mediaType });
+    };
+    img.onerror = () => reject(new Error("No se pudo leer la imagen"));
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 const WELCOME: Message = {
   id: "welcome",
   role: "assistant",
@@ -61,12 +93,19 @@ export default function AIPage() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [pendingImage, setPendingImage] = useState<PendingImage | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  // Solo hacer scroll dentro del contenedor de mensajes, no de toda la página
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -78,20 +117,18 @@ export default function AIPage() {
     if (res.ok) { const d = await res.json(); setBalance(d.balance || 0); }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!validTypes.includes(file.type)) { alert("Solo JPG, PNG, GIF o WebP."); return; }
-    if (file.size > 5 * 1024 * 1024) { alert("La imagen debe ser menor a 5MB."); return; }
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      const [header, base64] = dataUrl.split(",");
-      const mediaType = header.split(":")[1].split(";")[0] as PendingImage["mediaType"];
+    if (file.size > 20 * 1024 * 1024) { alert("La imagen debe ser menor a 20MB."); return; }
+    try {
+      const { base64, mediaType } = await compressImage(file);
       setPendingImage({ base64, mediaType, preview: URL.createObjectURL(file) });
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      alert("Error al procesar la imagen. Intenta con otra.");
+    }
     e.target.value = "";
   };
 
@@ -190,7 +227,7 @@ export default function AIPage() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#07070e", color: "white", fontFamily: "system-ui,-apple-system,sans-serif", display: "flex", flexDirection: "column" }}>
+    <div style={{ height: "100vh", background: "#07070e", color: "white", fontFamily: "system-ui,-apple-system,sans-serif", display: "flex", flexDirection: "column", overflow: "hidden" }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #07070e; }
@@ -230,7 +267,7 @@ export default function AIPage() {
         </div>
 
         {/* Messages */}
-        <div style={{ flex: 1, overflowY: "auto", paddingBottom: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
+        <div ref={messagesContainerRef} style={{ flex: 1, overflowY: "auto", paddingBottom: "16px", display: "flex", flexDirection: "column", gap: "16px" }}>
           {messages.map((m) => (
             <div key={m.id} style={{ display: "flex", gap: "10px", alignItems: "flex-start", flexDirection: m.role === "user" ? "row-reverse" : "row" }}>
               <div style={{ width: "32px", height: "32px", borderRadius: "50%", flexShrink: 0, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", background: m.role === "assistant" ? "linear-gradient(135deg,#007ABF,#005FA4)" : "#1a1a2e", border: "1px solid #2a2a42" }}>
@@ -350,7 +387,6 @@ export default function AIPage() {
           <p style={{ textAlign: "center", fontSize: "11px", color: "#3a3a5c", marginTop: "8px" }}>Enter para enviar · Shift+Enter para nueva línea · 📸 Adjunta screenshots de perfiles</p>
         </div>
       </div>
-      <TrustFooter />
     </div>
   );
 }
