@@ -8,7 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import {
   Search, LogOut, ShoppingCart, ChevronDown, X, Zap, CheckCircle,
-  DollarSign, Users, ArrowLeft, Package, MessageCircle, Crown
+  DollarSign, Users, Package, MessageCircle, Crown
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { SmmNav } from "@/app/components/SmmNav";
@@ -572,11 +572,6 @@ export default function ServicesPage() {
           </div>
 
           <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative", zIndex: 1 }}>
-            {/* Back link */}
-            <Link href="/smm" style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#1E90D4", fontWeight: 600, marginBottom: "20px", padding: "5px 12px", borderRadius: "8px", background: "#007ABF18", border: "1px solid #007ABF30" }}>
-              <ArrowLeft size={12} /> Dashboard
-            </Link>
-
             <div className="svc-hero-row" style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "24px" }}>
               <div>
                 {/* Tag */}
