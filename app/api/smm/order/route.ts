@@ -46,7 +46,7 @@ export async function POST(req: Request) {
       .eq("user_id", user.id)
       .single();
 
-    const userBalance = profile?.balance || 0;
+    const userBalance = parseFloat(profile?.balance) || 0;
     const orderCost = (parseFloat(rate) / 1000) * quantity;
 
     if (userBalance < orderCost) {

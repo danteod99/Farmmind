@@ -170,7 +170,7 @@ async function executeTool(
       .select("balance")
       .eq("user_id", userId)
       .single();
-    const balance = data?.balance || 0;
+    const balance = parseFloat(data?.balance) || 0;
     return JSON.stringify({ balance, formatted: `$${balance.toFixed(2)} USD` });
   }
 
@@ -229,15 +229,31 @@ async function executeTool(
       rate: string;
     };
 
-    // Check balance first
-    const { data: balanceData } = await admin
+    // Check balance first — parseFloat porque NUMERIC de PostgreSQL llega como string
+    const { data: balanceData, error: balanceError } = await admin
       .from("smm_balances")
       .select("balance")
       .eq("user_id", userId)
       .single();
 
-    const userBalance = balanceData?.balance || 0;
-    const orderCost = (parseFloat(rate) / 1000) * quantity;
+    if (balanceError || !balanceData) {
+      console.error("place_smm_order balance fetch error:", balanceError);
+      return JSON.stringify({
+        error: "No se pudo verificar tu saldo. Intenta de nuevo.",
+        success: false,
+        debug: { balanceError: balanceError?.message, hasData: !!balanceData },
+      });
+    }
+
+    const userBalance = parseFloat(balanceData.balance) || 0;
+    const parsedRate = parseFloat(rate);
+    if (isNaN(parsedRate) || parsedRate <= 0) {
+      return JSON.stringify({
+        error: `Rate inválido: "${rate}". Busca el servicio de nuevo.`,
+        success: false,
+      });
+    }
+    const orderCost = (parsedRate / 1000) * quantity;
 
     if (userBalance < orderCost) {
       return JSON.stringify({
@@ -248,11 +264,34 @@ async function executeTool(
 
     // Place order via JAP
     try {
-      const { addOrder } = await import("@/app/lib/jap");
+      const { addOrder, getBalance: getJapBalance } = await import("@/app/lib/jap");
+
+      // Verificar saldo del proveedor JAP antes de intentar
+      try {
+        const japBal = await getJapBalance();
+        const japBalNum = parseFloat(japBal.balance) || 0;
+        // El costo real en JAP es sin markup (dividido entre 3)
+        const realJapCost = orderCost / 3.0;
+        if (japBalNum < realJapCost) {
+          console.error(`JAP balance too low: $${japBalNum}, need $${realJapCost.toFixed(4)}`);
+          return JSON.stringify({
+            error: "El proveedor de servicios no tiene saldo disponible en este momento. Contacta al administrador.",
+            success: false,
+          });
+        }
+      } catch (japBalErr) {
+        console.error("JAP balance check failed:", japBalErr);
+        // Continuar de todos modos, el addOrder dará el error real si falla
+      }
+
       const japResult = await addOrder({ service: service_id, link, quantity });
 
       if (japResult.error) {
-        return JSON.stringify({ error: japResult.error, success: false });
+        console.error("JAP addOrder error:", japResult.error);
+        return JSON.stringify({
+          error: `Error del proveedor: ${japResult.error}. Tu saldo NO fue afectado.`,
+          success: false,
+        });
       }
 
       // Save to DB
@@ -264,26 +303,27 @@ async function executeTool(
         category,
         link,
         quantity,
-        rate: parseFloat(rate),
+        rate: parsedRate,
         charge: orderCost,
         status: "pending",
       });
 
       // Deduct balance — UPDATE directo para evitar bug de upsert sin onConflict
+      const newBalance = userBalance - orderCost;
       await admin.from("smm_balances")
-        .update({ balance: userBalance - orderCost, updated_at: new Date().toISOString() })
+        .update({ balance: newBalance, updated_at: new Date().toISOString() })
         .eq("user_id", userId);
 
       return JSON.stringify({
         success: true,
         order_id: japResult.order,
         cost: orderCost.toFixed(4),
-        new_balance: (userBalance - orderCost).toFixed(4),
-        message: `Pedido #${japResult.order} creado exitosamente. Costo: $${orderCost.toFixed(4)}. Saldo restante: $${(userBalance - orderCost).toFixed(4)}`,
+        new_balance: newBalance.toFixed(4),
+        message: `Pedido #${japResult.order} creado exitosamente. Costo: $${orderCost.toFixed(4)}. Saldo restante: $${newBalance.toFixed(4)}`,
       });
     } catch (err) {
       console.error("place_smm_order error:", err);
-      return JSON.stringify({ error: "Error al procesar el pedido en el panel", success: false });
+      return JSON.stringify({ error: "Error al procesar el pedido en el panel. Tu saldo NO fue afectado.", success: false });
     }
   }
 
