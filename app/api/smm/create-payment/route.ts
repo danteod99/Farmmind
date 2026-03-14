@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autenticado" }, { status: 401 });
 
-    const { amount, currency } = await req.json();
+    const { amount, currency, promo_code } = await req.json();
 
     if (!amount || amount < 11 || amount > 500) {
       return Response.json({ error: "Monto inválido (mínimo $11, máximo $500)" }, { status: 400 });
@@ -76,14 +76,19 @@ export async function POST(req: Request) {
 
     // Guardar transacción pendiente en Supabase
     const admin = getSupabaseAdmin();
-    await admin.from("smm_transactions").insert({
+    const txRecord: Record<string, unknown> = {
       user_id: user.id,
       payment_id: npData.payment_id?.toString(),
       amount: parseFloat(amount),
       currency: currency,
       status: "waiting",
       nowpayments_data: npData,
-    });
+    };
+    // If a promo code was provided, store it (will be applied on payment confirmation)
+    if (promo_code && typeof promo_code === "string") {
+      txRecord.promo_code = promo_code.toUpperCase().trim();
+    }
+    await admin.from("smm_transactions").insert(txRecord);
 
     return Response.json({
       payment_url: null,

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import {
   LogOut, ArrowLeft, DollarSign, Zap,
-  Clock, ExternalLink, Copy, Check, ShoppingCart, TrendingUp, AlertCircle
+  Clock, ExternalLink, Copy, Check, ShoppingCart, TrendingUp, AlertCircle, Tag, Gift
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import ChatPopup from "@/app/components/ChatPopup";
@@ -61,6 +61,10 @@ export default function FundsPage() {
   const [error, setError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [verifyMsg, setVerifyMsg] = useState<{ text: string; ok: boolean } | null>(null);
+  // Promo code state
+  const [promoCode, setPromoCode] = useState("");
+  const [promoValidating, setPromoValidating] = useState(false);
+  const [promoResult, setPromoResult] = useState<{ valid: boolean; bonus_usd?: number; message: string } | null>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line
 
@@ -95,7 +99,11 @@ export default function FundsPage() {
       const res = await fetch("/api/smm/create-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: finalAmount, currency: selectedCrypto }),
+        body: JSON.stringify({
+          amount: finalAmount,
+          currency: selectedCrypto,
+          promo_code: promoResult?.valid ? promoCode.trim().toUpperCase() : undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Error creando el pago"); return; }
@@ -133,6 +141,25 @@ export default function FundsPage() {
       setVerifyMsg({ text: "Error al verificar. Intenta de nuevo.", ok: false });
     } finally {
       setVerifying(false);
+    }
+  };
+
+  const validatePromo = async () => {
+    if (!promoCode.trim()) return;
+    setPromoValidating(true);
+    setPromoResult(null);
+    try {
+      const res = await fetch("/api/smm/validate-promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoCode.trim(), amount: finalAmount }),
+      });
+      const data = await res.json();
+      setPromoResult(data);
+    } catch {
+      setPromoResult({ valid: false, message: "Error al validar el código" });
+    } finally {
+      setPromoValidating(false);
     }
   };
 
@@ -276,6 +303,55 @@ export default function FundsPage() {
                     </div>
                   </div>
 
+                  {/* ── Promo Code ── */}
+                  <div style={{ marginBottom: "24px" }}>
+                    <p style={{ fontSize: "13px", fontWeight: 600, color: "#94a3b8", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Tag size={13} /> ¿Tienes un código de lanzamiento?
+                    </p>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <input
+                        type="text"
+                        placeholder="Ej: LAUNCH25"
+                        value={promoCode}
+                        onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoResult(null); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") validatePromo(); }}
+                        style={{
+                          flex: 1, background: promoResult?.valid ? "#34d39910" : "#0a0a0f",
+                          border: "1px solid", borderColor: promoResult?.valid ? "#34d399" : promoResult?.valid === false ? "#f87171" : "#2d2d44",
+                          borderRadius: "12px", padding: "11px 14px", color: "white",
+                          fontSize: "14px", fontWeight: 700, letterSpacing: "1px", outline: "none",
+                          fontFamily: "monospace",
+                        }}
+                      />
+                      <button
+                        onClick={validatePromo}
+                        disabled={promoValidating || !promoCode.trim()}
+                        style={{
+                          padding: "11px 18px", borderRadius: "12px", border: "1px solid #2d2d44",
+                          background: promoValidating || !promoCode.trim() ? "#0a0a0f" : "#007ABF20",
+                          color: promoValidating || !promoCode.trim() ? "#64748b" : "#56B4E0",
+                          fontSize: "13px", fontWeight: 600, cursor: promoValidating || !promoCode.trim() ? "not-allowed" : "pointer",
+                          whiteSpace: "nowrap", transition: "all 0.15s",
+                        }}>
+                        {promoValidating ? "..." : "Aplicar"}
+                      </button>
+                    </div>
+                    {/* Promo result banner */}
+                    {promoResult && (
+                      <div style={{
+                        marginTop: "10px", padding: "10px 14px", borderRadius: "10px",
+                        background: promoResult.valid ? "#34d39912" : "#f8717112",
+                        border: `1px solid ${promoResult.valid ? "#34d39935" : "#f8717135"}`,
+                        color: promoResult.valid ? "#34d399" : "#f87171",
+                        fontSize: "13px", fontWeight: 600,
+                        display: "flex", alignItems: "center", gap: "8px",
+                      }}>
+                        {promoResult.valid ? <Gift size={14} /> : <AlertCircle size={14} />}
+                        {promoResult.message}
+                      </div>
+                    )}
+                  </div>
+
                   {error && (
                     <div style={{ background: "#f8717115", border: "1px solid #f8717140", borderRadius: "10px", padding: "10px 14px", marginBottom: "16px", fontSize: "13px", color: "#f87171", display: "flex", alignItems: "center", gap: "8px" }}>
                       <AlertCircle size={14} /> {error}
@@ -284,15 +360,27 @@ export default function FundsPage() {
 
                   {/* Resumen */}
                   {finalAmount > 0 && (
-                    <div style={{ background: "#07070e", borderRadius: "10px", padding: "14px", marginBottom: "18px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <p style={{ fontSize: "12px", color: "#64748b" }}>Vas a recargar</p>
-                        <p style={{ fontSize: "22px", fontWeight: 700, color: "white" }}>${finalAmount.toFixed(2)} <span style={{ fontSize: "13px", color: "#64748b" }}>USD</span></p>
+                    <div style={{ background: "#07070e", borderRadius: "10px", padding: "14px", marginBottom: "18px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <p style={{ fontSize: "12px", color: "#64748b" }}>Vas a recargar</p>
+                          <p style={{ fontSize: "22px", fontWeight: 700, color: "white" }}>${finalAmount.toFixed(2)} <span style={{ fontSize: "13px", color: "#64748b" }}>USD</span></p>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <p style={{ fontSize: "12px", color: "#64748b" }}>Nuevo saldo</p>
+                          <p style={{ fontSize: "16px", fontWeight: 600, color: "#34d399" }}>
+                            ${(balance + finalAmount + (promoResult?.valid ? (promoResult.bonus_usd || 0) : 0)).toFixed(2)}
+                          </p>
+                        </div>
                       </div>
-                      <div style={{ textAlign: "right" }}>
-                        <p style={{ fontSize: "12px", color: "#64748b" }}>Nuevo saldo</p>
-                        <p style={{ fontSize: "16px", fontWeight: 600, color: "#34d399" }}>${(balance + finalAmount).toFixed(2)}</p>
-                      </div>
+                      {promoResult?.valid && promoResult.bonus_usd && (
+                        <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #1e1e30", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ fontSize: "12px", color: "#34d399", display: "flex", alignItems: "center", gap: "5px" }}>
+                            <Gift size={12} /> Bono código <strong>{promoCode.toUpperCase()}</strong>
+                          </span>
+                          <span style={{ fontSize: "14px", fontWeight: 700, color: "#34d399" }}>+${promoResult.bonus_usd.toFixed(2)}</span>
+                        </div>
+                      )}
                     </div>
                   )}
 

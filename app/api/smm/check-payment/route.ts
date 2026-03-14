@@ -96,7 +96,37 @@ export async function POST(req: Request) {
         .single();
 
       const currentBalance = balance?.balance || 0;
-      const newBalance = currentBalance + amountToCredit;
+      let bonusAmount = 0;
+
+      // Apply promo code bonus if present and not yet applied
+      if (tx.promo_code && !tx.promo_applied) {
+        const { data: promo } = await admin
+          .from("promo_codes")
+          .select("*")
+          .eq("code", tx.promo_code)
+          .eq("active", true)
+          .single();
+
+        if (
+          promo &&
+          amountToCredit >= promo.min_recharge &&
+          promo.current_uses < promo.max_uses &&
+          (!promo.expires_at || new Date(promo.expires_at) >= new Date())
+        ) {
+          bonusAmount = parseFloat(promo.bonus_usd) || 0;
+
+          // Increment promo usage count
+          await admin
+            .from("promo_codes")
+            .update({ current_uses: promo.current_uses + 1 })
+            .eq("id", promo.id);
+
+          console.log(`🎁 Promo "${tx.promo_code}" applied: +$${bonusAmount} bonus for user=${tx.user_id}`);
+        }
+      }
+
+      const totalToCredit = amountToCredit + bonusAmount;
+      const newBalance = currentBalance + totalToCredit;
 
       await admin
         .from("smm_balances")
@@ -108,17 +138,26 @@ export async function POST(req: Request) {
 
       await admin
         .from("smm_transactions")
-        .update({ status: "finished", credited: true })
+        .update({
+          status: "finished",
+          credited: true,
+          promo_applied: bonusAmount > 0 ? true : false,
+        })
         .eq("id", tx.id);
 
-      console.log(`✅ Pago verificado y acreditado: user=${tx.user_id}, +$${amountToCredit}`);
+      console.log(`✅ Pago verificado y acreditado: user=${tx.user_id}, +$${amountToCredit}${bonusAmount > 0 ? ` + $${bonusAmount} bono` : ""}`);
+
+      const message = bonusAmount > 0
+        ? `¡Pago confirmado! Se acreditaron $${amountToCredit.toFixed(2)} USD + $${bonusAmount.toFixed(2)} USD de bono 🎉`
+        : `¡Pago confirmado! Se acreditaron $${amountToCredit.toFixed(2)} USD a tu cuenta.`;
 
       return Response.json({
         status: "credited",
-        message: `¡Pago confirmado! Se acreditaron $${amountToCredit.toFixed(2)} USD a tu cuenta.`,
+        message,
         credited: true,
         new_balance: newBalance,
         amount_credited: amountToCredit,
+        bonus_applied: bonusAmount,
       });
     }
 
