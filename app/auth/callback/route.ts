@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const panelSlug = searchParams.get("panel"); // Child panel redirect
 
   if (code) {
     const cookieStore = await cookies();
@@ -25,7 +27,69 @@ export async function GET(request: Request) {
         },
       }
     );
-    await supabase.auth.exchangeCodeForSession(code);
+    const { data: { session } } = await supabase.auth.exchangeCodeForSession(code);
+
+    // If coming from a child panel, link user as reseller client
+    if (panelSlug && session?.user) {
+      try {
+        const admin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        // Find reseller by slug
+        const { data: reseller } = await admin
+          .from("smm_resellers")
+          .select("id")
+          .eq("slug", panelSlug)
+          .eq("is_active", true)
+          .single();
+
+        if (reseller) {
+          // Upsert client record
+          const { data: existing } = await admin
+            .from("smm_reseller_clients")
+            .select("id")
+            .eq("reseller_id", reseller.id)
+            .eq("user_id", session.user.id)
+            .single();
+
+          if (!existing) {
+            await admin.from("smm_reseller_clients").insert({
+              reseller_id: reseller.id,
+              user_id: session.user.id,
+              email: session.user.email || "",
+              auth_method: "google",
+              balance: 0,
+              last_login: new Date().toISOString(),
+            });
+          } else {
+            await admin
+              .from("smm_reseller_clients")
+              .update({ last_login: new Date().toISOString() })
+              .eq("id", existing.id);
+          }
+
+          // Ensure balance record exists
+          const { data: balExists } = await admin
+            .from("smm_balances")
+            .select("id")
+            .eq("user_id", session.user.id)
+            .single();
+
+          if (!balExists) {
+            await admin.from("smm_balances").insert({
+              user_id: session.user.id,
+              balance: 0,
+            });
+          }
+        }
+      } catch (e) {
+        console.error("[Auth Callback] Error linking to child panel:", e);
+      }
+
+      return NextResponse.redirect(`${origin}/panel/${panelSlug}/services`);
+    }
   }
 
   return NextResponse.redirect(origin);
