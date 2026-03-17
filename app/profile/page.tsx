@@ -913,20 +913,40 @@ export default function ProfilePage() {
                     <span style={{ fontSize: "15px", fontWeight: 700, color: "#f0efff" }}>Configuración de dominio</span>
                   </div>
 
-                  {/* Current panel URL */}
-                  <div style={{ background: "#007ABF08", border: "1px solid #007ABF20", borderRadius: "12px", padding: "14px 18px" }}>
-                    <p style={{ margin: "0 0 6px", fontSize: "11px", fontWeight: 700, color: "#8892a4", letterSpacing: "0.5px" }}>URL DE TU PANEL (siempre funciona)</p>
+                  {/* Free subdomain (always available) */}
+                  <div style={{ background: "#34d39908", border: "1px solid #34d39925", borderRadius: "12px", padding: "16px 18px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                      <CheckCircle size={14} color="#34d399" />
+                      <p style={{ margin: 0, fontSize: "12px", fontWeight: 700, color: "#34d399", letterSpacing: "0.3px" }}>SUBDOMINIO GRATUITO (activo)</p>
+                    </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <Link2 size={14} color="#56B4E0" />
-                      <a href={`https://trustmind.online/panel/${reseller.slug}`} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: "14px", color: "#56B4E0", wordBreak: "break-all", textDecoration: "none" }}>
-                        trustmind.online/panel/{reseller.slug}
+                      <a href={`https://${reseller.slug}.trustmind.online`} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: "15px", fontWeight: 600, color: "#56B4E0", wordBreak: "break-all", textDecoration: "none" }}>
+                        {reseller.slug}.trustmind.online
                       </a>
-                      <button onClick={() => { navigator.clipboard.writeText(`https://trustmind.online/panel/${reseller.slug}`); }}
+                      <button onClick={() => { navigator.clipboard.writeText(`https://${reseller.slug}.trustmind.online`); }}
                         style={{ padding: "4px 8px", borderRadius: "6px", background: "#007ABF18", border: "1px solid #007ABF40", color: "#007ABF", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
                         <Copy size={10} /> Copiar
                       </button>
                     </div>
+                    <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#5a6480" }}>
+                      Este subdominio funciona automáticamente. Compártelo con tus clientes.
+                    </p>
+                  </div>
+
+                  {/* Alt URL */}
+                  <div style={{ background: "#007ABF08", border: "1px solid #007ABF15", borderRadius: "10px", padding: "10px 14px" }}>
+                    <p style={{ margin: 0, fontSize: "11px", color: "#5a6480" }}>
+                      URL alternativa: <a href={`https://trustmind.online/panel/${reseller.slug}`} target="_blank" rel="noopener noreferrer" style={{ color: "#56B4E0", textDecoration: "none" }}>trustmind.online/panel/{reseller.slug}</a>
+                    </p>
+                  </div>
+
+                  {/* Separator */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div style={{ flex: 1, height: "1px", background: "#1e1e30" }} />
+                    <span style={{ fontSize: "11px", color: "#3a3a5c", fontWeight: 700 }}>O USA TU PROPIO DOMINIO</span>
+                    <div style={{ flex: 1, height: "1px", background: "#1e1e30" }} />
                   </div>
 
                   {/* Custom domain field */}

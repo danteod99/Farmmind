@@ -72,9 +72,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url, { status: 301 });
   }
 
-  // ── 2. Custom domain detection for child panels ──
+  // ── 2. Subdomain detection for child panels (slug.trustmind.online) ──
+  const subdomainMatch = host.match(/^([a-z0-9][a-z0-9-]+)\.(trustmind\.online|www\.trustmind\.online)$/);
+  if (subdomainMatch && isPageRoute) {
+    const subSlug = subdomainMatch[1];
+    // Rewrite subdomain to /panel/[slug]
+    const url = request.nextUrl.clone();
+    if (pathname === "/" || pathname === "") {
+      url.pathname = `/panel/${subSlug}`;
+    } else if (!pathname.startsWith(`/panel/${subSlug}`)) {
+      url.pathname = `/panel/${subSlug}${pathname}`;
+    }
+    const response = pathname.startsWith(`/panel/${subSlug}`) ? NextResponse.next() : NextResponse.rewrite(url);
+    response.headers.set("X-Reseller-Slug", subSlug);
+    response.cookies.set("reseller_slug", subSlug, { path: "/", maxAge: 86400, sameSite: "lax" });
+    return response;
+  }
+
+  // ── 3. Custom domain detection for child panels ──
   // If the host is NOT a known main domain, check if it's a reseller's custom domain
-  const isMainDomain = MAIN_DOMAINS.some((d) => host === d || host.endsWith(`.${d}`));
+  const isMainDomain = MAIN_DOMAINS.some((d) => host === d);
 
   if (!isMainDomain && isPageRoute) {
     const slug = await resolveCustomDomain(host);
@@ -113,7 +130,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ── 3. /panel/[slug] routes — set reseller context ──
+  // ── 4. /panel/[slug] routes — set reseller context ──
   if (pathname.startsWith("/panel/")) {
     const slugMatch = pathname.match(/^\/panel\/([^/]+)/);
     if (slugMatch) {
