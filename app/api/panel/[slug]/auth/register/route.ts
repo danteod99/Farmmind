@@ -88,5 +88,14 @@ export async function POST(
     });
   }
 
+  // Mark user as panel_client in their metadata so they can't access main TrustMind
+  await admin.auth.admin.updateUserById(user_id, {
+    user_metadata: {
+      role: "panel_client",
+      panel_slug: slug,
+      reseller_id: reseller.id,
+    },
+  });
+
   return Response.json({ success: true, existing: false });
 }

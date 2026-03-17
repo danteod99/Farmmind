@@ -83,6 +83,16 @@ export async function GET(request: Request) {
               balance: 0,
             });
           }
+
+          // Mark user as panel_client so they can't access main TrustMind
+          await admin.auth.admin.updateUserById(session.user.id, {
+            user_metadata: {
+              ...session.user.user_metadata,
+              role: "panel_client",
+              panel_slug: panelSlug,
+              reseller_id: reseller.id,
+            },
+          });
         }
       } catch (e) {
         console.error("[Auth Callback] Error linking to child panel:", e);

@@ -46,6 +46,11 @@ export default function SMMDashboard() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
+    // Block panel_client users
+    if (user.user_metadata?.role === "panel_client" && user.user_metadata?.panel_slug) {
+      router.replace(`/panel/${user.user_metadata.panel_slug}/services`);
+      return;
+    }
     // Services is now the main entry point
     router.replace("/smm/services");
   };

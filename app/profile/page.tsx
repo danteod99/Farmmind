@@ -162,6 +162,12 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/"); return; }
 
+      // Block panel_client users from main TrustMind profile
+      if (user.user_metadata?.role === "panel_client" && user.user_metadata?.panel_slug) {
+        router.replace(`/panel/${user.user_metadata.panel_slug}/profile`);
+        return;
+      }
+
       setUserId(user.id);
       setEmail(user.email || "");
       setDisplayName(user.user_metadata?.full_name || user.email?.split("@")[0] || "");

@@ -642,6 +642,18 @@ export default function TrustMindChat() {
 
   if (!user) return <LoginScreen />;
 
+  // If user is a panel_client (registered via child panel), redirect to their panel
+  const userRole = user.user_metadata?.role;
+  const panelSlug = user.user_metadata?.panel_slug;
+  if (userRole === "panel_client" && panelSlug) {
+    router.replace(`/panel/${panelSlug}/services`);
+    return (
+      <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
+        <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
   // Authenticated users go directly to the services page
   router.replace("/smm/services");
   return (

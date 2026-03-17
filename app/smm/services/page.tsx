@@ -294,6 +294,15 @@ export default function ServicesPage() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
+
+    // Block panel_client users from main TrustMind dashboard
+    const userRole = user.user_metadata?.role;
+    const panelSlug = user.user_metadata?.panel_slug;
+    if (userRole === "panel_client" && panelSlug) {
+      router.replace(`/panel/${panelSlug}/services`);
+      return;
+    }
+
     setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
     setUserAvatar(user.user_metadata?.avatar_url || "");
     setUserEmail(user.email || "");
