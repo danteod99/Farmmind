@@ -73,8 +73,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── 2. Subdomain detection for child panels (slug.trustmind.online) ──
-  const subdomainMatch = host.match(/^([a-z0-9][a-z0-9-]+)\.(trustmind\.online|www\.trustmind\.online)$/);
-  if (subdomainMatch && isPageRoute) {
+  // Exclude www and other known subdomains
+  const subdomainMatch = host.match(/^([a-z0-9][a-z0-9-]+)\.trustmind\.online$/);
+  if (subdomainMatch && isPageRoute && subdomainMatch[1] !== "www") {
     const subSlug = subdomainMatch[1];
     // Rewrite subdomain to /panel/[slug]
     const url = request.nextUrl.clone();
@@ -91,7 +92,8 @@ export async function middleware(request: NextRequest) {
 
   // ── 3. Custom domain detection for child panels ──
   // If the host is NOT a known main domain, check if it's a reseller's custom domain
-  const isMainDomain = MAIN_DOMAINS.some((d) => host === d);
+  // Note: subdomains of trustmind.online are handled in step 2 above
+  const isMainDomain = MAIN_DOMAINS.some((d) => host === d) || host === "www.trustmind.online";
 
   if (!isMainDomain && isPageRoute) {
     const slug = await resolveCustomDomain(host);

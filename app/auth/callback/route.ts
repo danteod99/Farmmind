@@ -84,15 +84,23 @@ export async function GET(request: Request) {
             });
           }
 
-          // Mark user as panel_client so they can't access main TrustMind
-          await admin.auth.admin.updateUserById(session.user.id, {
-            user_metadata: {
-              ...session.user.user_metadata,
-              role: "panel_client",
-              panel_slug: panelSlug,
-              reseller_id: reseller.id,
-            },
-          });
+          // Mark user as panel_client — but only if they're NOT already a reseller
+          const { data: isReseller } = await admin
+            .from("smm_resellers")
+            .select("id")
+            .eq("user_id", session.user.id)
+            .single();
+
+          if (!isReseller) {
+            await admin.auth.admin.updateUserById(session.user.id, {
+              user_metadata: {
+                ...session.user.user_metadata,
+                role: "panel_client",
+                panel_slug: panelSlug,
+                reseller_id: reseller.id,
+              },
+            });
+          }
         }
       } catch (e) {
         console.error("[Auth Callback] Error linking to child panel:", e);
