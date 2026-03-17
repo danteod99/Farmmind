@@ -359,23 +359,45 @@ export default function ProfilePage() {
     } finally { setStorefrontSaving(false); }
   };
 
-  // ── Check domain DNS ────────────────────────────────────────────────
+  // ── Auto-provision domain on Vercel + save ──────────────────────────
+
+  const [domainSaving, setDomainSaving] = useState(false);
+  const [domainError, setDomainError] = useState<string | null>(null);
+  const [domainSaved, setDomainSaved] = useState(false);
+
+  const handleSaveDomain = async () => {
+    if (!editDomain.trim()) return;
+    setDomainSaving(true); setDomainError(null); setDomainStatus("idle");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      // Auto-add domain to Vercel project + save in DB
+      const res = await fetch("/api/reseller/domain", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ domain: editDomain.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Error al configurar dominio");
+      setEditDomain(json.domain || editDomain.trim());
+      setDomainSaved(true); setTimeout(() => setDomainSaved(false), 3000);
+    } catch (err: unknown) {
+      setDomainError(err instanceof Error ? err.message : "Error al guardar dominio");
+    } finally { setDomainSaving(false); }
+  };
+
+  // ── Check domain DNS via Vercel API ────────────────────────────────
 
   const handleCheckDomain = async () => {
     if (!editDomain) return;
     setDomainChecking(true); setDomainStatus("idle");
     try {
-      // We try to fetch the panel info via the domain to check if it resolves
-      const res = await fetch(`/api/panel/${reseller?.slug}/info`);
-      if (res.ok) {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/reseller/domain", {
+        headers: { "Authorization": `Bearer ${session?.access_token}` },
+      });
+      const json = await res.json();
+      if (res.ok && json.configured) {
         setDomainStatus("ok");
-        // Update domain_verified in DB
-        const { data: { session } } = await supabase.auth.getSession();
-        await fetch("/api/reseller/profile", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token}` },
-          body: JSON.stringify({ domain_verified: true }),
-        });
       } else {
         setDomainStatus("fail");
       }
@@ -915,79 +937,70 @@ export default function ProfilePage() {
                     <div style={{ display: "flex", gap: "8px" }}>
                       <input className="focusable" type="text" value={editDomain} onChange={(e) => setEditDomain(e.target.value)} placeholder="miempresa.com"
                         style={{ flex: 1, background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "12px", padding: "12px 16px", color: "white", fontSize: "15px", fontFamily: "inherit", boxSizing: "border-box", transition: "border-color 0.15s" }} />
-                      <button onClick={handleSaveBranding} disabled={brandingSaving}
-                        style={{ padding: "12px 18px", borderRadius: "12px", background: "linear-gradient(135deg, #007ABF, #005F9E)", border: "none", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-                        <Save size={13} /> Guardar
+                      <button onClick={handleSaveDomain} disabled={domainSaving || !editDomain.trim()}
+                        style={{ padding: "12px 18px", borderRadius: "12px", background: domainSaved ? "linear-gradient(135deg, #34d399, #059669)" : "linear-gradient(135deg, #007ABF, #005F9E)", border: "none", color: "white", fontSize: "13px", fontWeight: 700, cursor: domainSaving ? "not-allowed" : "pointer", whiteSpace: "nowrap", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "6px" }}>
+                        {domainSaving ? <><div style={{ width: "13px", height: "13px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /></> : domainSaved ? <><Check size={13} /> Listo</> : <><Globe size={13} /> Conectar</>}
                       </button>
                     </div>
+                    <p style={{ margin: "6px 0 0", fontSize: "11px", color: "#5a6480" }}>
+                      Al guardar, el dominio se vincula automáticamente a tu panel. Solo necesitas configurar el DNS.
+                    </p>
                   </div>
 
-                  {/* DNS Instructions */}
+                  {domainError && <div style={{ background: "#f8717115", border: "1px solid #f8717140", borderRadius: "10px", padding: "10px 14px", fontSize: "13px", color: "#f87171" }}>⚠️ {domainError}</div>}
+
+                  {/* DNS Instructions — only after domain is saved */}
                   {editDomain && (
                     <div style={{ background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <Info size={16} color="#fbbf24" />
-                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#fbbf24" }}>Instrucciones de configuración DNS</span>
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#fbbf24" }}>Configura tu DNS</span>
+                      </div>
+
+                      <div style={{ background: "#34d39910", border: "1px solid #34d39925", borderRadius: "10px", padding: "12px 14px", display: "flex", alignItems: "flex-start", gap: "10px" }}>
+                        <CheckCircle size={15} color="#34d399" style={{ marginTop: 1, flexShrink: 0 }} />
+                        <p style={{ margin: 0, fontSize: "12px", color: "#34d399", lineHeight: 1.6 }}>
+                          <b>{editDomain}</b> ya fue registrado en nuestro servidor. Ahora solo falta que apuntes tu DNS.
+                        </p>
                       </div>
 
                       <p style={{ margin: 0, fontSize: "13px", color: "#94a3b8", lineHeight: 1.7 }}>
-                        Para que <b style={{ color: "#56B4E0" }}>{editDomain}</b> apunte a tu panel, necesitas configurar los registros DNS en tu proveedor de dominio (GoDaddy, Namecheap, Cloudflare, etc).
+                        Ve al panel de tu proveedor de dominio (GoDaddy, Namecheap, Cloudflare, etc.) y agrega estos registros:
                       </p>
 
-                      {/* Step 1 */}
-                      <div style={{ background: "#007ABF08", border: "1px solid #007ABF15", borderRadius: "10px", padding: "14px" }}>
-                        <p style={{ margin: "0 0 8px", fontSize: "12px", fontWeight: 700, color: "#56B4E0" }}>Paso 1: Agregar dominio en Vercel</p>
-                        <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.7 }}>
-                          El administrador de Trust Mind debe agregar <b style={{ color: "white" }}>{editDomain}</b> como dominio custom en el proyecto de Vercel. Contacta al soporte si no lo has hecho.
-                        </p>
+                      {/* DNS Table */}
+                      <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                          <thead>
+                            <tr>
+                              <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>TIPO</th>
+                              <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>NOMBRE</th>
+                              <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>VALOR</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td style={{ padding: "8px 10px", borderBottom: "1px solid #1e1e30" }}><code style={{ background: "#007ABF18", padding: "2px 8px", borderRadius: "4px", color: "#56B4E0" }}>A</code></td>
+                              <td style={{ padding: "8px 10px", color: "#e2e8f0", borderBottom: "1px solid #1e1e30" }}>@</td>
+                              <td style={{ padding: "8px 10px", color: "#fbbf24", borderBottom: "1px solid #1e1e30", fontFamily: "monospace" }}>76.76.21.21</td>
+                            </tr>
+                            <tr>
+                              <td style={{ padding: "8px 10px", borderBottom: "1px solid #1e1e30" }}><code style={{ background: "#8B5CF618", padding: "2px 8px", borderRadius: "4px", color: "#a78bfa" }}>CNAME</code></td>
+                              <td style={{ padding: "8px 10px", color: "#e2e8f0", borderBottom: "1px solid #1e1e30" }}>www</td>
+                              <td style={{ padding: "8px 10px", color: "#fbbf24", borderBottom: "1px solid #1e1e30", fontFamily: "monospace" }}>cname.vercel-dns.com</td>
+                            </tr>
+                          </tbody>
+                        </table>
                       </div>
 
-                      {/* Step 2 */}
-                      <div style={{ background: "#007ABF08", border: "1px solid #007ABF15", borderRadius: "10px", padding: "14px" }}>
-                        <p style={{ margin: "0 0 10px", fontSize: "12px", fontWeight: 700, color: "#56B4E0" }}>Paso 2: Configurar registros DNS</p>
-                        <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#94a3b8", lineHeight: 1.7 }}>
-                          Ve al panel de tu proveedor de dominio y agrega estos registros:
-                        </p>
+                      <p style={{ margin: 0, fontSize: "12px", color: "#5a6480", lineHeight: 1.6 }}>
+                        Los cambios de DNS pueden tardar entre <b style={{ color: "#94a3b8" }}>5 minutos y 48 horas</b>. Normalmente es menos de 30 minutos.
+                      </p>
 
-                        {/* DNS Table */}
-                        <div style={{ overflowX: "auto" }}>
-                          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-                            <thead>
-                              <tr>
-                                <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>TIPO</th>
-                                <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>NOMBRE</th>
-                                <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>VALOR</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              <tr>
-                                <td style={{ padding: "8px 10px", borderBottom: "1px solid #1e1e30" }}><code style={{ background: "#007ABF18", padding: "2px 8px", borderRadius: "4px", color: "#56B4E0" }}>A</code></td>
-                                <td style={{ padding: "8px 10px", color: "#e2e8f0", borderBottom: "1px solid #1e1e30" }}>@</td>
-                                <td style={{ padding: "8px 10px", color: "#fbbf24", borderBottom: "1px solid #1e1e30", fontFamily: "monospace" }}>76.76.21.21</td>
-                              </tr>
-                              <tr>
-                                <td style={{ padding: "8px 10px", borderBottom: "1px solid #1e1e30" }}><code style={{ background: "#8B5CF618", padding: "2px 8px", borderRadius: "4px", color: "#a78bfa" }}>CNAME</code></td>
-                                <td style={{ padding: "8px 10px", color: "#e2e8f0", borderBottom: "1px solid #1e1e30" }}>www</td>
-                                <td style={{ padding: "8px 10px", color: "#fbbf24", borderBottom: "1px solid #1e1e30", fontFamily: "monospace" }}>cname.vercel-dns.com</td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-
-                      {/* Step 3 */}
-                      <div style={{ background: "#007ABF08", border: "1px solid #007ABF15", borderRadius: "10px", padding: "14px" }}>
-                        <p style={{ margin: "0 0 8px", fontSize: "12px", fontWeight: 700, color: "#56B4E0" }}>Paso 3: Esperar propagación</p>
-                        <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.7 }}>
-                          Los cambios de DNS pueden tardar entre <b style={{ color: "white" }}>5 minutos y 48 horas</b> en propagarse. Normalmente es menos de 30 minutos.
-                        </p>
-                      </div>
-
-                      {/* Alternative: Cloudflare */}
-                      <div style={{ background: "#F4810008", border: "1px solid #F4810020", borderRadius: "10px", padding: "14px" }}>
-                        <p style={{ margin: "0 0 8px", fontSize: "12px", fontWeight: 700, color: "#F48100" }}>Si usas Cloudflare</p>
-                        <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.7 }}>
-                          Desactiva el proxy (nube naranja) y usa solo DNS (nube gris) para los registros que apunten a Vercel. Esto evita conflictos con el SSL.
+                      {/* Cloudflare note */}
+                      <div style={{ background: "#F4810008", border: "1px solid #F4810020", borderRadius: "10px", padding: "12px 14px" }}>
+                        <p style={{ margin: 0, fontSize: "12px", color: "#F48100", lineHeight: 1.6 }}>
+                          <b>Si usas Cloudflare:</b> desactiva el proxy (nube naranja) y usa solo DNS (nube gris). Esto evita conflictos con el SSL.
                         </p>
                       </div>
 
@@ -995,13 +1008,13 @@ export default function ProfilePage() {
                       <button onClick={handleCheckDomain} disabled={domainChecking}
                         style={{ width: "100%", padding: "12px", borderRadius: "12px", border: `1px solid ${domainStatus === "ok" ? "#34d39940" : domainStatus === "fail" ? "#f8717140" : "#2d2d44"}`, background: domainStatus === "ok" ? "#34d39910" : domainStatus === "fail" ? "#f8717110" : "#0a0a0f", color: domainStatus === "ok" ? "#34d399" : domainStatus === "fail" ? "#f87171" : "#94a3b8", fontSize: "13px", fontWeight: 600, cursor: domainChecking ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", transition: "all 0.15s" }}>
                         {domainChecking ? (
-                          <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /> Verificando...</>
+                          <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /> Verificando DNS...</>
                         ) : domainStatus === "ok" ? (
-                          <><CheckCircle size={14} /> Dominio configurado correctamente</>
+                          <><CheckCircle size={14} /> DNS configurado correctamente — tu dominio está activo</>
                         ) : domainStatus === "fail" ? (
-                          <><XCircle size={14} /> No se pudo verificar — revisa tu configuración DNS</>
+                          <><XCircle size={14} /> DNS aún no apunta a Trust Mind — revisa la configuración</>
                         ) : (
-                          <><Globe size={14} /> Verificar configuración DNS</>
+                          <><Globe size={14} /> Verificar que mi DNS está configurado</>
                         )}
                       </button>
                     </div>
