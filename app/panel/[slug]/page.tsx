@@ -11,6 +11,7 @@ import { supabase } from "@/app/lib/supabase";
 import {
   Zap, Shield, TrendingUp, Clock, Users, Star,
   ArrowRight, ChevronRight, Package,
+  MessageCircle,
 } from "lucide-react";
 
 export default function ChildPanelLanding() {
@@ -114,14 +115,18 @@ export default function ChildPanelLanding() {
               </div>
 
               <h1 style={{ fontSize: 48, fontWeight: 800, color: "white", letterSpacing: "-1.5px", lineHeight: 1.1, marginBottom: 16 }}>
-                Haz crecer tus{" "}
-                <span style={{ background: `linear-gradient(90deg, ${bc}, #a855f7)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  redes sociales
-                </span>
+                {reseller.hero_title ? (
+                  <span>{reseller.hero_title}</span>
+                ) : (
+                  <>Haz crecer tus{" "}
+                  <span style={{ background: `linear-gradient(90deg, ${bc}, #a855f7)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                    redes sociales
+                  </span></>
+                )}
               </h1>
 
               <p style={{ fontSize: 16, color: "#94a3b8", lineHeight: 1.7, marginBottom: 28, maxWidth: 500 }}>
-                {reseller.description || `${panelName} te ofrece los mejores servicios de crecimiento para Instagram, TikTok, YouTube y más. Resultados rápidos, precios competitivos.`}
+                {reseller.hero_subtitle || reseller.description || `${panelName} te ofrece los mejores servicios de crecimiento para Instagram, TikTok, YouTube y más. Resultados rápidos, precios competitivos.`}
               </p>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -143,7 +148,7 @@ export default function ChildPanelLanding() {
                     transition: "all 0.2s",
                   }}
                 >
-                  Comenzar ahora <ArrowRight size={16} />
+                  {reseller.cta_text || "Comenzar ahora"} <ArrowRight size={16} />
                 </Link>
                 <Link
                   href={`/panel/${slug}/auth`}
@@ -159,7 +164,7 @@ export default function ChildPanelLanding() {
                     transition: "all 0.2s",
                   }}
                 >
-                  Ya tengo cuenta
+                  {reseller.cta_secondary_text || "Ya tengo cuenta"}
                 </Link>
               </div>
             </div>
@@ -194,6 +199,7 @@ export default function ChildPanelLanding() {
       </section>
 
       {/* ── FEATURES ── */}
+      {reseller.show_features_section !== false && (
       <section style={{ maxWidth: 1100, margin: "0 auto", padding: "60px 24px" }}>
         <div style={{ textAlign: "center", marginBottom: 40 }}>
           <h2 style={{ fontSize: 28, fontWeight: 800, color: "white", marginBottom: 8 }}>
@@ -228,9 +234,10 @@ export default function ChildPanelLanding() {
           ))}
         </div>
       </section>
+      )}
 
       {/* ── PLANS (if any) ── */}
-      {reseller.plans && reseller.plans.length > 0 && (
+      {reseller.show_plans_section !== false && reseller.plans && reseller.plans.length > 0 && (
         <section style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px 60px" }}>
           <div style={{ textAlign: "center", marginBottom: 40 }}>
             <h2 style={{ fontSize: 28, fontWeight: 800, color: "white", marginBottom: 8 }}>
@@ -326,20 +333,75 @@ export default function ChildPanelLanding() {
               transition: "all 0.2s",
             }}
           >
-            Crear cuenta gratis <ChevronRight size={16} />
+            {reseller.cta_text || "Crear cuenta gratis"} <ChevronRight size={16} />
           </Link>
         </div>
       </section>
 
       {/* ── FOOTER ── */}
       <footer style={{ padding: "24px", borderTop: "1px solid #1e1e30", textAlign: "center" }}>
+        {/* Social links */}
+        {(reseller.instagram_url || reseller.telegram_url || reseller.tiktok_url) && (
+          <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 16 }}>
+            {reseller.instagram_url && (
+              <a href={reseller.instagram_url} target="_blank" rel="noopener noreferrer"
+                style={{ width: 36, height: 36, borderRadius: 10, background: "#E4405F18", border: "1px solid #E4405F30", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.15s" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E4405F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              </a>
+            )}
+            {reseller.tiktok_url && (
+              <a href={reseller.tiktok_url} target="_blank" rel="noopener noreferrer"
+                style={{ width: 36, height: 36, borderRadius: 10, background: "#00f2ea18", border: "1px solid #00f2ea30", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.15s" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00f2ea" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+              </a>
+            )}
+            {reseller.telegram_url && (
+              <a href={reseller.telegram_url} target="_blank" rel="noopener noreferrer"
+                style={{ width: 36, height: 36, borderRadius: 10, background: "#0088CC18", border: "1px solid #0088CC30", display: "flex", alignItems: "center", justifyContent: "center", textDecoration: "none", transition: "all 0.15s" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0088CC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </a>
+            )}
+          </div>
+        )}
+
         <p style={{ fontSize: 12, color: "#3a3a5c" }}>
           © {new Date().getFullYear()} {panelName}. Todos los derechos reservados.
         </p>
-        <p style={{ fontSize: 11, color: "#2a2a42", marginTop: 4 }}>
-          Powered by Trust Mind
-        </p>
+        {reseller.show_powered_by !== false && (
+          <p style={{ fontSize: 11, color: "#2a2a42", marginTop: 4 }}>
+            Powered by Trust Mind
+          </p>
+        )}
       </footer>
+
+      {/* ── WhatsApp floating button ── */}
+      {reseller.whatsapp_number && (
+        <a
+          href={`https://wa.me/${reseller.whatsapp_number.replace(/[^0-9]/g, "")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: "fixed",
+            bottom: 24,
+            right: 24,
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            background: "#25D366",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 20px rgba(37, 211, 102, 0.4)",
+            zIndex: 999,
+            textDecoration: "none",
+            transition: "transform 0.2s",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          <MessageCircle size={26} color="white" fill="white" />
+        </a>
+      )}
     </>
   );
 }

@@ -19,6 +19,18 @@ export interface ResellerInfo {
     period_days: number;
     services_included: { service_id: number; service_name: string; quantity: number }[];
   }[];
+  // Storefront customization
+  hero_title: string;
+  hero_subtitle: string;
+  cta_text: string;
+  cta_secondary_text: string;
+  whatsapp_number: string;
+  instagram_url: string;
+  telegram_url: string;
+  tiktok_url: string;
+  show_features_section: boolean;
+  show_plans_section: boolean;
+  show_powered_by: boolean;
 }
 
 interface PanelContextType {

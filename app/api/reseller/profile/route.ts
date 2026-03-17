@@ -35,10 +35,20 @@ export async function PATCH(req: NextRequest) {
   if (authError || !user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
   const body = await req.json();
-  const allowedFields = ["panel_name", "logo_url", "brand_color", "description", "custom_domain", "company_name"];
-  const updates: Record<string, string> = {};
-  for (const field of allowedFields) {
+  const allowedStringFields = [
+    "panel_name", "logo_url", "brand_color", "description", "custom_domain", "company_name",
+    "hero_title", "hero_subtitle", "cta_text", "cta_secondary_text",
+    "whatsapp_number", "instagram_url", "telegram_url", "tiktok_url",
+  ];
+  const allowedBoolFields = [
+    "show_features_section", "show_plans_section", "show_powered_by", "domain_verified",
+  ];
+  const updates: Record<string, unknown> = {};
+  for (const field of allowedStringFields) {
     if (body[field] !== undefined) updates[field] = body[field];
+  }
+  for (const field of allowedBoolFields) {
+    if (body[field] !== undefined) updates[field] = Boolean(body[field]);
   }
 
   const { data: reseller, error } = await supabaseAdmin

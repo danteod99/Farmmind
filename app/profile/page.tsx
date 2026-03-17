@@ -12,6 +12,9 @@ import {
   Globe, AlertCircle, Palette, Type, FileText,
   LayoutDashboard, Zap, Save, ChevronRight,
   Tag, DollarSign, Search as SearchIcon, RefreshCw,
+  Monitor, MessageCircle, Instagram, Send, Music2,
+  ToggleLeft, ToggleRight, Info, CheckCircle, XCircle,
+  Link2, ArrowUpRight,
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
@@ -30,6 +33,20 @@ interface ResellerInfo {
   custom_domain: string;
   balance: number;
   is_active: boolean;
+  slug: string;
+  hero_title: string;
+  hero_subtitle: string;
+  cta_text: string;
+  cta_secondary_text: string;
+  whatsapp_number: string;
+  instagram_url: string;
+  telegram_url: string;
+  tiktok_url: string;
+  show_features_section: boolean;
+  show_plans_section: boolean;
+  show_powered_by: boolean;
+  domain_verified: boolean;
+  domain_verified_at: string | null;
 }
 
 interface ServicePrice {
@@ -40,7 +57,7 @@ interface ServicePrice {
   reseller_rate: number | null;
 }
 
-type ResellerSection = "branding" | "precios" | "api";
+type ResellerSection = "branding" | "storefront" | "dominio" | "precios" | "api";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "perfil",     label: "Mi perfil",   icon: "👤" },
@@ -108,6 +125,26 @@ export default function ProfilePage() {
   const [brandingSaved,   setBrandingSaved]   = useState(false);
   const [brandingError,   setBrandingError]   = useState<string | null>(null);
 
+  // ── Storefront customization ──────────────────────────────────────────
+  const [editHeroTitle,       setEditHeroTitle]       = useState("");
+  const [editHeroSubtitle,    setEditHeroSubtitle]    = useState("");
+  const [editCtaText,         setEditCtaText]         = useState("Comenzar ahora");
+  const [editCtaSecondary,    setEditCtaSecondary]    = useState("Ya tengo cuenta");
+  const [editWhatsapp,        setEditWhatsapp]        = useState("");
+  const [editInstagram,       setEditInstagram]       = useState("");
+  const [editTelegram,        setEditTelegram]        = useState("");
+  const [editTiktok,          setEditTiktok]          = useState("");
+  const [editShowFeatures,    setEditShowFeatures]    = useState(true);
+  const [editShowPlans,       setEditShowPlans]       = useState(true);
+  const [editShowPoweredBy,   setEditShowPoweredBy]   = useState(true);
+  const [storefrontSaving,    setStorefrontSaving]    = useState(false);
+  const [storefrontSaved,     setStorefrontSaved]     = useState(false);
+  const [storefrontError,     setStorefrontError]     = useState<string | null>(null);
+
+  // ── Domain verification ───────────────────────────────────────────────
+  const [domainChecking,      setDomainChecking]      = useState(false);
+  const [domainStatus,        setDomainStatus]        = useState<"idle" | "ok" | "fail">("idle");
+
   // ── Prices ───────────────────────────────────────────────────────────
   const [resellerSection, setResellerSection] = useState<ResellerSection>("branding");
   const [services,        setServices]        = useState<ServicePrice[]>([]);
@@ -135,7 +172,7 @@ export default function ProfilePage() {
 
       const { data: res } = await supabase
         .from("smm_resellers")
-        .select("id, api_key, company_name, panel_name, logo_url, brand_color, description, custom_domain, balance, is_active")
+        .select("id, api_key, company_name, panel_name, logo_url, brand_color, description, custom_domain, balance, is_active, slug, hero_title, hero_subtitle, cta_text, cta_secondary_text, whatsapp_number, instagram_url, telegram_url, tiktok_url, show_features_section, show_plans_section, show_powered_by, domain_verified, domain_verified_at")
         .eq("user_id", user.id)
         .single();
 
@@ -147,6 +184,19 @@ export default function ProfilePage() {
         setEditDomain(res.custom_domain || "");
         setEditLogoUrl(res.logo_url || "");
         setEditLogoPreview(res.logo_url || "");
+        // Storefront fields
+        setEditHeroTitle(res.hero_title || "");
+        setEditHeroSubtitle(res.hero_subtitle || "");
+        setEditCtaText(res.cta_text || "Comenzar ahora");
+        setEditCtaSecondary(res.cta_secondary_text || "Ya tengo cuenta");
+        setEditWhatsapp(res.whatsapp_number || "");
+        setEditInstagram(res.instagram_url || "");
+        setEditTelegram(res.telegram_url || "");
+        setEditTiktok(res.tiktok_url || "");
+        setEditShowFeatures(res.show_features_section !== false);
+        setEditShowPlans(res.show_plans_section !== false);
+        setEditShowPoweredBy(res.show_powered_by !== false);
+        if (res.domain_verified) setDomainStatus("ok");
       }
       setResellerChecked(true);
       setLoading(false);
@@ -269,6 +319,63 @@ export default function ProfilePage() {
     } catch (err: unknown) {
       setBrandingError(err instanceof Error ? err.message : "Error al guardar");
     } finally { setBrandingSaving(false); }
+  };
+
+  // ── Save storefront customization ────────────────────────────────────
+
+  const handleSaveStorefront = async () => {
+    setStorefrontSaving(true); setStorefrontError(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch("/api/reseller/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token}` },
+        body: JSON.stringify({
+          hero_title: editHeroTitle,
+          hero_subtitle: editHeroSubtitle,
+          cta_text: editCtaText,
+          cta_secondary_text: editCtaSecondary,
+          whatsapp_number: editWhatsapp,
+          instagram_url: editInstagram,
+          telegram_url: editTelegram,
+          tiktok_url: editTiktok,
+          show_features_section: editShowFeatures,
+          show_plans_section: editShowPlans,
+          show_powered_by: editShowPoweredBy,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Error al guardar");
+      setReseller((prev) => prev ? { ...prev, ...json.reseller } : json.reseller);
+      setStorefrontSaved(true); setTimeout(() => setStorefrontSaved(false), 2500);
+    } catch (err: unknown) {
+      setStorefrontError(err instanceof Error ? err.message : "Error al guardar");
+    } finally { setStorefrontSaving(false); }
+  };
+
+  // ── Check domain DNS ────────────────────────────────────────────────
+
+  const handleCheckDomain = async () => {
+    if (!editDomain) return;
+    setDomainChecking(true); setDomainStatus("idle");
+    try {
+      // We try to fetch the panel info via the domain to check if it resolves
+      const res = await fetch(`/api/panel/${reseller?.slug}/info`);
+      if (res.ok) {
+        setDomainStatus("ok");
+        // Update domain_verified in DB
+        const { data: { session } } = await supabase.auth.getSession();
+        await fetch("/api/reseller/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token}` },
+          body: JSON.stringify({ domain_verified: true }),
+        });
+      } else {
+        setDomainStatus("fail");
+      }
+    } catch {
+      setDomainStatus("fail");
+    } finally { setDomainChecking(false); }
   };
 
   // ── Load prices ──────────────────────────────────────────────────────
@@ -538,12 +645,14 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* ── Sub-nav: Branding / Precios / API ── */}
-              <div style={{ display: "flex", gap: "6px" }}>
+              {/* ── Sub-nav ── */}
+              <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                 {([
-                  { id: "branding", icon: <Palette size={13} />, label: "Marca" },
-                  { id: "precios",  icon: <Tag size={13} />,     label: "Mis precios" },
-                  { id: "api",      icon: <Key size={13} />,     label: "API" },
+                  { id: "branding",   icon: <Palette size={13} />,  label: "Marca" },
+                  { id: "storefront", icon: <Monitor size={13} />,  label: "Storefront" },
+                  { id: "dominio",    icon: <Globe size={13} />,    label: "Dominio" },
+                  { id: "precios",    icon: <Tag size={13} />,      label: "Mis precios" },
+                  { id: "api",        icon: <Key size={13} />,      label: "API" },
                 ] as { id: ResellerSection; icon: React.ReactNode; label: string }[]).map((s) => (
                   <button key={s.id} onClick={() => { setResellerSection(s.id); if (s.id === "precios") loadPrices(); }}
                     style={{ padding: "7px 14px", borderRadius: "9px", fontSize: "12px", fontWeight: 600, cursor: "pointer", border: "1px solid", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "5px", background: resellerSection === s.id ? "#007ABF18" : "transparent", borderColor: resellerSection === s.id ? "#007ABF50" : "#1e1e30", color: resellerSection === s.id ? "#56B4E0" : "#5a6480", transition: "all 0.15s" }}>
@@ -635,7 +744,274 @@ export default function ProfilePage() {
                   style={{ width: "100%", padding: "13px", borderRadius: "13px", border: "none", background: brandingSaved ? "linear-gradient(135deg, #34d399, #059669)" : "linear-gradient(135deg, #007ABF, #005F9E)", color: "white", fontSize: "14px", fontWeight: 700, cursor: brandingSaving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", transition: "all 0.2s" }}>
                   {brandingSaving ? <><div style={{ width: "15px", height: "15px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /> Guardando...</> : brandingSaved ? <><Check size={15} /> ¡Cambios guardados!</> : <><Save size={15} /> Guardar configuración</>}
                 </button>
+
+                {/* Preview link */}
+                {reseller.slug && (
+                  <a href={`/panel/${reseller.slug}`} target="_blank" rel="noopener noreferrer"
+                    style={{ width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #2d2d44", background: "#0a0a0f", color: "#94a3b8", fontSize: "13px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", textDecoration: "none", transition: "all 0.15s", boxSizing: "border-box" }}>
+                    <ArrowUpRight size={14} /> Ver mi storefront
+                  </a>
+                )}
               </div>}
+
+              {/* ── Storefront customization ── */}
+              {resellerSection === "storefront" && (
+                <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "22px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", paddingBottom: "18px", borderBottom: "1px solid #1a1a2e" }}>
+                    <Monitor size={16} color="#007ABF" />
+                    <span style={{ fontSize: "15px", fontWeight: 700, color: "#f0efff" }}>Personalizar storefront</span>
+                  </div>
+
+                  <p style={{ margin: 0, fontSize: "12px", color: "#5a6480", lineHeight: 1.6, background: "#007ABF08", border: "1px solid #007ABF20", borderRadius: "8px", padding: "10px 14px" }}>
+                    Personaliza los textos, enlaces y secciones que verán tus clientes en tu tienda web. Los campos vacíos usarán valores por defecto.
+                  </p>
+
+                  {/* Hero title */}
+                  <div>
+                    <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "8px", letterSpacing: "0.5px" }}>
+                      TÍTULO PRINCIPAL (Hero)
+                    </label>
+                    <input className="focusable" type="text" value={editHeroTitle} onChange={(e) => setEditHeroTitle(e.target.value)}
+                      placeholder='Ej: Haz crecer tus redes sociales'
+                      style={{ width: "100%", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "12px", padding: "12px 16px", color: "white", fontSize: "14px", fontFamily: "inherit", boxSizing: "border-box", transition: "border-color 0.15s" }} />
+                    <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#5a6480" }}>Deja vacío para usar el título por defecto</p>
+                  </div>
+
+                  {/* Hero subtitle */}
+                  <div>
+                    <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "8px", letterSpacing: "0.5px" }}>
+                      SUBTÍTULO / DESCRIPCIÓN DEL HERO
+                    </label>
+                    <textarea className="focusable" value={editHeroSubtitle} onChange={(e) => setEditHeroSubtitle(e.target.value)}
+                      placeholder="Ej: Los mejores servicios de crecimiento para Instagram, TikTok, YouTube y más."
+                      style={{ width: "100%", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "12px", padding: "12px 16px", color: "white", fontSize: "14px", fontFamily: "inherit", boxSizing: "border-box", resize: "none", minHeight: "70px", transition: "border-color 0.15s" }} />
+                  </div>
+
+                  {/* CTA buttons */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "8px", letterSpacing: "0.5px" }}>
+                        BOTÓN PRINCIPAL (CTA)
+                      </label>
+                      <input className="focusable" type="text" value={editCtaText} onChange={(e) => setEditCtaText(e.target.value)} placeholder="Comenzar ahora"
+                        style={{ width: "100%", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "12px", padding: "12px 16px", color: "white", fontSize: "14px", fontFamily: "inherit", boxSizing: "border-box" }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "8px", letterSpacing: "0.5px" }}>
+                        BOTÓN SECUNDARIO
+                      </label>
+                      <input className="focusable" type="text" value={editCtaSecondary} onChange={(e) => setEditCtaSecondary(e.target.value)} placeholder="Ya tengo cuenta"
+                        style={{ width: "100%", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "12px", padding: "12px 16px", color: "white", fontSize: "14px", fontFamily: "inherit", boxSizing: "border-box" }} />
+                    </div>
+                  </div>
+
+                  {/* Social links */}
+                  <div style={{ borderTop: "1px solid #1a1a2e", paddingTop: "18px" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "14px", letterSpacing: "0.5px" }}>
+                      REDES SOCIALES Y CONTACTO
+                    </label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#25D36618", border: "1px solid #25D36630", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <MessageCircle size={16} color="#25D366" />
+                        </div>
+                        <input className="focusable" type="text" value={editWhatsapp} onChange={(e) => setEditWhatsapp(e.target.value)} placeholder="+51 999 999 999"
+                          style={{ flex: 1, background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "13px", fontFamily: "inherit", boxSizing: "border-box" }} />
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#E4405F18", border: "1px solid #E4405F30", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <Instagram size={16} color="#E4405F" />
+                        </div>
+                        <input className="focusable" type="text" value={editInstagram} onChange={(e) => setEditInstagram(e.target.value)} placeholder="https://instagram.com/tu_cuenta"
+                          style={{ flex: 1, background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "13px", fontFamily: "inherit", boxSizing: "border-box" }} />
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#0088CC18", border: "1px solid #0088CC30", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <Send size={16} color="#0088CC" />
+                        </div>
+                        <input className="focusable" type="text" value={editTelegram} onChange={(e) => setEditTelegram(e.target.value)} placeholder="https://t.me/tu_canal"
+                          style={{ flex: 1, background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "13px", fontFamily: "inherit", boxSizing: "border-box" }} />
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#00f2ea18", border: "1px solid #00f2ea30", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <Music2 size={16} color="#00f2ea" />
+                        </div>
+                        <input className="focusable" type="text" value={editTiktok} onChange={(e) => setEditTiktok(e.target.value)} placeholder="https://tiktok.com/@tu_cuenta"
+                          style={{ flex: 1, background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "13px", fontFamily: "inherit", boxSizing: "border-box" }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Toggles */}
+                  <div style={{ borderTop: "1px solid #1a1a2e", paddingTop: "18px" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "14px", letterSpacing: "0.5px" }}>
+                      SECCIONES VISIBLES
+                    </label>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                      {([
+                        { label: "Sección de características", desc: "Muestra las 6 tarjetas de beneficios", value: editShowFeatures, setter: setEditShowFeatures },
+                        { label: "Sección de planes", desc: "Muestra tus planes de suscripción", value: editShowPlans, setter: setEditShowPlans },
+                        { label: "\"Powered by Trust Mind\"", desc: "Muestra la atribución en el footer", value: editShowPoweredBy, setter: setEditShowPoweredBy },
+                      ]).map((toggle) => (
+                        <div key={toggle.label} onClick={() => toggle.setter(!toggle.value)}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", cursor: "pointer", transition: "all 0.15s" }}>
+                          <div>
+                            <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#e2e8f0" }}>{toggle.label}</p>
+                            <p style={{ margin: "2px 0 0", fontSize: "11px", color: "#5a6480" }}>{toggle.desc}</p>
+                          </div>
+                          {toggle.value
+                            ? <ToggleRight size={28} color="#007ABF" />
+                            : <ToggleLeft size={28} color="#3a3a5c" />
+                          }
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {storefrontError && <div style={{ background: "#f8717115", border: "1px solid #f8717140", borderRadius: "10px", padding: "10px 14px", fontSize: "13px", color: "#f87171" }}>⚠️ {storefrontError}</div>}
+
+                  <button className="save-btn" onClick={handleSaveStorefront} disabled={storefrontSaving}
+                    style={{ width: "100%", padding: "13px", borderRadius: "13px", border: "none", background: storefrontSaved ? "linear-gradient(135deg, #34d399, #059669)" : "linear-gradient(135deg, #007ABF, #005F9E)", color: "white", fontSize: "14px", fontWeight: 700, cursor: storefrontSaving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", transition: "all 0.2s" }}>
+                    {storefrontSaving ? <><div style={{ width: "15px", height: "15px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /> Guardando...</> : storefrontSaved ? <><Check size={15} /> ¡Guardado!</> : <><Save size={15} /> Guardar storefront</>}
+                  </button>
+                </div>
+              )}
+
+              {/* ── Domain / DNS Configuration ── */}
+              {resellerSection === "dominio" && (
+                <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "20px", padding: "28px", display: "flex", flexDirection: "column", gap: "22px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", paddingBottom: "18px", borderBottom: "1px solid #1a1a2e" }}>
+                    <Globe size={16} color="#007ABF" />
+                    <span style={{ fontSize: "15px", fontWeight: 700, color: "#f0efff" }}>Configuración de dominio</span>
+                  </div>
+
+                  {/* Current panel URL */}
+                  <div style={{ background: "#007ABF08", border: "1px solid #007ABF20", borderRadius: "12px", padding: "14px 18px" }}>
+                    <p style={{ margin: "0 0 6px", fontSize: "11px", fontWeight: 700, color: "#8892a4", letterSpacing: "0.5px" }}>URL DE TU PANEL (siempre funciona)</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <Link2 size={14} color="#56B4E0" />
+                      <a href={`https://trustmind.online/panel/${reseller.slug}`} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: "14px", color: "#56B4E0", wordBreak: "break-all", textDecoration: "none" }}>
+                        trustmind.online/panel/{reseller.slug}
+                      </a>
+                      <button onClick={() => { navigator.clipboard.writeText(`https://trustmind.online/panel/${reseller.slug}`); }}
+                        style={{ padding: "4px 8px", borderRadius: "6px", background: "#007ABF18", border: "1px solid #007ABF40", color: "#007ABF", fontSize: "11px", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                        <Copy size={10} /> Copiar
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Custom domain field */}
+                  <div>
+                    <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "8px", letterSpacing: "0.5px" }}>
+                      <Globe size={11} style={{ display: "inline", marginRight: 5 }} />DOMINIO PERSONALIZADO
+                    </label>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <input className="focusable" type="text" value={editDomain} onChange={(e) => setEditDomain(e.target.value)} placeholder="miempresa.com"
+                        style={{ flex: 1, background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "12px", padding: "12px 16px", color: "white", fontSize: "15px", fontFamily: "inherit", boxSizing: "border-box", transition: "border-color 0.15s" }} />
+                      <button onClick={handleSaveBranding} disabled={brandingSaving}
+                        style={{ padding: "12px 18px", borderRadius: "12px", background: "linear-gradient(135deg, #007ABF, #005F9E)", border: "none", color: "white", fontSize: "13px", fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+                        <Save size={13} /> Guardar
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* DNS Instructions */}
+                  {editDomain && (
+                    <div style={{ background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "14px", padding: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <Info size={16} color="#fbbf24" />
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "#fbbf24" }}>Instrucciones de configuración DNS</span>
+                      </div>
+
+                      <p style={{ margin: 0, fontSize: "13px", color: "#94a3b8", lineHeight: 1.7 }}>
+                        Para que <b style={{ color: "#56B4E0" }}>{editDomain}</b> apunte a tu panel, necesitas configurar los registros DNS en tu proveedor de dominio (GoDaddy, Namecheap, Cloudflare, etc).
+                      </p>
+
+                      {/* Step 1 */}
+                      <div style={{ background: "#007ABF08", border: "1px solid #007ABF15", borderRadius: "10px", padding: "14px" }}>
+                        <p style={{ margin: "0 0 8px", fontSize: "12px", fontWeight: 700, color: "#56B4E0" }}>Paso 1: Agregar dominio en Vercel</p>
+                        <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.7 }}>
+                          El administrador de Trust Mind debe agregar <b style={{ color: "white" }}>{editDomain}</b> como dominio custom en el proyecto de Vercel. Contacta al soporte si no lo has hecho.
+                        </p>
+                      </div>
+
+                      {/* Step 2 */}
+                      <div style={{ background: "#007ABF08", border: "1px solid #007ABF15", borderRadius: "10px", padding: "14px" }}>
+                        <p style={{ margin: "0 0 10px", fontSize: "12px", fontWeight: 700, color: "#56B4E0" }}>Paso 2: Configurar registros DNS</p>
+                        <p style={{ margin: "0 0 10px", fontSize: "12px", color: "#94a3b8", lineHeight: 1.7 }}>
+                          Ve al panel de tu proveedor de dominio y agrega estos registros:
+                        </p>
+
+                        {/* DNS Table */}
+                        <div style={{ overflowX: "auto" }}>
+                          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+                            <thead>
+                              <tr>
+                                <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>TIPO</th>
+                                <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>NOMBRE</th>
+                                <th style={{ padding: "8px 10px", textAlign: "left", color: "#8892a4", borderBottom: "1px solid #1e1e30", fontWeight: 700, fontSize: "10px", letterSpacing: "0.5px" }}>VALOR</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td style={{ padding: "8px 10px", borderBottom: "1px solid #1e1e30" }}><code style={{ background: "#007ABF18", padding: "2px 8px", borderRadius: "4px", color: "#56B4E0" }}>A</code></td>
+                                <td style={{ padding: "8px 10px", color: "#e2e8f0", borderBottom: "1px solid #1e1e30" }}>@</td>
+                                <td style={{ padding: "8px 10px", color: "#fbbf24", borderBottom: "1px solid #1e1e30", fontFamily: "monospace" }}>76.76.21.21</td>
+                              </tr>
+                              <tr>
+                                <td style={{ padding: "8px 10px", borderBottom: "1px solid #1e1e30" }}><code style={{ background: "#8B5CF618", padding: "2px 8px", borderRadius: "4px", color: "#a78bfa" }}>CNAME</code></td>
+                                <td style={{ padding: "8px 10px", color: "#e2e8f0", borderBottom: "1px solid #1e1e30" }}>www</td>
+                                <td style={{ padding: "8px 10px", color: "#fbbf24", borderBottom: "1px solid #1e1e30", fontFamily: "monospace" }}>cname.vercel-dns.com</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Step 3 */}
+                      <div style={{ background: "#007ABF08", border: "1px solid #007ABF15", borderRadius: "10px", padding: "14px" }}>
+                        <p style={{ margin: "0 0 8px", fontSize: "12px", fontWeight: 700, color: "#56B4E0" }}>Paso 3: Esperar propagación</p>
+                        <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.7 }}>
+                          Los cambios de DNS pueden tardar entre <b style={{ color: "white" }}>5 minutos y 48 horas</b> en propagarse. Normalmente es menos de 30 minutos.
+                        </p>
+                      </div>
+
+                      {/* Alternative: Cloudflare */}
+                      <div style={{ background: "#F4810008", border: "1px solid #F4810020", borderRadius: "10px", padding: "14px" }}>
+                        <p style={{ margin: "0 0 8px", fontSize: "12px", fontWeight: 700, color: "#F48100" }}>Si usas Cloudflare</p>
+                        <p style={{ margin: 0, fontSize: "12px", color: "#94a3b8", lineHeight: 1.7 }}>
+                          Desactiva el proxy (nube naranja) y usa solo DNS (nube gris) para los registros que apunten a Vercel. Esto evita conflictos con el SSL.
+                        </p>
+                      </div>
+
+                      {/* Verify button */}
+                      <button onClick={handleCheckDomain} disabled={domainChecking}
+                        style={{ width: "100%", padding: "12px", borderRadius: "12px", border: `1px solid ${domainStatus === "ok" ? "#34d39940" : domainStatus === "fail" ? "#f8717140" : "#2d2d44"}`, background: domainStatus === "ok" ? "#34d39910" : domainStatus === "fail" ? "#f8717110" : "#0a0a0f", color: domainStatus === "ok" ? "#34d399" : domainStatus === "fail" ? "#f87171" : "#94a3b8", fontSize: "13px", fontWeight: 600, cursor: domainChecking ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", transition: "all 0.15s" }}>
+                        {domainChecking ? (
+                          <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /> Verificando...</>
+                        ) : domainStatus === "ok" ? (
+                          <><CheckCircle size={14} /> Dominio configurado correctamente</>
+                        ) : domainStatus === "fail" ? (
+                          <><XCircle size={14} /> No se pudo verificar — revisa tu configuración DNS</>
+                        ) : (
+                          <><Globe size={14} /> Verificar configuración DNS</>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {!editDomain && (
+                    <div style={{ background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "12px", padding: "24px", textAlign: "center" }}>
+                      <Globe size={32} color="#3a3a5c" style={{ marginBottom: 12 }} />
+                      <p style={{ margin: "0 0 6px", fontSize: "14px", fontWeight: 600, color: "#5a6480" }}>Sin dominio configurado</p>
+                      <p style={{ margin: 0, fontSize: "12px", color: "#3a3a5c", lineHeight: 1.6 }}>
+                        Ingresa un dominio arriba para ver las instrucciones de configuración. Mientras tanto, tus clientes pueden acceder por la URL directa.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* ── Prices editor ── */}
               {resellerSection === "precios" && (

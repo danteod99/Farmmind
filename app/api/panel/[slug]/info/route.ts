@@ -27,7 +27,7 @@ export async function GET(
   const { data: reseller, error } = await admin
     .from("smm_resellers")
     .select(
-      "id, slug, panel_name, logo_url, brand_color, description, custom_domain, is_active"
+      "id, slug, panel_name, logo_url, brand_color, description, custom_domain, is_active, hero_title, hero_subtitle, cta_text, cta_secondary_text, whatsapp_number, instagram_url, telegram_url, tiktok_url, show_features_section, show_plans_section, show_powered_by"
     )
     .eq("slug", slug)
     .eq("is_active", true)
@@ -61,5 +61,17 @@ export async function GET(
     custom_domain: reseller.custom_domain || "",
     services_count: servicesCount || 0,
     plans: plans || [],
+    // Storefront customization
+    hero_title: reseller.hero_title || "",
+    hero_subtitle: reseller.hero_subtitle || "",
+    cta_text: reseller.cta_text || "Comenzar ahora",
+    cta_secondary_text: reseller.cta_secondary_text || "Ya tengo cuenta",
+    whatsapp_number: reseller.whatsapp_number || "",
+    instagram_url: reseller.instagram_url || "",
+    telegram_url: reseller.telegram_url || "",
+    tiktok_url: reseller.tiktok_url || "",
+    show_features_section: reseller.show_features_section !== false,
+    show_plans_section: reseller.show_plans_section !== false,
+    show_powered_by: reseller.show_powered_by !== false,
   });
 }
