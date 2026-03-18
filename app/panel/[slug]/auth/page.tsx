@@ -50,7 +50,11 @@ export default function ChildPanelAuth() {
 
   const handleGoogleLogin = async () => {
     setError("");
-    const redirectUrl = `${window.location.origin}/auth/callback?panel=${slug}`;
+    // Always use the main domain for OAuth redirect so Supabase honors the URL.
+    // Subdomains (slug.trustmind.online) are not in Supabase's allowed list,
+    // so using the main domain ensures the panel= param is preserved.
+    const baseDomain = "https://www.trustmind.online";
+    const redirectUrl = `${baseDomain}/auth/callback?panel=${slug}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirectUrl },
@@ -72,7 +76,8 @@ export default function ChildPanelAuth() {
           password,
           options: {
             data: { full_name: name },
-            emailRedirectTo: `${window.location.origin}/auth/callback?panel=${slug}`,
+            // Always use main domain for email confirmation links (same reason as Google OAuth)
+            emailRedirectTo: `https://www.trustmind.online/auth/callback?panel=${slug}`,
           },
         });
 
