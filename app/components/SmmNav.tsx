@@ -27,7 +27,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
+    window.location.href = "/";
   };
 
   return (
