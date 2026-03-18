@@ -111,13 +111,10 @@ export async function GET(request: Request) {
         console.error("[Auth Callback] Error linking to child panel:", e);
       }
 
-      // Redirect to the child panel's own domain (subdomain or custom domain).
-      // Cookies were set with domain .trustmind.online so they'll be readable
-      // on slug.trustmind.online even though this callback ran on www.trustmind.online.
-      const targetDomain =
-        (reseller as { id: string; slug: string; custom_domain: string | null })?.custom_domain ||
-        `${panelSlug}.trustmind.online`;
-      return NextResponse.redirect(`https://${targetDomain}/panel/${panelSlug}/services`);
+      // Redirect back to the child panel subdomain.
+      // Cookies were set with domain=.trustmind.online so they are readable on
+      // slug.trustmind.online even though this callback ran on www.trustmind.online.
+      return NextResponse.redirect(`https://${panelSlug}.trustmind.online/panel/${panelSlug}/services`);
     }
   }
 
