@@ -293,7 +293,7 @@ export default function ServicesPage() {
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { window.location.replace("/"); return; }
+    if (!user) { router.push("/"); return; }
 
     // Block panel_client users from main TrustMind dashboard
     const userRole = user.user_metadata?.role;
