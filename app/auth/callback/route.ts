@@ -6,7 +6,14 @@ import { cookies } from "next/headers";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const panelSlug = searchParams.get("panel"); // Child panel redirect
+
+  // Read panel slug from query param, or fallback to cookie (Supabase may lose query params during OAuth)
+  let panelSlug = searchParams.get("panel");
+  if (!panelSlug) {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/panel_auth_slug=([^;]+)/);
+    if (match) panelSlug = decodeURIComponent(match[1]);
+  }
 
   if (code) {
     const cookieStore = await cookies();
@@ -114,7 +121,10 @@ export async function GET(request: Request) {
       // Redirect back to the child panel subdomain.
       // Cookies were set with domain=.trustmind.online so they are readable on
       // slug.trustmind.online even though this callback ran on www.trustmind.online.
-      return NextResponse.redirect(`https://${panelSlug}.trustmind.online/panel/${panelSlug}/services`);
+      const response = NextResponse.redirect(`https://${panelSlug}.trustmind.online/panel/${panelSlug}/services`);
+      // Clear the panel auth cookie after use
+      response.cookies.set("panel_auth_slug", "", { path: "/", maxAge: 0 });
+      return response;
     }
   }
 
