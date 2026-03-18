@@ -27,13 +27,15 @@ export default function ChildPanelAuth() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      if (user && slug) {
         // Register as reseller client if needed
         await linkToReseller(user.id);
-        router.replace(`/panel/${slug}/services`);
+        // Use window.location for a full navigation so middleware + cookies
+        // are handled cleanly on the subdomain
+        window.location.replace(`/panel/${slug}/services`);
       }
     })();
-  }, [router, slug]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const linkToReseller = async (userId: string) => {
     if (!reseller) return;
@@ -100,8 +102,8 @@ export default function ChildPanelAuth() {
           });
 
           if (data.session) {
-            // Auto-confirmed (or confirmation disabled)
-            router.replace(`/panel/${slug}/services`);
+            // Auto-confirmed (or confirmation disabled) — full navigation for clean cookie handling
+            window.location.replace(`/panel/${slug}/services`);
           } else {
             setSuccess("Revisa tu correo para confirmar tu cuenta.");
           }
@@ -124,7 +126,7 @@ export default function ChildPanelAuth() {
 
         if (data.user) {
           await linkToReseller(data.user.id);
-          router.replace(`/panel/${slug}/services`);
+          window.location.replace(`/panel/${slug}/services`);
         }
       }
     } catch (e) {

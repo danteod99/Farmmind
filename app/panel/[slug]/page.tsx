@@ -23,14 +23,16 @@ export default function ChildPanelLanding() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      if (user && slug) {
         setIsAuth(true);
-        // If authenticated, redirect to services
-        router.replace(`/panel/${slug}/services`);
+        // Use window.location for full navigation so cookies + middleware
+        // are handled cleanly on the subdomain
+        window.location.replace(`/panel/${slug}/services`);
+        return;
       }
       setCheckingAuth(false);
     })();
-  }, [router, slug]);
+  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading || checkingAuth) {
     return (

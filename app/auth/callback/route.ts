@@ -21,7 +21,12 @@ export async function GET(request: Request) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAll(cookiesToSet: any[]) {
             cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
-              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
+              // Set cookies with shared domain so they work on both
+              // www.trustmind.online AND any slug.trustmind.online subdomain
+              cookieStore.set(name, value, {
+                ...(options as Parameters<typeof cookieStore.set>[2]),
+                domain: ".trustmind.online",
+              })
             );
           },
         },
@@ -40,7 +45,7 @@ export async function GET(request: Request) {
         // Find reseller by slug
         const { data: reseller } = await admin
           .from("smm_resellers")
-          .select("id")
+          .select("id, slug, custom_domain")
           .eq("slug", panelSlug)
           .eq("is_active", true)
           .single();
@@ -106,7 +111,13 @@ export async function GET(request: Request) {
         console.error("[Auth Callback] Error linking to child panel:", e);
       }
 
-      return NextResponse.redirect(`${origin}/panel/${panelSlug}/services`);
+      // Redirect to the child panel's own domain (subdomain or custom domain).
+      // Cookies were set with domain .trustmind.online so they'll be readable
+      // on slug.trustmind.online even though this callback ran on www.trustmind.online.
+      const targetDomain =
+        (reseller as { id: string; slug: string; custom_domain: string | null })?.custom_domain ||
+        `${panelSlug}.trustmind.online`;
+      return NextResponse.redirect(`https://${targetDomain}/panel/${panelSlug}/services`);
     }
   }
 
