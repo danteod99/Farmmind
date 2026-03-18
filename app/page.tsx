@@ -646,7 +646,7 @@ export default function TrustMindChat() {
   const userRole = user.user_metadata?.role;
   const panelSlug = user.user_metadata?.panel_slug;
   if (userRole === "panel_client" && panelSlug) {
-    router.replace(`/panel/${panelSlug}/services`);
+    if (typeof window !== "undefined") window.location.replace(`/panel/${panelSlug}/services`);
     return (
       <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
         <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
@@ -655,7 +655,7 @@ export default function TrustMindChat() {
   }
 
   // Authenticated users go directly to the services page
-  router.replace("/smm/services");
+  if (typeof window !== "undefined") window.location.replace("/smm/services");
   return (
     <div className="flex h-screen items-center justify-center" style={{ background: "var(--background)" }}>
       <div className="w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
