@@ -29,9 +29,12 @@ interface Order {
 
 interface ClientStat {
   user_id: string;
+  email: string;
+  registered_at: string;
+  last_login: string | null;
   total_orders: number;
   total_revenue: number;
-  last_order: string;
+  last_order: string | null;
 }
 
 interface Stats {
@@ -291,29 +294,40 @@ export default function ResellerAdminPage() {
             {clients.length === 0 ? (
               <div style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "14px", padding: "48px 24px", textAlign: "center" }}>
                 <Users size={32} color="#2a2a42" style={{ marginBottom: 12 }} />
-                <p style={{ margin: 0, color: "#3a3a5c", fontSize: "14px" }}>Aún no hay clientes a través de tu panel</p>
+                <p style={{ margin: 0, color: "#3a3a5c", fontSize: "14px" }}>Aún no hay clientes registrados en tu panel</p>
               </div>
-            ) : clients.map((c) => (
-              <div key={c.user_id} style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "12px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
-                <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "#007ABF15", border: "1px solid #007ABF30", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Users size={16} color="#007ABF" />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: "12px", fontWeight: 600, color: "#56B4E0", fontFamily: "monospace" }}>{shortId(c.user_id)}...</p>
-                  <p style={{ margin: "3px 0 0", fontSize: "11px", color: "#5a6480" }}>Último pedido: {fmt(c.last_order)}</p>
-                </div>
-                <div style={{ display: "flex", gap: "20px", textAlign: "right" }}>
-                  <div>
-                    <p style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#34d399" }}>${c.total_revenue.toFixed(2)}</p>
-                    <p style={{ margin: "2px 0 0", fontSize: "10px", color: "#5a6480" }}>ingresos</p>
+            ) : clients.map((c) => {
+              const hasPurchased = c.total_orders > 0;
+              return (
+                <div key={c.user_id} style={{ background: "#0d0d1a", border: "1px solid #1a1a2e", borderRadius: "12px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: hasPurchased ? "#007ABF15" : "#fbbf2415", border: `1px solid ${hasPurchased ? "#007ABF30" : "#fbbf2430"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <Users size={16} color={hasPurchased ? "#007ABF" : "#fbbf24"} />
                   </div>
-                  <div>
-                    <p style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#56B4E0" }}>{c.total_orders}</p>
-                    <p style={{ margin: "2px 0 0", fontSize: "10px", color: "#5a6480" }}>pedidos</p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: "13px", fontWeight: 600, color: "#e2e8f0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {c.email || `${shortId(c.user_id)}...`}
+                    </p>
+                    <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "4px" }}>
+                      <span style={{ fontSize: "10px", color: "#5a6480" }}>Registro: {fmt(c.registered_at)}</span>
+                      {c.last_order && <span style={{ fontSize: "10px", color: "#5a6480" }}>· Último pedido: {fmt(c.last_order)}</span>}
+                      <span style={{ fontSize: "9px", padding: "1px 7px", borderRadius: "4px", background: hasPurchased ? "#34d39915" : "#fbbf2415", border: `1px solid ${hasPurchased ? "#34d39930" : "#fbbf2430"}`, color: hasPurchased ? "#34d399" : "#fbbf24", fontWeight: 700 }}>
+                        {hasPurchased ? "Comprador" : "Registrado"}
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: "20px", textAlign: "right", flexShrink: 0 }}>
+                    <div>
+                      <p style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: c.total_revenue > 0 ? "#34d399" : "#3a3a5c" }}>${c.total_revenue.toFixed(2)}</p>
+                      <p style={{ margin: "2px 0 0", fontSize: "10px", color: "#5a6480" }}>ingresos</p>
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: c.total_orders > 0 ? "#56B4E0" : "#3a3a5c" }}>{c.total_orders}</p>
+                      <p style={{ margin: "2px 0 0", fontSize: "10px", color: "#5a6480" }}>pedidos</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

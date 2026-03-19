@@ -38,7 +38,7 @@ export async function PATCH(req: NextRequest) {
   const allowedStringFields = [
     "panel_name", "logo_url", "brand_color", "description", "custom_domain", "company_name",
     "hero_title", "hero_subtitle", "cta_text", "cta_secondary_text",
-    "whatsapp_number", "instagram_url", "telegram_url", "tiktok_url",
+    "whatsapp_number", "instagram_url", "telegram_url", "tiktok_url", "facebook_pixel_id",
   ];
   const allowedBoolFields = [
     "show_features_section", "show_plans_section", "show_powered_by", "domain_verified",

@@ -49,8 +49,8 @@ export async function GET(req: NextRequest) {
     console.error("JAP fetch error:", e);
   }
 
-  // Merge
-  const merged = services.slice(0, 500).map((s) => ({
+  // Merge — no limit, return ALL services so resellers can search any
+  const merged = services.map((s) => ({
     service_id:    s.service,
     name:          s.name,
     category:      s.category,
