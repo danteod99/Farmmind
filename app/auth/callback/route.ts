@@ -4,16 +4,19 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const fullUrl = request.url;
+  const { searchParams, origin } = new URL(fullUrl);
   const code = searchParams.get("code");
 
   // Read panel slug from query param, or fallback to cookie (Supabase may lose query params during OAuth)
   let panelSlug = searchParams.get("panel");
+  const panelFromUrl = panelSlug;
   if (!panelSlug) {
     const cookieHeader = request.headers.get("cookie") || "";
     const match = cookieHeader.match(/panel_auth_slug=([^;]+)/);
     if (match) panelSlug = decodeURIComponent(match[1]);
   }
+  console.log("[Auth Callback]", { fullUrl, panelFromUrl, panelSlug, hasCode: !!code });
 
   if (code) {
     const cookieStore = await cookies();
