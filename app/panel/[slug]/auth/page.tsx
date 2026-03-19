@@ -52,11 +52,8 @@ export default function ChildPanelAuth() {
 
   const handleGoogleLogin = async () => {
     setError("");
-    // Save panel slug in cookie before OAuth redirect (fallback if query param is lost)
-    document.cookie = `panel_auth_slug=${slug}; path=/; max-age=600; SameSite=Lax; domain=.trustmind.online`;
-    // Always use the main domain for OAuth redirect so Supabase honors the URL.
-    const baseDomain = "https://www.trustmind.online";
-    const redirectUrl = `${baseDomain}/auth/callback?panel=${slug}`;
+    // Use same origin for callback so PKCE code verifier cookie is on the same domain
+    const redirectUrl = `${window.location.origin}/auth/callback?panel=${slug}`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: redirectUrl },
@@ -72,16 +69,13 @@ export default function ChildPanelAuth() {
 
     try {
       if (mode === "register") {
-        // Save panel slug in cookie before signup (fallback if query param is lost in email redirect)
-        document.cookie = `panel_auth_slug=${slug}; path=/; max-age=3600; SameSite=Lax`;
-        // Sign up
+        // Sign up — use same origin for callback so PKCE cookie is on same domain
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { full_name: name },
-            // Always use main domain for email confirmation links (same reason as Google OAuth)
-            emailRedirectTo: `https://www.trustmind.online/auth/callback?panel=${slug}`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?panel=${slug}`,
           },
         });
 
