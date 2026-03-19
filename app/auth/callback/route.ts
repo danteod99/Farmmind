@@ -8,15 +8,24 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(fullUrl);
   const code = searchParams.get("code");
 
-  // Read panel slug from query param, or fallback to cookie (Supabase may lose query params during OAuth)
+  // Determine panel slug from multiple sources (in priority order):
+  // 1. Query param ?panel=slug
+  // 2. Subdomain detection (lovesocial.trustmind.online → lovesocial)
+  // 3. Cookie fallback
   let panelSlug = searchParams.get("panel");
-  const panelFromUrl = panelSlug;
+  if (!panelSlug) {
+    const host = (request.headers.get("host") || "").replace(/:\d+$/, "");
+    const subMatch = host.match(/^([a-z0-9][a-z0-9-]+)\.trustmind\.online$/);
+    if (subMatch && subMatch[1] !== "www") {
+      panelSlug = subMatch[1];
+    }
+  }
   if (!panelSlug) {
     const cookieHeader = request.headers.get("cookie") || "";
     const match = cookieHeader.match(/panel_auth_slug=([^;]+)/);
     if (match) panelSlug = decodeURIComponent(match[1]);
   }
-  console.log("[Auth Callback]", { fullUrl, panelFromUrl, panelSlug, hasCode: !!code });
+  console.log("[Auth Callback]", { panelSlug, hasCode: !!code });
 
   if (code) {
     const cookieStore = await cookies();
@@ -30,9 +39,15 @@ export async function GET(request: Request) {
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAll(cookiesToSet: any[]) {
-            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
-              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
-            );
+            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) => {
+              const opts = options as Parameters<typeof cookieStore.set>[2];
+              // For child panel auth, share cookies across subdomains
+              if (panelSlug) {
+                cookieStore.set(name, value, { ...opts, domain: ".trustmind.online" });
+              } else {
+                cookieStore.set(name, value, opts);
+              }
+            });
           },
         },
       }
