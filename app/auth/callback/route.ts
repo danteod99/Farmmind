@@ -27,18 +27,9 @@ export async function GET(request: Request) {
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAll(cookiesToSet: any[]) {
-            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) => {
-              const cookieOpts = options as Parameters<typeof cookieStore.set>[2];
-              if (panelSlug) {
-                // Child panel: set shared domain so cookies work on subdomains
-                cookieStore.set(name, value, { ...cookieOpts, domain: ".trustmind.online" });
-              } else {
-                // Main site: clear any old .trustmind.online cookies first to avoid conflicts,
-                // then set fresh cookies without explicit domain
-                try { cookieStore.set(name, "", { path: "/", maxAge: 0, domain: ".trustmind.online" }); } catch {}
-                cookieStore.set(name, value, cookieOpts);
-              }
-            });
+            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
+              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
+            );
           },
         },
       }
