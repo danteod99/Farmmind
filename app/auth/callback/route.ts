@@ -27,14 +27,17 @@ export async function GET(request: Request) {
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAll(cookiesToSet: any[]) {
-            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
-              // Set cookies with shared domain so they work on both
-              // www.trustmind.online AND any slug.trustmind.online subdomain
-              cookieStore.set(name, value, {
-                ...(options as Parameters<typeof cookieStore.set>[2]),
-                domain: ".trustmind.online",
-              })
-            );
+            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) => {
+              const cookieOpts = options as Parameters<typeof cookieStore.set>[2];
+              // Only set shared domain cookie when coming from a child panel
+              // so cookies work on slug.trustmind.online subdomains.
+              // For main site login, use default domain to avoid cookie conflicts.
+              if (panelSlug) {
+                cookieStore.set(name, value, { ...cookieOpts, domain: ".trustmind.online" });
+              } else {
+                cookieStore.set(name, value, cookieOpts);
+              }
+            });
           },
         },
       }
