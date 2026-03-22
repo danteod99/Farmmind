@@ -8,6 +8,7 @@ import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSq
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import { PromoBanner } from "@/app/components/PromoBanner";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Message {
@@ -198,6 +199,9 @@ function LoginScreen() {
         @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes glow-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
       `}</style>
+
+      {/* === PROMO BANNER === */}
+      <PromoBanner />
 
       {/* === NAVBAR === */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(124,58,237,0.15)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
