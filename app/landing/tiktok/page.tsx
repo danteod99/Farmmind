@@ -29,11 +29,11 @@ export default function LandingTikTok() {
         { emoji: "👁️", title: "Views con retención alta", desc: "Views reales con 70%+ de retención. Esto es lo que le dice al algoritmo que tu contenido vale la pena. Resultados en minutos.", color: "#FF0050" },
         { emoji: "❤️", title: "Likes y engagement", desc: "Likes rápidos que activan el efecto bola de nieve. Mientras más rápido llegas al umbral, más te empuja el FYP.", color: "#EF4444" },
         { emoji: "🔄", title: "Shares y saves", desc: "Las dos métricas que TikTok más valora. Shares = viralidad. Saves = contenido de valor. Ambos disparan tu alcance.", color: "#8B5CF6" },
-        { emoji: "🤖", title: "IA especializada en TikTok", desc: "El agente TRUST MIND conoce el algoritmo de TikTok al detalle. Te dice cuándo publicar, qué impulsar y cómo escalar.", color: "#007ABF" },
+        { emoji: "🤖", title: "IA especializada en TikTok", desc: "El agente Scaling Latam conoce el algoritmo de TikTok al detalle. Te dice cuándo publicar, qué impulsar y cómo escalar.", color: "#007ABF" },
         { emoji: "👥", title: "Seguidores reales", desc: "Seguidores que se quedan y aumentan tu credibilidad. Perfiles reales con fotos y actividad. Cero bots obvios.", color: "#059669" },
         { emoji: "💬", title: "Comentarios personalizados", desc: "Comentarios relevantes en español que generan conversación y empujan el video en el algoritmo. Tú eliges los textos.", color: "#F59E0B" },
       ]}
-      useCasesTitle="¿Cómo usan TRUST MIND para TikTok?"
+      useCasesTitle="¿Cómo usan Scaling Latam para TikTok?"
       useCases={[
         { icon: "🎭", title: "Creadores de contenido", desc: "Impulsa tus mejores videos para que el algoritmo los note. Un push inicial inteligente puede convertir un video normal en viral." },
         { icon: "🏪", title: "Negocios y marcas", desc: "TikTok es la red de mayor conversión para comercios. Más views = más clientes. Impulsa tus videos de productos." },
@@ -47,7 +47,7 @@ export default function LandingTikTok() {
         { name: "Fer G.", role: "Músico · Argentina", text: "Mi canción se volvió tendencia en TikTok gracias al push inicial. De 0 a 2M de plays en un mes. Una locura.", country: "🇦🇷" },
       ]}
       finalCtaTitle={"¿Listo para ser\nviral en TikTok?"}
-      finalCtaSubtitle="Más de 5,000 creadores ya crecen con TRUST MIND · Empieza gratis hoy"
+      finalCtaSubtitle="Más de 5,000 creadores ya crecen con Scaling Latam · Empieza gratis hoy"
     />
   );
 }

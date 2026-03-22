@@ -4,8 +4,7 @@ import { useState } from "react";
 import { User, Bot, Crown, MessageCircle, Phone, Zap, Shield, Check, Star, ArrowRight, Globe, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
-import { FarmMindLogo } from "@/app/components/FarmMindLogo";
-import { TrustFooter } from "@/app/components/TrustFooter";
+import { ScalingLatamLogo } from "@/app/components/ScalingLatamLogo";
 
 export interface LandingFeature {
   emoji: string;
@@ -147,9 +146,9 @@ export default function LandingTemplate({
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: `radial-gradient(circle, ${accentColor}55, transparent 70%)`, filter: "blur(5px)" }} />
-            <FarmMindLogo size={30} />
+            <ScalingLatamLogo size={30} accentColor={accentColor} />
           </div>
-          <span style={{ fontWeight: 800, fontSize: "15px", letterSpacing: "-0.3px" }}>TRUST MIND<span style={{ color: accentColor }}> AI</span></span>
+          <span style={{ fontWeight: 800, fontSize: "15px", letterSpacing: "-0.3px" }}>SCALING<span style={{ color: accentColor }}> LATAM</span></span>
           {countryFlag && <span style={{ fontSize: "18px", marginLeft: "4px" }}>{countryFlag}</span>}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -192,10 +191,10 @@ export default function LandingTemplate({
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", paddingBottom: "14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div style={{ position: "relative", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: `radial-gradient(circle, ${accentColor}50, transparent)`, filter: "blur(4px)" }} />
-                <FarmMindLogo size={26} />
+                <ScalingLatamLogo size={26} accentColor={accentColor} />
               </div>
               <div>
-                <span style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>TRUST MIND AI</span>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>SCALING LATAM</span>
                 <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                   <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#34d399" }} />
                   <span style={{ fontSize: "10px", color: "#64748b" }}>Agente activo</span>
@@ -368,7 +367,17 @@ export default function LandingTemplate({
       </section>
 
       {/* === FOOTER === */}
-      <TrustFooter />
+      <footer style={{ padding: "24px 32px", borderTop: `1px solid ${accentColor}20`, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <ScalingLatamLogo size={22} accentColor={accentColor} />
+          <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 600 }}>SCALING LATAM</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <a href="https://www.scalinglatam.site" target="_blank" rel="noreferrer" style={{ fontSize: "12px", color: "#475569", textDecoration: "none" }}>scalinglatam.site</a>
+          <a href="https://wa.me/51931119176" target="_blank" rel="noreferrer" style={{ fontSize: "12px", color: "#475569", textDecoration: "none" }}>WhatsApp</a>
+        </div>
+        <span style={{ fontSize: "12px", color: "#475569" }}>© {new Date().getFullYear()} Scaling Latam · OLIVEROS MKT EIRL</span>
+      </footer>
     </div>
   );
 }

@@ -29,11 +29,11 @@ export default function LandingSpotify() {
         { emoji: "🎵", title: "Streams de calidad", desc: "Streams con retención alta que cuentan para royalties. Proveedores premium verificados. Tu música genera ingresos reales.", color: "#1DB954" },
         { emoji: "📋", title: "Playlisting profesional", desc: "Acceso a playlists orgánicas y editoriales. Inclusión en playlists con miles de seguidores que impulsan tu alcance.", color: "#8B5CF6" },
         { emoji: "💰", title: "Monetización real", desc: "Streams que cuentan para royalties en Spotify. Cada reproducción es dinero. Recupera tu inversión y más.", color: "#F59E0B" },
-        { emoji: "🤖", title: "IA especializada en música", desc: "El agente TRUST MIND conoce las mejores estrategias para Spotify. Te arma un plan personalizado según tu género y presupuesto.", color: "#007ABF" },
+        { emoji: "🤖", title: "IA especializada en música", desc: "El agente Scaling Latam conoce las mejores estrategias para Spotify. Te arma un plan personalizado según tu género y presupuesto.", color: "#007ABF" },
         { emoji: "📊", title: "Analytics en tiempo real", desc: "Ve cómo crecen tus streams, oyentes mensuales y saves. Dashboard completo con métricas que importan.", color: "#EF4444" },
         { emoji: "🔄", title: "Multi-plataforma", desc: "No solo Spotify — también YouTube Music, Apple Music, SoundCloud, Deezer y más. Crece en todas las plataformas.", color: "#0891b2" },
       ]}
-      useCasesTitle="¿Cómo usan TRUST MIND los artistas?"
+      useCasesTitle="¿Cómo usan Scaling Latam los artistas?"
       useCases={[
         { icon: "🎤", title: "Artistas independientes", desc: "Sube tu música y empieza a generar streams reales. Sin discográfica, sin intermediarios. Tú controlas tu crecimiento." },
         { icon: "🎹", title: "Productores y beatmakers", desc: "Promociona tus beats y producciones. Más plays = más clientes que te buscan para colaborar." },
@@ -47,7 +47,7 @@ export default function LandingSpotify() {
         { name: "Los Primates", role: "Banda de cumbia · Perú", text: "Nuestro álbum llegó a 200K streams en el primer mes. El ROI fue brutal. Ahora toda la banda vive de la música.", country: "🇵🇪" },
       ]}
       finalCtaTitle={"¿Listo para vivir\nde tu música?"}
-      finalCtaSubtitle="Más de 2,000 artistas ya monetizan con TRUST MIND · Empieza gratis hoy"
+      finalCtaSubtitle="Más de 2,000 artistas ya monetizan con Scaling Latam · Empieza gratis hoy"
     />
   );
 }

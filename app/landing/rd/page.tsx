@@ -34,7 +34,7 @@ export default function LandingRD() {
         { emoji: "📊", title: "Dashboard completo", desc: "+5,000 servicios disponibles. Monitorea tus pedidos en tiempo real. Historial completo de todas tus órdenes.", color: "#8B5CF6" },
         { emoji: "🔥", title: "Resultados rápidos", desc: "Entrega en minutos para la mayoría de servicios. Tu cuenta empieza a crecer desde el primer pedido.", color: "#EF4444" },
       ]}
-      useCasesTitle="¿Para quién es TRUST MIND en RD?"
+      useCasesTitle="¿Para quién es Scaling Latam en RD?"
       useCases={[
         { icon: "🎤", title: "Artistas de dembow y urbano", desc: "Promociona tu música en Spotify, YouTube y TikTok. Gana streams y visibilidad sin gastar una fortuna en publicidad tradicional." },
         { icon: "🏪", title: "Negocios locales en Santo Domingo", desc: "Restaurantes, barbershops, tiendas — crece tu Instagram con seguidores dominicanos reales que se convierten en clientes." },
@@ -42,12 +42,12 @@ export default function LandingRD() {
         { icon: "🏢", title: "Agencias de marketing", desc: "Revende nuestros servicios a tus clientes. Panel de reseller con precios especiales y marca blanca." },
       ]}
       testimonials={[
-        { name: "Carlos M.", role: "Artista urbano · Santo Domingo", text: "Desde que uso TRUST MIND mis tracks tienen 3x más streams. El agente IA me ayudó a configurar todo en minutos.", country: "🇩🇴" },
+        { name: "Carlos M.", role: "Artista urbano · Santo Domingo", text: "Desde que uso Scaling Latam mis tracks tienen 3x más streams. El agente IA me ayudó a configurar todo en minutos.", country: "🇩🇴" },
         { name: "María P.", role: "Dueña de salón · Santiago", text: "Mi Instagram pasó de 2K a 15K seguidores en un mes. Ahora tengo más clientes que nunca. Súper recomendado.", country: "🇩🇴" },
         { name: "Juan R.", role: "Agencia digital · Punta Cana", text: "Revendo los servicios a mis clientes de turismo. Los precios son imbatibles y la calidad es consistente.", country: "🇩🇴" },
       ]}
       finalCtaTitle={"¿Listo para crecer\nen RD?"}
-      finalCtaSubtitle="Únete a miles de dominicanos que ya usan TRUST MIND · Empieza gratis hoy"
+      finalCtaSubtitle="Únete a miles de dominicanos que ya usan Scaling Latam · Empieza gratis hoy"
     />
   );
 }

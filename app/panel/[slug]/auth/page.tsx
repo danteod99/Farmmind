@@ -3,7 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { usePanel } from "../context";
 import { supabase } from "@/app/lib/supabase";
@@ -14,6 +14,7 @@ type Mode = "login" | "register";
 export default function ChildPanelAuth() {
   const { reseller, loading, slug, brandColor, panelName, logoUrl } = usePanel();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +23,15 @@ export default function ChildPanelAuth() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState("");
+
+  // Show error from OAuth callback redirect (e.g. PKCE failure)
+  useEffect(() => {
+    const cbError = searchParams.get("error");
+    if (cbError) {
+      setError("Error al iniciar con Google. Intenta de nuevo.");
+      console.error("[Auth] OAuth callback error:", cbError);
+    }
+  }, [searchParams]);
 
   // Check if already authenticated
   useEffect(() => {

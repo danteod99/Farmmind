@@ -34,7 +34,7 @@ export default function LandingArgentina() {
         { emoji: "🔄", title: "Panel de reseller", desc: "Revendé servicios a tus clientes. Marca blanca, precios mayoristas y panel independiente. Ideal para agencias.", color: "#8B5CF6" },
         { emoji: "⚡", title: "Entrega inmediata", desc: "La mayoría de servicios se entregan en minutos. Sin esperas, sin vueltas. Tu cuenta crece desde el primer pedido.", color: "#EF4444" },
       ]}
-      useCasesTitle="¿Para quién es TRUST MIND en Argentina?"
+      useCasesTitle="¿Para quién es Scaling Latam en Argentina?"
       useCases={[
         { icon: "🎤", title: "Artistas de trap y urbano", desc: "Duki, Bizarrap... la movida argentina explota. Promocioná tu música con streams reales y views que te posicionen en las playlists." },
         { icon: "🛍️", title: "Emprendedores y marcas", desc: "Tiendas de ropa, gastronomía, servicios — crecé tu Instagram con seguidores argentinos que se convierten en ventas reales." },
@@ -47,7 +47,7 @@ export default function LandingArgentina() {
         { name: "Matías L.", role: "Agencia digital · Rosario", text: "El panel de reseller me salvó. Revendo a mis clientes y la ganancia es excelente. El soporte responde al toque.", country: "🇦🇷" },
       ]}
       finalCtaTitle={"¿Listo para crecer\nen Argentina?"}
-      finalCtaSubtitle="Unite a miles de argentinos que ya usan TRUST MIND · Empezá gratis hoy"
+      finalCtaSubtitle="Unite a miles de argentinos que ya usan Scaling Latam · Empezá gratis hoy"
     />
   );
 }

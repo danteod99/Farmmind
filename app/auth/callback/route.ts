@@ -32,7 +32,16 @@ export async function GET(request: Request) {
         },
       }
     );
-    const { data: { session } } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: { session }, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (exchangeError) {
+      console.error("[Auth Callback] exchangeCodeForSession failed:", exchangeError.message);
+      // Redirect back with error so the user sees feedback
+      const errorRedirect = panelSlug
+        ? `https://${panelSlug}.trustmind.online/panel/${panelSlug}/auth?error=${encodeURIComponent(exchangeError.message)}`
+        : `${origin}?error=${encodeURIComponent(exchangeError.message)}`;
+      return NextResponse.redirect(errorRedirect);
+    }
 
     // If coming from a child panel, link user as reseller client
     if (panelSlug && session?.user) {

@@ -29,12 +29,12 @@ export default function LandingPeru() {
       features={[
         { emoji: "📱", title: "Redes sociales completas", desc: "Instagram, TikTok, YouTube, Facebook, Twitter y más. Seguidores, likes, views y engagement para todas las plataformas.", color: "#E1306C" },
         { emoji: "🇵🇪", title: "Soporte peruano", desc: "Nuestro equipo está en Lima. Atención por WhatsApp, soporte en español y conocemos el mercado local a la perfección.", color: "#D91023" },
-        { emoji: "🤖", title: "Agente IA inteligente", desc: "TRUST MIND AI te asesora sobre estrategias, configuración de bots, proxies y optimización. Respuestas inmediatas.", color: "#007ABF" },
+        { emoji: "🤖", title: "Agente IA inteligente", desc: "Scaling Latam AI te asesora sobre estrategias, configuración de bots, proxies y optimización. Respuestas inmediatas.", color: "#007ABF" },
         { emoji: "💳", title: "Múltiples formas de pago", desc: "Crypto, tarjeta de crédito/débito, transferencia. Precios en USD accesibles para el mercado peruano.", color: "#F59E0B" },
         { emoji: "📊", title: "Dashboard profesional", desc: "+5,000 servicios en un solo panel. Monitorea pedidos, historial completo y estadísticas en tiempo real.", color: "#8B5CF6" },
         { emoji: "🏢", title: "Empresa formal", desc: "OLIVEROS MKT EIRL — RUC: 20605576550. Empresa registrada en Perú. Factura y todo en regla.", color: "#059669" },
       ]}
-      useCasesTitle="¿Para quién es TRUST MIND en Perú?"
+      useCasesTitle="¿Para quién es Scaling Latam en Perú?"
       useCases={[
         { icon: "🏪", title: "Negocios locales", desc: "Restaurantes en Miraflores, tiendas en Gamarra, servicios en todo Lima — crece tu presencia digital con seguidores peruanos reales." },
         { icon: "🎵", title: "Artistas y músicos", desc: "Cumbia, salsa, reggaetón peruano — promociona tu música con streams y views. Llega a más oyentes sin gastar una millonada." },
@@ -43,7 +43,7 @@ export default function LandingPeru() {
       ]}
       testimonials={[
         { name: "Andrea C.", role: "Restaurante · Miraflores", text: "Mi Instagram pasó de 3K a 20K seguidores. Ahora tenemos reservas todos los días. El soporte por WhatsApp es increíble.", country: "🇵🇪" },
-        { name: "Diego V.", role: "Músico · Barranco", text: "Puse mis canciones con TRUST MIND y en un mes ya tenía 100K streams en Spotify. La IA me recomendó la mejor estrategia.", country: "🇵🇪" },
+        { name: "Diego V.", role: "Músico · Barranco", text: "Puse mis canciones con Scaling Latam y en un mes ya tenía 100K streams en Spotify. La IA me recomendó la mejor estrategia.", country: "🇵🇪" },
         { name: "Lucía R.", role: "Agencia de marketing · San Isidro", text: "Llevo 6 meses revendiendo servicios y la ganancia es excelente. El panel es súper fácil y el soporte responde al toque.", country: "🇵🇪" },
       ]}
       finalCtaTitle={"¿Listo para crecer\nen Perú?"}
