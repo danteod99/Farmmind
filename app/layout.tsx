@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { PromoBanner } from "@/app/components/PromoBanner";
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -32,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={`${jakartaSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <PromoBanner />
         {children}
       </body>
     </html>
