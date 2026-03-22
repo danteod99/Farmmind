@@ -1,8 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-
-const ADMIN_EMAILS = ["danteod99@gmail.com"];
+import { isAdmin } from "@/app/lib/admin";
 
 function getSupabaseAdmin() {
   return createClient(
@@ -31,7 +30,7 @@ export async function GET() {
     );
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    if (!user || !isAdmin(user.email)) {
       return Response.json({ error: "No autorizado" }, { status: 403 });
     }
 

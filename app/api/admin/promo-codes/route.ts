@@ -1,8 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
-
-const ADMIN_EMAILS = ["danteod99@gmail.com"];
+import { isAdmin } from "@/app/lib/admin";
 
 function getAdmin() {
   return createClient(
@@ -32,7 +31,7 @@ async function getAuthUser() {
 export async function GET() {
   try {
     const user = await getAuthUser();
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    if (!user || !isAdmin(user.email)) {
       return Response.json({ error: "No autorizado" }, { status: 403 });
     }
     const admin = getAdmin();
@@ -52,7 +51,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await getAuthUser();
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    if (!user || !isAdmin(user.email)) {
       return Response.json({ error: "No autorizado" }, { status: 403 });
     }
     const body = await req.json();
@@ -91,7 +90,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const user = await getAuthUser();
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    if (!user || !isAdmin(user.email)) {
       return Response.json({ error: "No autorizado" }, { status: 403 });
     }
     const { id, ...updates } = await req.json();
@@ -115,7 +114,7 @@ export async function PATCH(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const user = await getAuthUser();
-    if (!user || !ADMIN_EMAILS.includes(user.email || "")) {
+    if (!user || !isAdmin(user.email)) {
       return Response.json({ error: "No autorizado" }, { status: 403 });
     }
     const { id } = await req.json();

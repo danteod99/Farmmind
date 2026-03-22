@@ -55,8 +55,16 @@ export async function POST(req: NextRequest) {
     .replace(/\/+$/, "")
     .replace(/^www\./, "");
 
-  if (!cleanDomain || !cleanDomain.includes(".")) {
+  // Validate domain format strictly
+  const domainRegex = /^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/;
+  if (!cleanDomain || !domainRegex.test(cleanDomain)) {
     return NextResponse.json({ error: "Dominio inválido" }, { status: 400 });
+  }
+
+  // Block reserved/dangerous domains
+  const blockedDomains = ["trustmind.online", "vercel.app", "localhost", "example.com"];
+  if (blockedDomains.some((d) => cleanDomain === d || cleanDomain.endsWith(`.${d}`))) {
+    return NextResponse.json({ error: "Este dominio no está permitido" }, { status: 400 });
   }
 
   if (!VERCEL_TOKEN || !VERCEL_PROJECT_ID) {

@@ -14,8 +14,9 @@
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.0",
     "clsx": "^2.1.1",
+    "lightningcss": "^1.32.0",
     "lucide-react": "^0.577.0",
-    "next": "16.1.6",
+    "next": "^16.2.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "stripe": "^20.4.1"
