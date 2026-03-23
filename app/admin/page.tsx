@@ -202,7 +202,9 @@ export default function AdminPage() {
       {/* NAV */}
       <nav style={{ position:"sticky", top:0, zIndex:50, borderBottom:"1px solid #0d1117", background:"rgba(7,7,14,0.97)", backdropFilter:"blur(12px)", padding:"0 28px", height:"56px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
         <div style={{ display:"flex", alignItems:"center", gap:"14px" }}>
-          <FarmMindLogo size={28} />
+          <Link href="/smm/services" style={{ display:"flex", alignItems:"center", cursor:"pointer" }} title="Ir al dashboard">
+            <FarmMindLogo size={28} />
+          </Link>
           <div style={{ width:"1px", height:"20px", background:"#1e1e30" }} />
           <span style={{ fontSize:"11px", fontWeight:700, color:"#f59e0b", letterSpacing:"1px", textTransform:"uppercase", padding:"3px 8px", background:"#f59e0b15", border:"1px solid #f59e0b30", borderRadius:"6px" }}>Admin Panel</span>
         </div>

@@ -24,7 +24,10 @@ export async function POST(req: Request) {
       // NOWPayments ordena las claves del payload alfabéticamente para la firma
       const sorted = JSON.stringify(sortObjectKeys(data));
       const hmac = crypto.createHmac("sha512", ipnSecret).update(sorted).digest("hex");
-      if (hmac !== signature) {
+      // Use timing-safe comparison to prevent timing attacks
+      const hmacBuf = Buffer.from(hmac, "hex");
+      const sigBuf = Buffer.from(signature, "hex");
+      if (hmacBuf.length !== sigBuf.length || !crypto.timingSafeEqual(hmacBuf, sigBuf)) {
         console.error("IPN signature mismatch");
         return new Response("Invalid signature", { status: 401 });
       }
@@ -76,23 +79,29 @@ export async function POST(req: Request) {
         amountToCredit = parseFloat(price_amount) || tx.amount;
       }
 
-      // Acreditar balance al usuario
-      const { data: balance } = await admin
-        .from("smm_balances")
-        .select("balance")
-        .eq("user_id", tx.user_id)
-        .single();
+      // Acreditar balance al usuario (atómico via RPC para evitar race conditions)
+      const { error: rpcError } = await admin.rpc("increment_balance", {
+        p_user_id: tx.user_id,
+        p_amount: amountToCredit,
+      });
 
-      const currentBalance = balance?.balance || 0;
-      const newBalance = currentBalance + amountToCredit;
-
-      await admin
-        .from("smm_balances")
-        .upsert({
-          user_id: tx.user_id,
-          balance: newBalance,
-          updated_at: new Date().toISOString(),
-        });
+      if (rpcError) {
+        console.error("Error incrementing balance via RPC:", rpcError);
+        // Fallback: upsert directo (menos seguro pero funcional)
+        const { data: balance } = await admin
+          .from("smm_balances")
+          .select("balance")
+          .eq("user_id", tx.user_id)
+          .single();
+        const currentBalance = balance?.balance || 0;
+        await admin
+          .from("smm_balances")
+          .upsert({
+            user_id: tx.user_id,
+            balance: currentBalance + amountToCredit,
+            updated_at: new Date().toISOString(),
+          });
+      }
 
       // Marcar transacción como acreditada
       await admin
@@ -100,7 +109,7 @@ export async function POST(req: Request) {
         .update({ status: "finished", credited: true })
         .eq("id", tx.id);
 
-      console.log(`✅ Balance acreditado: user=${tx.user_id}, +$${amountToCredit}, nuevo balance=$${newBalance}`);
+      console.log(`Balance acreditado: user=${tx.user_id}, +$${amountToCredit}`);
     }
 
     return new Response("OK", { status: 200 });

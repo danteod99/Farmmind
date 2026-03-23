@@ -42,6 +42,7 @@ interface ResellerInfo {
   instagram_url: string;
   telegram_url: string;
   tiktok_url: string;
+  facebook_pixel_id: string;
   show_features_section: boolean;
   show_plans_section: boolean;
   show_powered_by: boolean;
@@ -134,6 +135,7 @@ export default function ProfilePage() {
   const [editInstagram,       setEditInstagram]       = useState("");
   const [editTelegram,        setEditTelegram]        = useState("");
   const [editTiktok,          setEditTiktok]          = useState("");
+  const [editFbPixel,          setEditFbPixel]          = useState("");
   const [editShowFeatures,    setEditShowFeatures]    = useState(true);
   const [editShowPlans,       setEditShowPlans]       = useState(true);
   const [editShowPoweredBy,   setEditShowPoweredBy]   = useState(true);
@@ -178,7 +180,7 @@ export default function ProfilePage() {
 
       const { data: res } = await supabase
         .from("smm_resellers")
-        .select("id, api_key, company_name, panel_name, logo_url, brand_color, description, custom_domain, balance, is_active, slug, hero_title, hero_subtitle, cta_text, cta_secondary_text, whatsapp_number, instagram_url, telegram_url, tiktok_url, show_features_section, show_plans_section, show_powered_by, domain_verified, domain_verified_at")
+        .select("id, api_key, company_name, panel_name, logo_url, brand_color, description, custom_domain, balance, is_active, slug, hero_title, hero_subtitle, cta_text, cta_secondary_text, whatsapp_number, instagram_url, telegram_url, tiktok_url, facebook_pixel_id, show_features_section, show_plans_section, show_powered_by, domain_verified, domain_verified_at")
         .eq("user_id", user.id)
         .single();
 
@@ -199,6 +201,7 @@ export default function ProfilePage() {
         setEditInstagram(res.instagram_url || "");
         setEditTelegram(res.telegram_url || "");
         setEditTiktok(res.tiktok_url || "");
+        setEditFbPixel(res.facebook_pixel_id || "");
         setEditShowFeatures(res.show_features_section !== false);
         setEditShowPlans(res.show_plans_section !== false);
         setEditShowPoweredBy(res.show_powered_by !== false);
@@ -345,6 +348,7 @@ export default function ProfilePage() {
           instagram_url: editInstagram,
           telegram_url: editTelegram,
           tiktok_url: editTiktok,
+          facebook_pixel_id: editFbPixel,
           show_features_section: editShowFeatures,
           show_plans_section: editShowPlans,
           show_powered_by: editShowPoweredBy,
@@ -870,6 +874,23 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
+                  {/* Facebook Pixel */}
+                  <div style={{ borderTop: "1px solid #1a1a2e", paddingTop: "18px" }}>
+                    <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "14px", letterSpacing: "0.5px" }}>
+                      FACEBOOK PIXEL (ADS)
+                    </label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "#4f8ff718", border: "1px solid #4f8ff730", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#4f8ff7"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                      </div>
+                      <input className="focusable" type="text" value={editFbPixel} onChange={(e) => setEditFbPixel(e.target.value)} placeholder="Ej: 123456789012345"
+                        style={{ flex: 1, background: "#0a0a0f", border: "1px solid #2d2d44", borderRadius: "10px", padding: "10px 14px", color: "white", fontSize: "13px", fontFamily: "monospace", boxSizing: "border-box", letterSpacing: "0.5px" }} />
+                    </div>
+                    <p style={{ margin: "8px 0 0", fontSize: "11px", color: "#5a6480", lineHeight: 1.5 }}>
+                      Ingresa tu Pixel ID de Facebook para rastrear conversiones en tu panel. Lo encuentras en Facebook Events Manager.
+                    </p>
+                  </div>
+
                   {/* Toggles */}
                   <div style={{ borderTop: "1px solid #1a1a2e", paddingTop: "18px" }}>
                     <label style={{ fontSize: "11px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "14px", letterSpacing: "0.5px" }}>
@@ -1087,7 +1108,7 @@ export default function ProfilePage() {
                     <div style={{ maxHeight: "420px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px" }}>
                       {services
                         .filter((s) => pricesQuery === "" || s.name.toLowerCase().includes(pricesQuery.toLowerCase()) || s.category.toLowerCase().includes(pricesQuery.toLowerCase()))
-                        .slice(0, 80)
+                        .slice(0, 200)
                         .map((s) => {
                           const edited = editedPrices[s.service_id] ?? "";
                           const editedNum = parseFloat(edited);

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0f172a; font-family: 'Segoe UI', sans-serif; color: white; }
+
+.section-label {
+  color: #374151; font-size: 10px; letter-spacing: 3px;
+  text-transform: uppercase; padding: 14px 20px 8px;
+}
+
+/* NAVBAR */
+.navbar {
+  background: #111827; border-bottom: 1px solid #1e293b;
+  padding: 0 24px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-links { display: flex; gap: 24px; }
+.nav-links span { color: #9ca3af; font-size: 14px; }
+.nav-btn {
+  background: #2563eb; color: white; border: none;
+  padding: 8px 18px; border-radius: 6px; font-size: 13px;
+}
+
+/* SIDEBAR */
+.panel-wrap { display: flex; height: 380px; border-top: 1px solid #1e293b; }
+.sidebar {
+  width: 225px; background: #0a0f1e; padding: 20px 14px;
+  border-right: 1px solid #1e293b; flex-shrink: 0;
+}
+.sidebar-logo {
+  padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid #1e293b;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 8px;
+  font-size: 13px; color: #64748b; margin-bottom: 4px;
+}
+.sidebar-item.active { background: #1e3a5f; color: #60a5fa; }
+.main-area { flex: 1; background: #111827; padding: 28px; }
+.main-area h2 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+.main-area p { color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.card { background: #1e293b; border-radius: 10px; padding: 16px; border: 1px solid #334155; }
+.card-label { color: #64748b; font-size: 11px; margin-bottom: 6px; }
+.card-value { font-size: 22px; font-weight: 700; color: #60a5fa; }
+
+/* AUTH */
+.auth-page {
+  background: #0f172a; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 40px;
+  border-top: 1px solid #1e293b;
+}
+.auth-logo-wrap { margin-bottom: 28px; }
+.auth-card {
+  background: #1e293b; border: 1px solid #334155; border-radius: 14px;
+  padding: 28px; width: 320px;
+}
+.auth-card h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; text-align: center; }
+.input-fake {
+  background: #0f172a; border: 1px solid #334155; border-radius: 7px;
+  padding: 10px 14px; color: #9ca3af; font-size: 13px; margin-bottom: 10px; width: 100%;
+}
+.btn-primary {
+  background: #2563eb; color: white; border: none; width: 100%;
+  padding: 11px; border-radius: 7px; font-size: 14px; font-weight: 600; margin-top: 4px;
+}
+</style>
+
+<!-- GOOGLE FONTS - same font as the real logo -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+/* THE LOGO COMPONENT */
+.tm-logo {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  gap: 0; line-height: 0.85;
+}
+.tm-trust {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  color: #9ca3af;
+  letter-spacing: -0.5px;
+}
+.tm-mind-wrap {
+  position: relative;
+  display: inline-block;
+}
+.tm-mind {
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 6px;
+  position: relative;
+}
+/* Glitch layers */
+.tm-mind::before {
+  content: 'MIND';
+  position: absolute;
+  left: -2px; top: 2px;
+  color: #a855f7;
+  opacity: 0.7;
+}
+.tm-mind::after {
+  content: 'MIND';
+  position: absolute;
+  left: 2px; top: -1px;
+  color: #22d3ee;
+  opacity: 0.7;
+}
+.tm-mind span {
+  position: relative;
+  z-index: 1;
+  color: #e2e8f0;
+}
+
+/* SIZE VARIANTS — reduced height */
+.tm-logo.size-sm .tm-trust { font-size: 18px; line-height: 1; }
+.tm-logo.size-sm .tm-mind  { font-size: 7px; letter-spacing: 4px; margin-top: -2px; }
+
+.tm-logo.size-md .tm-trust { font-size: 28px; line-height: 1; }
+.tm-logo.size-md .tm-mind  { font-size: 10px; letter-spacing: 5px; margin-top: -2px; }
+
+.tm-logo.size-lg .tm-trust { font-size: 42px; line-height: 1; }
+.tm-logo.size-lg .tm-mind  { font-size: 14px; letter-spacing: 7px; margin-top: -3px; }
+
+.tm-logo.size-xl .tm-trust { font-size: 66px; line-height: 1; }
+.tm-logo.size-xl .tm-mind  { font-size: 21px; letter-spacing: 10px; margin-top: -4px; }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<div class="section-label">NAVBAR</div>
+<div class="navbar">
+  <div class="tm-logo size-sm">
+    <span class="tm-trust">TRUST</span>
+    <div class="tm-mind-wrap">
+      <div class="tm-mind"><span>MIND</span></div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <span>Servicios</span><span>Órdenes</span><span>Fondos</span><span>Afiliados</span>
+  </div>
+  <button class="nav-btn">Mi cuenta</button>
+</div>
+
+<!-- SIDEBAR + PANEL -->
+<div class="section-label" style="margin-top:16px">PANEL SMM (SIDEBAR)</div>
+<div class="panel-wrap">
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="tm-logo size-md">
+        <span class="tm-trust">TRUST</span>
+        <div class="tm-mind-wrap">
+          <div class="tm-mind"><span>MIND</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-item active">📦 Servicios</div>
+    <div class="sidebar-item">📋 Mis Órdenes</div>
+    <div class="sidebar-item">💳 Agregar Fondos</div>
+    <div class="sidebar-item">🤖 IA Assistant</div>
+    <div class="sidebar-item">👤 Perfil</div>
+    <div class="sidebar-item">🔗 Afiliados</div>
+  </div>
+  <div class="main-area">
+    <h2>Servicios SMM</h2>
+    <p>Vista previa del logo en el sidebar del panel de usuario</p>
+    <div class="cards">
+      <div class="card"><div class="card-label">BALANCE</div><div class="card-value">$12.50</div></div>
+      <div class="card"><div class="card-label">ÓRDENES</div><div class="card-value">24</div></div>
+      <div class="card"><div class="card-label">COMPLETADAS</div><div class="card-value">21</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH / LOGIN -->
+<div class="section-label" style="margin-top:16px">PÁGINA DE LOGIN</div>
+<div class="auth-page">
+  <div class="auth-logo-wrap">
+    <div class="tm-logo size-lg">
+      <span class="tm-trust">TRUST</span>
+      <div class="tm-mind-wrap">
+        <div class="tm-mind"><span>MIND</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-card">
+    <h3>Iniciar Sesión</h3>
+    <div class="input-fake">correo@ejemplo.com</div>
+    <div class="input-fake">••••••••</div>
+    <button class="btn-primary">Entrar</button>
+  </div>
+</div>
+
+</body>
+</html>

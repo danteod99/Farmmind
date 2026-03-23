@@ -2,6 +2,7 @@ import { addOrder, getOrderStatus } from "@/app/lib/jap";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { rateLimitResponse } from "@/app/lib/rate-limit";
 
 function getSupabaseAdmin() {
   return createClient(
@@ -32,33 +33,99 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autenticado" }, { status: 401 });
 
+    // Rate limit: max 10 orders per minute per user
+    const rl = rateLimitResponse(`order:${user.id}`, 10);
+    if (rl) return rl;
+
     const { serviceId, serviceName, category, link, quantity, rate } = await req.json();
 
     if (!serviceId || !link || !quantity) {
       return Response.json({ error: "Faltan campos requeridos" }, { status: 400 });
     }
 
-    // Verificar balance del usuario en Supabase
+    // Validate inputs
+    const parsedQuantity = parseInt(quantity);
+    const parsedRate = parseFloat(rate);
+    if (isNaN(parsedQuantity) || parsedQuantity <= 0 || parsedQuantity > 1000000) {
+      return Response.json({ error: "Cantidad inválida" }, { status: 400 });
+    }
+    if (isNaN(parsedRate) || parsedRate <= 0) {
+      return Response.json({ error: "Rate inválido" }, { status: 400 });
+    }
+    try {
+      new URL(link);
+    } catch {
+      return Response.json({ error: "Link debe ser una URL válida" }, { status: 400 });
+    }
+
+    const orderCost = (parsedRate / 1000) * parsedQuantity;
+
+    // Descontar balance atómicamente via RPC (evita race conditions)
     const admin = getSupabaseAdmin();
-    const { data: profile } = await admin
-      .from("smm_balances")
-      .select("balance")
-      .eq("user_id", user.id)
-      .single();
+    const { data: deductResult, error: deductError } = await admin.rpc("decrement_balance", {
+      p_user_id: user.id,
+      p_amount: orderCost,
+    });
 
-    const userBalance = parseFloat(profile?.balance) || 0;
-    const orderCost = (parseFloat(rate) / 1000) * quantity;
+    // Si el RPC no existe aún, fallback al método anterior
+    if (deductError?.message?.includes("function") || deductError?.code === "42883") {
+      // Fallback: verificar y descontar de forma no-atómica
+      const { data: profile } = await admin
+        .from("smm_balances")
+        .select("balance")
+        .eq("user_id", user.id)
+        .single();
 
-    if (userBalance < orderCost) {
+      const userBalance = parseFloat(profile?.balance) || 0;
+      if (userBalance < orderCost) {
+        return Response.json({
+          error: `Balance insuficiente. Necesitas $${orderCost.toFixed(4)}, tienes $${userBalance.toFixed(4)}`
+        }, { status: 400 });
+      }
+
+      // Hacer el pedido en JAP
+      const japResult = await addOrder({ service: serviceId, link, quantity: parsedQuantity });
+      if (japResult.error) {
+        return Response.json({ error: japResult.error }, { status: 400 });
+      }
+
+      const { data: order } = await admin
+        .from("smm_orders")
+        .insert({
+          user_id: user.id,
+          jap_order_id: japResult.order,
+          service_id: serviceId,
+          service_name: serviceName,
+          category,
+          link,
+          quantity: parsedQuantity,
+          rate: parsedRate,
+          charge: orderCost,
+          status: "pending",
+        })
+        .select()
+        .single();
+
+      await admin
+        .from("smm_balances")
+        .update({ balance: userBalance - orderCost, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+
+      return Response.json({ success: true, order, japOrderId: japResult.order });
+    }
+
+    if (deductError) {
       return Response.json({
-        error: `Balance insuficiente. Necesitas $${orderCost.toFixed(4)}, tienes $${userBalance.toFixed(4)}`
+        error: `Balance insuficiente. Necesitas $${orderCost.toFixed(4)}`
       }, { status: 400 });
     }
 
     // Hacer el pedido en JAP
-    const japResult = await addOrder({ service: serviceId, link, quantity });
+    const japResult = await addOrder({ service: serviceId, link, quantity: parsedQuantity });
 
     if (japResult.error) {
+      // Revertir el balance deducido
+      await admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost });
       return Response.json({ error: japResult.error }, { status: 400 });
     }
 
@@ -72,19 +139,13 @@ export async function POST(req: Request) {
         service_name: serviceName,
         category,
         link,
-        quantity,
-        rate: parseFloat(rate),
+        quantity: parsedQuantity,
+        rate: parsedRate,
         charge: orderCost,
         status: "pending",
       })
       .select()
       .single();
-
-    // Descontar balance — UPDATE directo para evitar bug de upsert sin onConflict
-    await admin
-      .from("smm_balances")
-      .update({ balance: userBalance - orderCost, updated_at: new Date().toISOString() })
-      .eq("user_id", user.id);
 
     return Response.json({ success: true, order, japOrderId: japResult.order });
   } catch (error) {

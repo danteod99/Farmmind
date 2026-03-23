@@ -4,9 +4,28 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const fullUrl = request.url;
+  const { searchParams, origin } = new URL(fullUrl);
   const code = searchParams.get("code");
-  const panelSlug = searchParams.get("panel"); // Child panel redirect
+
+  // Determine panel slug from multiple sources (in priority order):
+  // 1. Query param ?panel=slug
+  // 2. Subdomain detection (lovesocial.trustmind.online → lovesocial)
+  // 3. Cookie fallback
+  let panelSlug = searchParams.get("panel");
+  if (!panelSlug) {
+    const host = (request.headers.get("host") || "").replace(/:\d+$/, "");
+    const subMatch = host.match(/^([a-z0-9][a-z0-9-]+)\.trustmind\.online$/);
+    if (subMatch && subMatch[1] !== "www") {
+      panelSlug = subMatch[1];
+    }
+  }
+  if (!panelSlug) {
+    const cookieHeader = request.headers.get("cookie") || "";
+    const match = cookieHeader.match(/panel_auth_slug=([^;]+)/);
+    if (match) panelSlug = decodeURIComponent(match[1]);
+  }
+  console.log("[Auth Callback]", { panelSlug, hasCode: !!code });
 
   if (code) {
     const cookieStore = await cookies();
@@ -21,12 +40,7 @@ export async function GET(request: Request) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAll(cookiesToSet: any[]) {
             cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
-              // Set cookies with shared domain so they work on both
-              // www.trustmind.online AND any slug.trustmind.online subdomain
-              cookieStore.set(name, value, {
-                ...(options as Parameters<typeof cookieStore.set>[2]),
-                domain: ".trustmind.online",
-              })
+              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
             );
           },
         },
@@ -120,10 +134,13 @@ export async function GET(request: Request) {
         console.error("[Auth Callback] Error linking to child panel:", e);
       }
 
-      // Redirect back to the child panel subdomain.
-      // Cookies were set with domain=.trustmind.online so they are readable on
-      // slug.trustmind.online even though this callback ran on www.trustmind.online.
-      return NextResponse.redirect(`https://${panelSlug}.trustmind.online/panel/${panelSlug}/services`);
+      // Redirect to the child panel services page.
+      // Since the callback runs on the same subdomain (slug.trustmind.online),
+      // cookies are already set on the correct domain — no sharing needed.
+      const response = NextResponse.redirect(`${origin}/panel/${panelSlug}/services`);
+      // Clear the panel auth cookie after use
+      response.cookies.set("panel_auth_slug", "", { path: "/", maxAge: 0 });
+      return response;
     }
   }
 

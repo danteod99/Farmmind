@@ -86,7 +86,7 @@ export async function middleware(request: NextRequest) {
     }
     const response = pathname.startsWith(`/panel/${subSlug}`) ? NextResponse.next() : NextResponse.rewrite(url);
     response.headers.set("X-Reseller-Slug", subSlug);
-    response.cookies.set("reseller_slug", subSlug, { path: "/", maxAge: 86400, sameSite: "lax" });
+    response.cookies.set("reseller_slug", subSlug, { path: "/", maxAge: 86400, sameSite: "lax", secure: true, httpOnly: true });
     return response;
   }
 
@@ -110,6 +110,8 @@ export async function middleware(request: NextRequest) {
           path: "/",
           maxAge: 86400,
           sameSite: "lax",
+          secure: true,
+          httpOnly: true,
         });
         return response;
       }
@@ -127,6 +129,8 @@ export async function middleware(request: NextRequest) {
         path: "/",
         maxAge: 86400,
         sameSite: "lax",
+        secure: true,
+        httpOnly: true,
       });
       return response;
     }
@@ -143,6 +147,8 @@ export async function middleware(request: NextRequest) {
         path: "/",
         maxAge: 86400,
         sameSite: "lax",
+        secure: true,
+        httpOnly: true,
       });
       return response;
     }

@@ -1,124 +1,108 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { X, Gift, Copy, Check } from "lucide-react";
 
-const PROMO_CODE = "10DANTE";
-const STORAGE_KEY = "promo_banner_dismissed_10dante";
-
 export function PromoBanner() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    // Don't show if user already dismissed it
-    const dismissed = sessionStorage.getItem(STORAGE_KEY);
-    if (!dismissed) setVisible(true);
-  }, []);
-
-  const dismiss = () => {
-    sessionStorage.setItem(STORAGE_KEY, "1");
-    setVisible(false);
-  };
-
-  const copyCode = () => {
-    navigator.clipboard.writeText(PROMO_CODE).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
   if (!visible) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText("10DANTE");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <div
       style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 9999,
-        background: "linear-gradient(90deg, #007ABF 0%, #00b4c5 50%, #007ABF 100%)",
-        backgroundSize: "200% 100%",
-        animation: "shimmer 3s ease-in-out infinite",
-        padding: "10px 20px",
+        position: "relative",
+        width: "100%",
+        background: "linear-gradient(135deg, #007ABF 0%, #00B4D8 50%, #007ABF 100%)",
+        backgroundSize: "200% 200%",
+        animation: "bannerShimmer 3s ease infinite",
+        padding: "12px 20px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: 12,
-        boxShadow: "0 2px 12px rgba(0,122,191,0.4)",
+        gap: "12px",
+        flexWrap: "wrap",
+        zIndex: 100,
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
     >
       <style>{`
-        @keyframes shimmer {
-          0% { background-position: 100% 0; }
-          50% { background-position: 0% 0; }
-          100% { background-position: 100% 0; }
+        @keyframes bannerShimmer {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
         }
-        .promo-code-btn:hover { opacity: 0.85; transform: scale(1.03); }
       `}</style>
 
-      {/* Icon */}
-      <Gift size={16} color="white" style={{ flexShrink: 0 }} />
+      <Gift size={18} color="white" style={{ flexShrink: 0 }} />
 
-      {/* Text */}
-      <span style={{ fontSize: 13, fontWeight: 600, color: "white", letterSpacing: "-0.1px" }}>
-        🎁 Usa el código{" "}
-        <strong style={{ fontWeight: 800, letterSpacing: "0.5px" }}>{PROMO_CODE}</strong>
-        {" "}y recibe{" "}
-        <strong style={{ fontWeight: 800 }}>$10 de regalo</strong>
-        {" "}en tu primera recarga
-      </span>
-
-      {/* Copy button */}
-      <button
-        className="promo-code-btn"
-        onClick={copyCode}
-        title="Copiar código"
+      <span
         style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 5,
-          padding: "4px 12px",
-          borderRadius: 6,
-          background: "rgba(255,255,255,0.2)",
-          border: "1px solid rgba(255,255,255,0.4)",
           color: "white",
-          fontSize: 12,
-          fontWeight: 700,
-          cursor: "pointer",
-          letterSpacing: "0.5px",
-          transition: "all 0.15s",
-          fontFamily: "inherit",
-          flexShrink: 0,
+          fontSize: "14px",
+          fontWeight: 600,
+          letterSpacing: "-0.2px",
+          textAlign: "center",
         }}
       >
-        {copied ? <Check size={12} /> : <Copy size={12} />}
-        {copied ? "¡Copiado!" : PROMO_CODE}
-      </button>
+        Con el codigo{" "}
+        <button
+          onClick={handleCopy}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
+            background: "rgba(255,255,255,0.2)",
+            border: "1px solid rgba(255,255,255,0.4)",
+            borderRadius: "6px",
+            padding: "3px 10px",
+            color: "white",
+            fontWeight: 800,
+            fontSize: "14px",
+            cursor: "pointer",
+            letterSpacing: "0.5px",
+            transition: "all 0.2s",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.35)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
+          title="Copiar codigo"
+        >
+          10DANTE
+          {copied ? <Check size={13} /> : <Copy size={13} />}
+        </button>{" "}
+        obtienes <strong>$10 USD GRATIS</strong> para conseguir seguidores
+      </span>
 
-      {/* Close button */}
       <button
-        onClick={dismiss}
-        title="Cerrar"
+        onClick={() => setVisible(false)}
         style={{
           position: "absolute",
-          right: 14,
+          right: "12px",
           top: "50%",
           transform: "translateY(-50%)",
-          background: "none",
+          background: "rgba(255,255,255,0.15)",
           border: "none",
-          color: "rgba(255,255,255,0.7)",
-          cursor: "pointer",
+          borderRadius: "50%",
+          width: "24px",
+          height: "24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: 4,
-          borderRadius: 4,
-          transition: "color 0.15s",
+          cursor: "pointer",
+          color: "white",
+          transition: "background 0.2s",
         }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.3)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
       >
-        <X size={15} />
+        <X size={14} />
       </button>
     </div>
   );

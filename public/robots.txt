@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /profile/
+Disallow: /smm/
+Disallow: /panel/
+Disallow: /auth/
+
+Sitemap: https://www.trustmind.online/sitemap.xml

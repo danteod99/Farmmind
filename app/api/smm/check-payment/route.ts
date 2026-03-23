@@ -100,41 +100,71 @@ export async function POST(req: Request) {
 
       // Apply promo code bonus if present and not yet applied
       if (tx.promo_code && !tx.promo_applied) {
-        const { data: promo } = await admin
-          .from("promo_codes")
-          .select("*")
-          .eq("code", tx.promo_code)
-          .eq("active", true)
+        // First, atomically mark the transaction as promo_applied to prevent double-application
+        const { data: lockResult } = await admin
+          .from("smm_transactions")
+          .update({ promo_applied: true })
+          .eq("id", tx.id)
+          .eq("promo_applied", false)
+          .select("id")
           .single();
 
-        if (
-          promo &&
-          amountToCredit >= promo.min_recharge &&
-          promo.current_uses < promo.max_uses &&
-          (!promo.expires_at || new Date(promo.expires_at) >= new Date())
-        ) {
-          bonusAmount = parseFloat(promo.bonus_usd) || 0;
-
-          // Increment promo usage count
-          await admin
+        // Only apply promo if we successfully "locked" it (prevents race condition)
+        if (lockResult) {
+          const { data: promo } = await admin
             .from("promo_codes")
-            .update({ current_uses: promo.current_uses + 1 })
-            .eq("id", promo.id);
+            .select("*")
+            .eq("code", tx.promo_code)
+            .eq("active", true)
+            .single();
 
-          console.log(`🎁 Promo "${tx.promo_code}" applied: +$${bonusAmount} bonus for user=${tx.user_id}`);
+          if (
+            promo &&
+            amountToCredit >= promo.min_recharge &&
+            promo.current_uses < promo.max_uses &&
+            (!promo.expires_at || new Date(promo.expires_at) >= new Date())
+          ) {
+            bonusAmount = parseFloat(promo.bonus_usd) || 0;
+
+            // Increment promo usage count
+            await admin
+              .from("promo_codes")
+              .update({ current_uses: promo.current_uses + 1 })
+              .eq("id", promo.id);
+
+            console.log(`Promo "${tx.promo_code}" applied: +$${bonusAmount} bonus for user=${tx.user_id}`);
+          }
         }
       }
 
       const totalToCredit = amountToCredit + bonusAmount;
-      const newBalance = currentBalance + totalToCredit;
 
-      await admin
-        .from("smm_balances")
-        .upsert({
-          user_id: tx.user_id,
-          balance: newBalance,
-          updated_at: new Date().toISOString(),
-        });
+      // Increment balance atomically via RPC
+      const { error: rpcError } = await admin.rpc("increment_balance", {
+        p_user_id: tx.user_id,
+        p_amount: totalToCredit,
+      });
+
+      let newBalance = currentBalance + totalToCredit;
+
+      if (rpcError) {
+        // Fallback: upsert directo si el RPC no existe aún
+        await admin
+          .from("smm_balances")
+          .upsert({
+            user_id: tx.user_id,
+            balance: newBalance,
+            updated_at: new Date().toISOString(),
+          });
+      } else {
+        // Read the actual new balance from DB after atomic operation
+        const { data: updatedBal } = await admin
+          .from("smm_balances")
+          .select("balance")
+          .eq("user_id", tx.user_id)
+          .single();
+        newBalance = parseFloat(updatedBal?.balance) || newBalance;
+      }
 
       await admin
         .from("smm_transactions")

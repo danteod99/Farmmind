@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160" width="400" height="160">
+  <defs>
+    <!-- Glitch filter for MIND -->
+    <filter id="glitch" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" result="noise"/>
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" in="noise" result="blue-noise"/>
+    </filter>
+    <!-- Neon glow for MIND -->
+    <filter id="neon-cyan" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur1"/>
+      <feGaussianBlur stdDeviation="4" result="blur2"/>
+      <feMerge>
+        <feMergeNode in="blur2"/>
+        <feMergeNode in="blur1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="neon-purple" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- TRUST - large gray bold text -->
+  <text
+    x="200"
+    y="105"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Impact', 'Haettenschweiler', sans-serif"
+    font-weight="900"
+    font-size="100"
+    letter-spacing="-2"
+    fill="#9CA3AF"
+  >TRUST</text>
+
+  <!-- MIND - neon cyan layer (glow) -->
+  <text
+    x="200"
+    y="140"
+    text-anchor="middle"
+    font-family="'Courier New', 'Courier', monospace"
+    font-weight="700"
+    font-size="28"
+    letter-spacing="8"
+    fill="#22D3EE"
+    filter="url(#neon-cyan)"
+    opacity="0.7"
+  >MIND</text>
+
+  <!-- MIND - neon purple layer (offset glitch) -->
+  <text
+    x="202"
+    y="141"
+    text-anchor="middle"
+    font-family="'Courier New', 'Courier', monospace"
+    font-weight="700"
+    font-size="28"
+    letter-spacing="8"
+    fill="#A855F7"
+    filter="url(#neon-purple)"
+    opacity="0.6"
+  >MIND</text>
+
+  <!-- MIND - main white/light layer on top -->
+  <text
+    x="200"
+    y="140"
+    text-anchor="middle"
+    font-family="'Courier New', 'Courier', monospace"
+    font-weight="700"
+    font-size="28"
+    letter-spacing="8"
+    fill="#E2E8F0"
+  >MIND</text>
+</svg>

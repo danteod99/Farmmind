@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import { rateLimitResponse } from "@/app/lib/rate-limit";
 
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -333,6 +334,11 @@ async function executeTool(
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
+
+    // Rate limit: max 20 messages per minute per IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rl = rateLimitResponse(`chat:${clientIp}`, 20);
+    if (rl) return rl;
 
     // Get authenticated user for tool execution
     const cookieStore = await cookies();

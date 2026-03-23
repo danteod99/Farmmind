@@ -27,14 +27,14 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
+    window.location.href = "/";
   };
 
   return (
     <>
       <style>{`
-        .smm-nav-link:hover { color: #88D0F0 !important; background: #007ABF15 !important; }
-        .smm-hamburger:hover { background: #1a1a2e !important; }
+        .smm-nav-link:hover { color: #e2e8f0 !important; background: rgba(255,255,255,0.05) !important; }
+        .smm-hamburger:hover { background: rgba(255,255,255,0.06) !important; }
         @media (max-width: 768px) {
           .smm-nav-desktop-links { display: none !important; }
           .smm-hamburger { display: flex !important; }
@@ -54,9 +54,9 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
       {/* ── NAVBAR ── */}
       <nav style={{
         position: "sticky", top: 0, zIndex: 50,
-        background: "rgba(7,7,14,0.92)", backdropFilter: "blur(16px)",
-        borderBottom: "1px solid #1e1e30",
-        padding: "0 16px", height: "60px",
+        background: "rgba(5,5,8,0.85)", backdropFilter: "blur(24px) saturate(1.2)",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        padding: "0 clamp(12px, 3vw, 24px)", height: "56px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
         gap: "8px",
       }}>

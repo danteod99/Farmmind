@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Preview Logo TrustMind</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #111827; font-family: sans-serif; color: white; }
+
+  .preview-section {
+    padding: 40px;
+    border-bottom: 1px solid #1f2937;
+  }
+  .label {
+    color: #6b7280;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  /* --- NAVBAR PREVIEW --- */
+  .navbar {
+    background: #111827;
+    border-bottom: 1px solid #1f2937;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .navbar-logo img { height: 36px; width: auto; }
+  .navbar-links { display: flex; gap: 24px; }
+  .navbar-links a { color: #9ca3af; font-size: 14px; text-decoration: none; }
+  .navbar-links a:hover { color: white; }
+  .navbar-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* --- SIDEBAR PREVIEW --- */
+  .sidebar-demo {
+    display: flex;
+    gap: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #1f2937;
+    max-width: 700px;
+  }
+  .sidebar {
+    width: 220px;
+    background: #0f172a;
+    padding: 20px 16px;
+    flex-shrink: 0;
+  }
+  .sidebar-logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #1e293b;
+  }
+  .sidebar-logo img { height: 32px; width: auto; }
+  .sidebar-menu { display: flex; flex-direction: column; gap: 4px; }
+  .sidebar-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #94a3b8;
+    cursor: pointer;
+  }
+  .sidebar-item.active {
+    background: #1e3a5f;
+    color: #60a5fa;
+  }
+  .content-area {
+    flex: 1;
+    background: #111827;
+    padding: 24px;
+  }
+  .content-area h2 { font-size: 18px; font-weight: 600; color: white; margin-bottom: 8px; }
+  .content-area p { color: #6b7280; font-size: 14px; }
+
+  /* --- LARGE LOGO DEMO --- */
+  .logo-sizes {
+    display: flex;
+    align-items: flex-end;
+    gap: 40px;
+    flex-wrap: wrap;
+  }
+  .size-demo { text-align: center; }
+  .size-demo span { display: block; color: #4b5563; font-size: 11px; margin-top: 8px; }
+  .size-demo img { display: block; }
+
+  /* Dark vs light bg */
+  .bg-light {
+    background: white;
+    padding: 20px 30px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+  .bg-dark {
+    background: #0f172a;
+    padding: 20px 30px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+
+<!-- SECTION 1: Navbar -->
+<div class="preview-section">
+  <div class="label">📌 Navbar (como aparece en el panel)</div>
+  <div class="navbar">
+    <div class="navbar-logo">
+      <img src="/trustmind-logo.svg" alt="TrustMind" />
+    </div>
+    <div class="navbar-links">
+      <a href="#">Servicios</a>
+      <a href="#">Órdenes</a>
+      <a href="#">Fondos</a>
+    </div>
+    <button class="navbar-btn">Mi cuenta</button>
+  </div>
+</div>
+
+<!-- SECTION 2: Sidebar -->
+<div class="preview-section">
+  <div class="label">📌 Sidebar del panel SMM</div>
+  <div class="sidebar-demo">
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <img src="/trustmind-logo.svg" alt="TrustMind" />
+      </div>
+      <div class="sidebar-menu">
+        <div class="sidebar-item active">📦 Servicios</div>
+        <div class="sidebar-item">📋 Órdenes</div>
+        <div class="sidebar-item">💳 Fondos</div>
+        <div class="sidebar-item">👤 Perfil</div>
+      </div>
+    </div>
+    <div class="content-area">
+      <h2>Panel SMM</h2>
+      <p>Vista previa de cómo se ve el logo en el sidebar del panel de usuario.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: Tamaños -->
+<div class="preview-section">
+  <div class="label">📌 Diferentes tamaños</div>
+  <div class="logo-sizes">
+    <div class="size-demo">
+      <div class="bg-dark">
+        <img src="/trustmind-logo.svg" height="24" />
+      </div>
+      <span>24px (mini)</span>
+    </div>
+    <div class="size-demo">
+      <div class="bg-dark">
+        <img src="/trustmind-logo.svg" height="36" />
+      </div>
+      <span>36px (navbar)</span>
+    </div>
+    <div class="size-demo">
+      <div class="bg-dark">
+        <img src="/trustmind-logo.svg" height="56" />
+      </div>
+      <span>56px (landing)</span>
+    </div>
+    <div class="size-demo">
+      <div class="bg-dark">
+        <img src="/trustmind-logo.svg" height="80" />
+      </div>
+      <span>80px (hero)</span>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: Fondo claro (aviso) -->
+<div class="preview-section">
+  <div class="label">⚠️ Sobre fondo claro (por si hay páginas claras)</div>
+  <div class="logo-sizes">
+    <div class="size-demo">
+      <div class="bg-light">
+        <img src="/trustmind-logo.svg" height="48" />
+      </div>
+      <span>Fondo blanco</span>
+    </div>
+    <div class="size-demo">
+      <div class="bg-dark">
+        <img src="/trustmind-logo.svg" height="48" />
+      </div>
+      <span>Fondo oscuro</span>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

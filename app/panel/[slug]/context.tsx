@@ -28,6 +28,7 @@ export interface ResellerInfo {
   instagram_url: string;
   telegram_url: string;
   tiktok_url: string;
+  facebook_pixel_id: string;
   show_features_section: boolean;
   show_plans_section: boolean;
   show_powered_by: boolean;
