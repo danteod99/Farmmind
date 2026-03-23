@@ -501,9 +501,9 @@ export default function ServicesPage() {
         .premium-card:hover { transform: translateY(-4px) !important; box-shadow: 0 16px 48px rgba(0,0,0,0.35) !important; }
         .service-card { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important; }
         .service-card:hover { background: rgba(255,255,255,0.03) !important; border-color: rgba(0,122,191,0.4) !important; transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 40px rgba(0,122,191,0.06) !important; }
-        .order-btn:hover { background: linear-gradient(135deg, #1E90D4, #007ABF) !important; transform: scale(1.02) !important; box-shadow: 0 4px 20px #007ABF50 !important; }
+        .order-btn:hover { background: rgba(255,255,255,0.18) !important; transform: scale(1.02) !important; }
         .search-input:focus { border-color: #007ABF70 !important; box-shadow: 0 0 0 3px #007ABF15 !important; }
-        .toggle-btn:hover { border-color: #007ABF !important; background: #007ABF18 !important; }
+        .toggle-btn:hover { border-color: rgba(255,255,255,0.2) !important; background: rgba(255,255,255,0.04) !important; }
         .whatsapp-btn:hover { background: #20bd5a !important; box-shadow: 0 4px 20px #25d36650 !important; }
 
         @media (max-width: 768px) {
@@ -610,10 +610,10 @@ export default function ServicesPage() {
                       className="cat-pill"
                       style={{
                         padding: "7px 16px", borderRadius: "20px", fontSize: "12px", fontWeight: 700, border: "1px solid",
-                        borderColor: active ? cat.color : "#2a2a42",
-                        background: active ? `${cat.color}22` : "#0d0d1880",
-                        color: active ? cat.color : "#64748b",
-                        boxShadow: active ? `0 0 14px ${cat.glow || cat.color}50` : "none",
+                        borderColor: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.06)",
+                        background: active ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.02)",
+                        color: active ? "#e2e8f0" : "#64748b",
+                        boxShadow: "none",
                       }}>
                       {cat.label}
                     </button>
@@ -634,7 +634,7 @@ export default function ServicesPage() {
               { id: "cuentas", label: "👑 Cuentas Premium", count: PREMIUM_ACCOUNTS.length },
             ].map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as "services" | "cuentas")}
-                style={{ flex: 1, padding: "11px 20px", borderRadius: "12px", border: "none", background: activeTab === tab.id ? "linear-gradient(135deg, #007ABF, #005F96)" : "transparent", color: activeTab === tab.id ? "white" : "#5a6480", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: activeTab === tab.id ? "0 4px 20px #007ABF40" : "none" }}>
+                style={{ flex: 1, padding: "11px 20px", borderRadius: "12px", border: "none", background: activeTab === tab.id ? "rgba(255,255,255,0.08)" : "transparent", color: activeTab === tab.id ? "white" : "#5a6480", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "none" }}>
                 {tab.label}
                 <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "20px", background: activeTab === tab.id ? "#ffffff20" : "#1a1a2e", fontWeight: 600 }}>
                   {tab.id === "services" ? services.length.toLocaleString() : tab.count}
@@ -723,9 +723,9 @@ export default function ServicesPage() {
                     <button key={key} onClick={() => setSortBy(key)}
                       style={{
                         padding: "10px 14px", borderRadius: "14px", fontSize: "13px", fontWeight: sortBy === key ? 700 : 500, cursor: "pointer", border: "1px solid",
-                        background: sortBy === key ? "#007ABF20" : "transparent",
-                        borderColor: sortBy === key ? "#007ABF60" : "#1e1e30",
-                        color: sortBy === key ? "#56B4E0" : "#5a6480",
+                        background: sortBy === key ? "rgba(255,255,255,0.08)" : "transparent",
+                        borderColor: sortBy === key ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.06)",
+                        color: sortBy === key ? "#e2e8f0" : "#5a6480",
                         transition: "all 0.15s", whiteSpace: "nowrap",
                       }}>
                       {label}
@@ -813,7 +813,7 @@ export default function ServicesPage() {
           {activeTab === "services" && <section>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "linear-gradient(135deg, #007ABF, #005F96)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 20px #007ABF50", animation: "pulse-glow 3s ease infinite", flexShrink: 0 }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Zap size={18} color="white" />
                 </div>
                 <div>
@@ -891,7 +891,7 @@ export default function ServicesPage() {
                       <div style={{ padding: "10px 18px 14px", borderTop: "1px solid #141424", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <span style={{ fontSize: "11px", color: "#3d4a5c", fontWeight: 500 }}>{service.type}</span>
                         <button onClick={() => openModal(service)} className="order-btn"
-                          style={{ background: "linear-gradient(135deg, #007ABF, #005F96)", border: "none", borderRadius: "9px", padding: "8px 18px", color: "white", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", boxShadow: "0 0 14px #007ABF35", transition: "all 0.15s", fontFamily: "inherit" }}>
+                          style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "9px", padding: "8px 18px", color: "white", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", transition: "all 0.15s", fontFamily: "inherit" }}>
                           <ShoppingCart size={12} /> Ordenar
                         </button>
                       </div>
@@ -944,7 +944,7 @@ export default function ServicesPage() {
                 style={{ width: "100%", background: "#07070e", border: "1px solid #1e1e30", borderRadius: "12px", padding: "11px 14px", color: "white", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
             </div>
 
-            <div style={{ background: "linear-gradient(135deg, #007ABF18, #a855f710)", border: "1px solid #007ABF30", borderRadius: "12px", padding: "14px 18px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "14px 18px", marginBottom: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <p style={{ fontSize: "11px", color: "#1E90D4", fontWeight: 600, marginBottom: "4px" }}>Costo estimado</p>
                 <p style={{ fontSize: "24px", fontWeight: 800, color: "white", letterSpacing: "-0.5px" }}>${calcCost(modal.service, modal.quantity)}</p>
@@ -970,7 +970,7 @@ export default function ServicesPage() {
                 Cancelar
               </button>
               <button onClick={placeOrder} disabled={placing}
-                style={{ flex: 2, padding: "13px", borderRadius: "12px", border: "none", background: placing ? "#5b21b6" : "linear-gradient(135deg, #007ABF, #005F96)", color: "white", fontSize: "14px", fontWeight: 700, cursor: placing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: placing ? "none" : "0 4px 20px #007ABF40", fontFamily: "inherit" }}>
+                style={{ flex: 2, padding: "13px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.15)", background: placing ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.1)", color: "white", fontSize: "14px", fontWeight: 700, cursor: placing ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", transition: "all 0.15s" }}>
                 {placing
                   ? <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid #ffffff50", borderTopColor: "white", animation: "spin 0.6s linear infinite" }} /> Procesando...</>
                   : <><Zap size={14} /> Confirmar pedido</>
@@ -1034,7 +1034,7 @@ export default function ServicesPage() {
                 )}
               </div>
 
-              <div style={{ background: "#007ABF10", border: "1px solid #007ABF30", borderRadius: "12px", padding: "13px 16px", marginBottom: "18px" }}>
+              <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "13px 16px", marginBottom: "18px" }}>
                 <p style={{ fontSize: "12px", color: "#56B4E0", fontWeight: 700, marginBottom: "4px" }}>⏱️ Tiempo de entrega: 3 a 12 horas</p>
                 <p style={{ fontSize: "12px", color: "#8892a4", lineHeight: "1.6" }}>
                   El pago se descuenta de tu saldo inmediatamente. Recibirás los accesos por email o vía soporte en un plazo de 3 a 12 horas.
