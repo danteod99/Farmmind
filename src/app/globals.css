@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-trust-blue: #002bb2;
+  --color-trust-light: #7b9bff;
+  --color-trust-dark: #1f1d24;
+  --color-trust-gray: #f3f5f6;
+  --color-trust-border: #bbb8b8;
+  --font-family-poppins: 'Poppins', sans-serif;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+}

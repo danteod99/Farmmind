@@ -39,15 +39,9 @@ export async function GET(request: Request) {
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAll(cookiesToSet: any[]) {
-            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) => {
-              const opts = options as Parameters<typeof cookieStore.set>[2];
-              // For child panel auth, share cookies across subdomains
-              if (panelSlug) {
-                cookieStore.set(name, value, { ...opts, domain: ".trustmind.online" });
-              } else {
-                cookieStore.set(name, value, opts);
-              }
-            });
+            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
+              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
+            );
           },
         },
       }
@@ -131,10 +125,10 @@ export async function GET(request: Request) {
         console.error("[Auth Callback] Error linking to child panel:", e);
       }
 
-      // Redirect back to the child panel subdomain.
-      // Cookies were set with domain=.trustmind.online so they are readable on
-      // slug.trustmind.online even though this callback ran on www.trustmind.online.
-      const response = NextResponse.redirect(`https://${panelSlug}.trustmind.online/panel/${panelSlug}/services`);
+      // Redirect to the child panel services page.
+      // Since the callback runs on the same subdomain (slug.trustmind.online),
+      // cookies are already set on the correct domain — no sharing needed.
+      const response = NextResponse.redirect(`${origin}/panel/${panelSlug}/services`);
       // Clear the panel auth cookie after use
       response.cookies.set("panel_auth_slug", "", { path: "/", maxAge: 0 });
       return response;
