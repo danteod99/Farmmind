@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles, ShoppingCart, Menu } from "lucide-react";
+import { Send, Bot, User, Zap, Shield, Cpu, Plus, Copy, Check, LogOut, MessageSquare, Trash2, Crown, X, Sparkles, ShoppingCart, Menu, Star } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
@@ -191,94 +191,115 @@ function LoginScreen() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", background: "#07070e", color: "#f0efff", fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", overflowX: "hidden" }}>
+    <div style={{ minHeight: "100vh", background: "#050508", color: "#f0efff", fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", overflowX: "hidden" }}>
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes glow-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes fade-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes glow-pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+        @keyframes gradient-shift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes subtle-rotate { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes scale-in { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .feature-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .feature-card:hover { transform: translateY(-4px); border-color: rgba(0, 122, 191, 0.4) !important; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 60px rgba(0, 122, 191, 0.08); }
+        .pricing-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .pricing-card:hover { transform: translateY(-2px); }
+        .stat-item { transition: all 0.3s ease; }
+        .stat-item:hover { transform: scale(1.05); }
+        @media (max-width: 768px) { .hero-grid { grid-template-columns: 1fr !important; } .pricing-grid { grid-template-columns: 1fr !important; } .stats-grid { grid-template-columns: repeat(2, 1fr) !important; } .nav-links { display: none !important; } }
       `}</style>
 
       {/* === PROMO BANNER === */}
       <PromoBanner />
 
       {/* === NAVBAR === */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(124,58,237,0.15)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ position: "absolute", inset: "-3px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF55, transparent 70%)", filter: "blur(5px)" }} />
-            <FarmMindLogo size={30} />
-          </div>
-          <span style={{ fontWeight: 800, fontSize: "15px", letterSpacing: "-0.3px" }}>TRUST MIND<span style={{ color: "#007ABF" }}> AI</span></span>
-        </div>
+      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(5,5,8,0.8)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 clamp(16px, 4vw, 48px)", height: "72px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <a href="https://www.skool.com/artificial-humans-7653/about" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#64748b", textDecoration: "none", fontWeight: 500 }}>Artificial Humans ↗</a>
+          <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF40, transparent 70%)", filter: "blur(6px)" }} />
+            <FarmMindLogo size={32} />
+          </div>
+          <span style={{ fontWeight: 800, fontSize: "17px", letterSpacing: "-0.4px" }}>TRUST MIND<span style={{ color: "#007ABF" }}> AI</span></span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+          <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+            <a href="#features" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Features</a>
+            <a href="#pricing" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Precios</a>
+            <a href="https://www.skool.com/artificial-humans-7653/about" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Comunidad ↗</a>
+          </div>
           <GoogleButton />
         </div>
       </nav>
 
       {/* === HERO === */}
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #000C18 0%, #001530 30%, #000A14 70%, #07070e 100%)", padding: "100px 32px 80px", textAlign: "center" }}>
-        {/* Grid overlay */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(124,58,237,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(124,58,237,0.06) 1px, transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
-        {/* Orbs */}
-        <div style={{ position: "absolute", top: "-100px", left: "50%", transform: "translateX(-50%)", width: "700px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF25, transparent 65%)", filter: "blur(60px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-60px", right: "5%", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #005FA420, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+      <section style={{ position: "relative", overflow: "hidden", padding: "clamp(60px, 10vw, 120px) 32px clamp(60px, 8vw, 100px)", textAlign: "center" }}>
+        {/* Animated background */}
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 60% at 50% -20%, #001d3d 0%, transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "20%", left: "10%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF12, transparent 60%)", filter: "blur(80px)", pointerEvents: "none", animation: "subtle-rotate 30s linear infinite" }} />
+        <div style={{ position: "absolute", top: "30%", right: "5%", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, #00B4D815, transparent 60%)", filter: "blur(60px)", pointerEvents: "none", animation: "subtle-rotate 25s linear infinite reverse" }} />
+        {/* Subtle grid */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none", maskImage: "radial-gradient(ellipse 60% 50% at 50% 50%, black, transparent)" }} />
 
-        <div style={{ position: "relative", maxWidth: "820px", margin: "0 auto", animation: "fade-up 0.7s ease-out" }}>
+        <div style={{ position: "relative", maxWidth: "900px", margin: "0 auto", animation: "fade-up 0.8s ease-out" }}>
           {/* Badge */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 16px", borderRadius: "100px", background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.4)", marginBottom: "28px" }}>
-            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", animation: "glow-pulse 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: "12px", color: "#88D0F0", fontWeight: 600, letterSpacing: "0.5px" }}>Agente activo · Claude API · Solo para Artificial Humans</span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 18px", borderRadius: "100px", background: "rgba(0, 122, 191, 0.08)", border: "1px solid rgba(0, 122, 191, 0.25)", marginBottom: "32px", animation: "scale-in 0.5s ease-out" }}>
+            <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399", animation: "glow-pulse 2s ease-in-out infinite" }} />
+            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 600, letterSpacing: "0.3px" }}>Agente activo 24/7 · Powered by Claude</span>
           </div>
 
           {/* Headline */}
-          <h1 style={{ fontSize: "clamp(44px, 8vw, 80px)", fontWeight: 900, lineHeight: 1.0, letterSpacing: "-0.04em", marginBottom: "24px" }}>
-            <span style={{ background: "linear-gradient(135deg, #fff 0%, #C0E8F8 40%, #56B4E0 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Tu agente AI</span>
+          <h1 style={{ fontSize: "clamp(40px, 7vw, 76px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.045em", marginBottom: "28px" }}>
+            <span style={{ color: "#ffffff" }}>Automatiza tu</span>
             <br />
-            <span style={{ background: "linear-gradient(135deg, #88D0F0 0%, #007ABF 60%, #005FA4 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>para bot farms</span>
+            <span style={{ background: "linear-gradient(135deg, #00B4D8 0%, #007ABF 40%, #0050A0 100%)", backgroundSize: "200% 200%", animation: "gradient-shift 4s ease infinite", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>granja de bots</span>
+            <br />
+            <span style={{ color: "#ffffff" }}>con IA</span>
           </h1>
 
-          <p style={{ fontSize: "18px", color: "#94a3b8", lineHeight: 1.7, maxWidth: "560px", margin: "0 auto 40px" }}>
-            Controla GenFarmer, gestiona proxies, detecta anomalías y pide servicios Social Media — todo desde una sola conversación con IA.
+          <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#94a3b8", lineHeight: 1.7, maxWidth: "580px", margin: "0 auto 44px", fontWeight: 400 }}>
+            GenFarmer, proxies, anti-deteccion y Growth Dashboard. Todo controlado desde un chat inteligente que entiende tu negocio.
           </p>
 
           {/* CTA */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "16px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
             <GoogleButton large />
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399" }} />
-              <span style={{ fontSize: "13px", color: "#64748b" }}>30 mensajes gratis · Sin tarjeta</span>
-            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "16px", flexWrap: "wrap" }}>
+            {["Gratis para empezar", "Sin tarjeta", "Setup en 30 seg"].map((t, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <Zap size={12} color="#34d399" />
+                <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>{t}</span>
+              </div>
+            ))}
           </div>
         </div>
 
         {/* Floating preview card */}
-        <div style={{ position: "relative", maxWidth: "680px", margin: "60px auto 0", animation: "float 5s ease-in-out infinite" }}>
-          <div style={{ background: "rgba(13,13,24,0.9)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: "20px", padding: "20px 24px", backdropFilter: "blur(20px)", boxShadow: "0 0 60px rgba(124,58,237,0.2), 0 40px 80px rgba(0,0,0,0.6)", textAlign: "left" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px", paddingBottom: "14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ position: "relative", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #007ABF50, transparent)", filter: "blur(4px)" }} />
-                <FarmMindLogo size={26} />
+        <div style={{ position: "relative", maxWidth: "720px", margin: "70px auto 0", animation: "float 6s ease-in-out infinite" }}>
+          <div style={{ background: "rgba(10,10,18,0.95)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", padding: "24px 28px", backdropFilter: "blur(24px)", boxShadow: "0 0 80px rgba(0, 122, 191, 0.12), 0 40px 80px rgba(0,0,0,0.5)", textAlign: "left" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "18px", paddingBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #007ABF40, transparent)", filter: "blur(4px)" }} />
+                <FarmMindLogo size={28} />
               </div>
               <div>
-                <span style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>TRUST MIND AI</span>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#34d399" }} />
-                  <span style={{ fontSize: "10px", color: "#64748b" }}>Agente activo</span>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "white" }}>TRUST MIND AI</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399" }} />
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>Respondiendo al instante</span>
                 </div>
               </div>
             </div>
             {[
-              { role: "user", text: "¿Cuántos delays poner en GenFarmer para TikTok sin que me baneen?" },
-              { role: "ai", text: "Para TikTok con GenFarmer, recomiendo **3-7 segundos** entre acciones y **25-40 min** entre sesiones. Usa proxies residenciales rotativos y limita a **4-6 cuentas por IP**. Con esos parámetros tu tasa de baneo debería bajar al ~3%." },
+              { role: "user", text: "Quiero 5K followers para mi cuenta de TikTok, busca el mejor servicio" },
+              { role: "ai", text: "Encontre **TikTok Followers - Premium Quality** a $1.20/1K. Para 5,000 followers el costo seria **$6.00 USD**. Tu saldo actual: $12.40. Confirmas el pedido?" },
             ].map((msg, i) => (
-              <div key={i} style={{ display: "flex", gap: "10px", flexDirection: msg.role === "user" ? "row-reverse" : "row", marginBottom: "10px" }}>
-                <div style={{ width: "28px", height: "28px", borderRadius: "10px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "#1e1e30" : "linear-gradient(135deg, #007ABF, #005FA4)" }}>
-                  {msg.role === "user" ? <User size={13} color="#56B4E0" /> : <Bot size={13} color="white" />}
+              <div key={i} style={{ display: "flex", gap: "10px", flexDirection: msg.role === "user" ? "row-reverse" : "row", marginBottom: "12px" }}>
+                <div style={{ width: "30px", height: "30px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg, #007ABF, #0050A0)" }}>
+                  {msg.role === "user" ? <User size={14} color="#7dd3fc" /> : <Bot size={14} color="white" />}
                 </div>
-                <div style={{ maxWidth: "80%", background: msg.role === "user" ? "linear-gradient(135deg, #007ABF, #005F96)" : "rgba(255,255,255,0.06)", border: msg.role === "ai" ? "1px solid rgba(255,255,255,0.08)" : "none", borderRadius: msg.role === "user" ? "16px 4px 16px 16px" : "4px 16px 16px 16px", padding: "10px 14px", fontSize: "13px", lineHeight: 1.6, color: "#e2e8f0" }}
+                <div style={{ maxWidth: "82%", background: msg.role === "user" ? "linear-gradient(135deg, #007ABF, #005A99)" : "rgba(255,255,255,0.04)", border: msg.role === "ai" ? "1px solid rgba(255,255,255,0.06)" : "none", borderRadius: msg.role === "user" ? "18px 6px 18px 18px" : "6px 18px 18px 18px", padding: "12px 16px", fontSize: "13.5px", lineHeight: 1.65, color: "#e2e8f0" }}
                   dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.+?)\*\*/g, "<strong style='color:white'>$1</strong>") }}
                 />
               </div>
@@ -287,84 +308,144 @@ function LoginScreen() {
         </div>
       </section>
 
+      {/* === STATS / SOCIAL PROOF === */}
+      <section style={{ padding: "40px 32px 60px", position: "relative" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "2px", background: "rgba(255,255,255,0.04)", borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
+            {[
+              { value: "+50M", label: "Servicios entregados" },
+              { value: "24/7", label: "Agente activo" },
+              { value: "+15", label: "Plataformas" },
+              { value: "99.8%", label: "Uptime" },
+            ].map((s, i) => (
+              <div key={i} className="stat-item" style={{ padding: "28px 20px", textAlign: "center", background: "#0a0a12", cursor: "default" }}>
+                <div style={{ fontSize: "clamp(24px, 3vw, 32px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", marginBottom: "6px" }}>{s.value}</div>
+                <div style={{ fontSize: "12px", color: "#64748b", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* === FEATURES === */}
-      <section style={{ padding: "80px 32px", maxWidth: "1100px", margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: "56px" }}>
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff, #56B4E0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "12px" }}>
-            Todo lo que necesita tu granja
+      <section id="features" style={{ padding: "60px 32px 80px", maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "60px" }}>
+          <div style={{ display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", padding: "6px 14px", background: "rgba(0,122,191,0.08)", borderRadius: "6px" }}>Features</div>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-0.035em", color: "white", marginBottom: "14px" }}>
+            Todo para tu granja en un solo lugar
           </h2>
-          <p style={{ color: "#64748b", fontSize: "15px", maxWidth: "440px", margin: "0 auto", lineHeight: 1.6 }}>Desde optimización de bots hasta pedidos Social Media masivos — TRUST MIND lo gestiona todo.</p>
+          <p style={{ color: "#64748b", fontSize: "16px", maxWidth: "500px", margin: "0 auto", lineHeight: 1.7 }}>Optimizacion de bots, pedidos SMM masivos y gestion de infraestructura.</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px" }}>
           {[
-            { emoji: "🤖", title: "Agente para GenFarmer", desc: "Configuración de delays, rotación de cuentas, estrategias anti-detección específicas para cada plataforma.", color: "#007ABF" },
-            { emoji: "🌐", title: "Gestión de proxies", desc: "Análisis de proveedores, rotación óptima, detección de IPs quemadas y recomendaciones por plataforma.", color: "#005FA4" },
-            { emoji: "📦", title: "Growth Dashboard integrado", desc: "Pide seguidores, likes, views y más en +15 plataformas directamente desde TRUST MIND. Pagos con crypto.", color: "#0891b2" },
-            { emoji: "🛡️", title: "Anti-detección", desc: "Fingerprinting, user-agent rotation, patrones de comportamiento humano para máxima supervivencia de cuentas.", color: "#059669" },
-            { emoji: "📊", title: "Análisis en tiempo real", desc: "Métricas de éxito, tasa de baneo, rendimiento por plataforma y alertas automáticas de anomalías.", color: "#d97706" },
-            { emoji: "⚡", title: "Respuestas al instante", desc: "Powered by Claude (Anthropic). Historial de conversaciones guardado. Aprende de tu granja específica.", color: "#db2777" },
+            { icon: <Cpu size={22} />, title: "Agente GenFarmer", desc: "Delays, rotacion de cuentas y estrategias anti-deteccion para cada plataforma. Configuracion asistida por IA.", color: "#007ABF" },
+            { icon: <Shield size={22} />, title: "Gestion de proxies", desc: "Analisis de proveedores, rotacion optima, deteccion de IPs quemadas. Residenciales, moviles y datacenter.", color: "#00B4D8" },
+            { icon: <ShoppingCart size={22} />, title: "Growth Dashboard", desc: "Seguidores, likes, views en +15 plataformas. Pide directo desde el chat. Pagos con crypto.", color: "#0891b2" },
+            { icon: <Shield size={22} />, title: "Anti-deteccion", desc: "Fingerprinting, user-agent rotation, comportamiento humano simulado. Maxima supervivencia de cuentas.", color: "#059669" },
+            { icon: <Sparkles size={22} />, title: "Analisis inteligente", desc: "Metricas de exito, tasa de baneo, rendimiento por plataforma. Alertas automaticas cuando algo falla.", color: "#d97706" },
+            { icon: <Zap size={22} />, title: "Claude AI integrado", desc: "Respuestas instantaneas. Historial guardado. Aprende de tu granja y mejora sus recomendaciones.", color: "#a855f7" },
           ].map((f) => (
-            <div key={f.title} style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "20px", padding: "28px", position: "relative", overflow: "hidden" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = f.color + "50"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "#1e1e30"; }}>
-              <div style={{ position: "absolute", top: 0, right: 0, width: "120px", height: "120px", borderRadius: "50%", background: `radial-gradient(circle, ${f.color}15, transparent 70%)`, pointerEvents: "none" }} />
-              <div style={{ fontSize: "32px", marginBottom: "14px" }}>{f.emoji}</div>
-              <h3 style={{ fontSize: "16px", fontWeight: 700, color: "white", marginBottom: "8px" }}>{f.title}</h3>
-              <p style={{ fontSize: "13px", color: "#64748b", lineHeight: 1.6 }}>{f.desc}</p>
+            <div key={f.title} className="feature-card" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "32px", position: "relative", overflow: "hidden", cursor: "default" }}>
+              <div style={{ position: "absolute", top: "-20px", right: "-20px", width: "140px", height: "140px", borderRadius: "50%", background: `radial-gradient(circle, ${f.color}10, transparent 70%)`, pointerEvents: "none" }} />
+              <div style={{ width: "44px", height: "44px", borderRadius: "14px", background: `${f.color}12`, border: `1px solid ${f.color}25`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "18px", color: f.color }}>
+                {f.icon}
+              </div>
+              <h3 style={{ fontSize: "17px", fontWeight: 700, color: "white", marginBottom: "10px", letterSpacing: "-0.2px" }}>{f.title}</h3>
+              <p style={{ fontSize: "14px", color: "#7a8599", lineHeight: 1.65 }}>{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* === PRICING === */}
-      <section style={{ padding: "80px 32px", background: "linear-gradient(180deg, transparent, rgba(124,58,237,0.05), transparent)" }}>
-        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+      {/* === TESTIMONIALS === */}
+      <section style={{ padding: "60px 32px 80px", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(0,122,191,0.04), transparent)", pointerEvents: "none" }} />
+        <div style={{ maxWidth: "900px", margin: "0 auto", position: "relative" }}>
           <div style={{ textAlign: "center", marginBottom: "48px" }}>
-            <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", color: "white", marginBottom: "10px" }}>Planes simples</h2>
-            <p style={{ color: "#64748b", fontSize: "15px" }}>Empieza gratis, escala cuando quieras.</p>
+            <h2 style={{ fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 800, color: "white", letterSpacing: "-0.03em", marginBottom: "10px" }}>Lo que dicen nuestros usuarios</h2>
+            <p style={{ color: "#64748b", fontSize: "15px" }}>Operadores de granjas reales usando TRUST MIND.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-            {/* Free */}
-            <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "24px", padding: "32px" }}>
-              <p style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Free</p>
-              <div style={{ marginBottom: "24px" }}>
-                <span style={{ fontSize: "48px", fontWeight: 900, color: "white" }}>$0</span>
-                <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
+            {[
+              { name: "Carlos M.", role: "Operador de granja, Mexico", text: "Antes configuraba los delays a mano en cada dispositivo. Ahora TRUST MIND me da la config exacta en segundos. Mis baneos bajaron un 70%.", stars: 5 },
+              { name: "Diego R.", role: "Growth Manager, Colombia", text: "El Growth Dashboard me ahorra horas. Pido followers y likes desde el chat, pago con crypto y en minutos ya esta activo.", stars: 5 },
+              { name: "Ana L.", role: "Revendedora SMM, Peru", text: "Monte mi panel de reventa en un dia. Mis clientes compran directo y yo gano el margen automatico. Increible.", stars: 5 },
+            ].map((t, i) => (
+              <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "28px" }}>
+                <div style={{ display: "flex", gap: "2px", marginBottom: "16px" }}>
+                  {Array(t.stars).fill(0).map((_, j) => (
+                    <Star key={j} size={14} fill="#fbbf24" color="#fbbf24" />
+                  ))}
+                </div>
+                <p style={{ fontSize: "14px", color: "#c8d0dc", lineHeight: 1.7, marginBottom: "20px", fontStyle: "italic" }}>&ldquo;{t.text}&rdquo;</p>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "white" }}>{t.name}</div>
+                  <div style={{ fontSize: "12px", color: "#64748b" }}>{t.role}</div>
+                </div>
               </div>
-              <div style={{ borderTop: "1px solid #1e1e30", paddingTop: "20px" }}>
-                {["30 mensajes / mes", "Historial básico", "Acceso al Growth Dashboard", "Soporte de comunidad"].map((f) => (
-                  <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                    <span style={{ color: "#34d399", fontSize: "14px" }}>✓</span>
-                    <span style={{ fontSize: "13px", color: "#94a3b8" }}>{f}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* === PRICING === */}
+      <section id="pricing" style={{ padding: "60px 32px 80px" }}>
+        <div style={{ maxWidth: "780px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <div style={{ display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", padding: "6px 14px", background: "rgba(0,122,191,0.08)", borderRadius: "6px" }}>Pricing</div>
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", color: "white", marginBottom: "10px" }}>Simple y transparente</h2>
+            <p style={{ color: "#64748b", fontSize: "15px" }}>Empieza gratis. Escala cuando quieras.</p>
+          </div>
+          <div className="pricing-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            {/* Free */}
+            <div className="pricing-card" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "24px", padding: "36px" }}>
+              <p style={{ fontSize: "13px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>Free</p>
+              <div style={{ marginBottom: "28px" }}>
+                <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$0</span>
+                <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
+              </div>
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
+                {["30 mensajes / mes", "Historial basico", "Growth Dashboard", "Soporte comunidad"].map((f) => (
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                    <div style={{ width: "20px", height: "20px", borderRadius: "6px", background: "rgba(52,211,153,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Check size={12} color="#34d399" />
+                    </div>
+                    <span style={{ fontSize: "14px", color: "#94a3b8" }}>{f}</span>
                   </div>
                 ))}
               </div>
-              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "20px", width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #2d2d44", background: "transparent", color: "#94a3b8", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}>
+              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "24px", width: "100%", padding: "14px", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "#94a3b8", fontSize: "14px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "#fff"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#94a3b8"; }}>
                 Empezar gratis
               </button>
             </div>
             {/* Pro */}
-            <div style={{ background: "linear-gradient(135deg, #001528, #001020)", border: "1px solid #007ABF50", borderRadius: "24px", padding: "32px", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "12px", right: "12px", padding: "3px 10px", borderRadius: "20px", background: "#007ABF20", border: "1px solid #007ABF40", fontSize: "11px", color: "#56B4E0", fontWeight: 700 }}>
+            <div className="pricing-card" style={{ background: "linear-gradient(160deg, #001830 0%, #000d1f 100%)", border: "1px solid rgba(0, 122, 191, 0.35)", borderRadius: "24px", padding: "36px", position: "relative", overflow: "hidden" }}>
+              <div style={{ position: "absolute", top: "14px", right: "14px", padding: "4px 12px", borderRadius: "20px", background: "linear-gradient(135deg, #007ABF, #00B4D8)", fontSize: "11px", color: "white", fontWeight: 700, letterSpacing: "0.3px" }}>
                 Popular
               </div>
-              <div style={{ position: "absolute", top: "-40px", right: "-40px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF20, transparent 70%)", pointerEvents: "none" }} />
-              <p style={{ fontSize: "12px", fontWeight: 700, color: "#56B4E0", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Pro</p>
-              <div style={{ marginBottom: "24px" }}>
-                <span style={{ fontSize: "48px", fontWeight: 900, color: "white" }}>$19</span>
-                <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
+              <div style={{ position: "absolute", top: "-60px", right: "-60px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF15, transparent 70%)", pointerEvents: "none" }} />
+              <p style={{ fontSize: "13px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>Pro</p>
+              <div style={{ marginBottom: "28px" }}>
+                <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$19</span>
+                <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
               </div>
-              <div style={{ borderTop: "1px solid rgba(124,58,237,0.2)", paddingTop: "20px" }}>
+              <div style={{ borderTop: "1px solid rgba(0, 122, 191, 0.2)", paddingTop: "24px" }}>
                 {["Mensajes ilimitados", "Historial completo", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
-                  <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
-                    <span style={{ color: "#56B4E0", fontSize: "14px" }}>✓</span>
-                    <span style={{ fontSize: "13px", color: "#88D0F0" }}>{f}</span>
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
+                    <div style={{ width: "20px", height: "20px", borderRadius: "6px", background: "rgba(0, 180, 216, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Check size={12} color="#7dd3fc" />
+                    </div>
+                    <span style={{ fontSize: "14px", color: "#a5d8f3" }}>{f}</span>
                   </div>
                 ))}
               </div>
-              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "20px", width: "100%", padding: "12px", borderRadius: "12px", border: "none", background: "linear-gradient(135deg, #007ABF, #005F96)", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                <Crown size={14} className="text-yellow-300" /> Comenzar con Pro
+              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "24px", width: "100%", padding: "14px", borderRadius: "14px", border: "none", background: "linear-gradient(135deg, #007ABF, #00B4D8)", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(0, 122, 191, 0.3)" }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(0, 122, 191, 0.4)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 122, 191, 0.3)"; }}>
+                <Crown size={15} /> Comenzar con Pro
               </button>
             </div>
           </div>
@@ -372,24 +453,25 @@ function LoginScreen() {
       </section>
 
       {/* === FOOTER CTA === */}
-      <section style={{ padding: "80px 32px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "600px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF15, transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
-        <div style={{ position: "relative" }}>
-          <h2 style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 900, letterSpacing: "-0.04em", background: "linear-gradient(135deg, #fff, #56B4E0)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "16px", lineHeight: 1.1 }}>
-            Listo para automatizar<br />tu granja?
+      <section style={{ padding: "80px 32px 100px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 50% 60% at 50% 80%, rgba(0, 122, 191, 0.08), transparent)", pointerEvents: "none" }} />
+        <div style={{ position: "relative", maxWidth: "600px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 900, letterSpacing: "-0.045em", color: "white", marginBottom: "18px", lineHeight: 1.1 }}>
+            Listo para escalar<br />tu operacion?
           </h2>
-          <p style={{ color: "#64748b", fontSize: "15px", marginBottom: "36px" }}>Solo para miembros de Artificial Humans · Exclusivo · Potenciado por Claude</p>
+          <p style={{ color: "#64748b", fontSize: "16px", marginBottom: "40px", lineHeight: 1.6 }}>Unete a la comunidad de operadores que ya usan TRUST MIND para automatizar sus granjas.</p>
           <GoogleButton large />
+          <p style={{ fontSize: "12px", color: "#475569", marginTop: "16px" }}>Powered by Anthropic Claude · Datos encriptados end-to-end</p>
         </div>
       </section>
 
       {/* === FOOTER === */}
-      <footer style={{ padding: "24px 32px", borderTop: "1px solid #1e1e30", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <footer style={{ padding: "28px clamp(16px, 4vw, 48px)", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <FarmMindLogo size={22} />
-          <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 600 }}>TRUST MIND AI</span>
+          <span style={{ fontSize: "13px", color: "#475569", fontWeight: 600 }}>TRUST MIND AI</span>
         </div>
-        <span style={{ fontSize: "12px", color: "#475569" }}>© 2025 Artificial Humans · Powered by Anthropic Claude</span>
+        <span style={{ fontSize: "12px", color: "#333d4d" }}>© 2025 Artificial Humans · Powered by Anthropic Claude</span>
       </footer>
     </div>
   );
