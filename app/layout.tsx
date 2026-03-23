@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Plus_Jakarta_Sans, Orbitron, Share_Tech_Mono } from "next/font/google";
 import "./globals.css";
 import { PromoBanner } from "@/app/components/PromoBanner";
 
@@ -20,6 +20,20 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
+  subsets: ["latin"],
+  weight: ["900"],
+  display: "swap",
+});
+
+const shareTechMono = Share_Tech_Mono({
+  variable: "--font-share-tech-mono",
+  subsets: ["latin"],
+  weight: ["400"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "TRUST MIND AI — Tu Agente de Granja de Bots",
   description: "Agente AI especializado en granjas de bots. Gestiona GenFarmer, proxies y dispositivos desde un chat.",
@@ -32,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`${jakartaSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${jakartaSans.variable} ${geistSans.variable} ${geistMono.variable} ${orbitron.variable} ${shareTechMono.variable} antialiased`}>
         <PromoBanner />
         {children}
       </body>
