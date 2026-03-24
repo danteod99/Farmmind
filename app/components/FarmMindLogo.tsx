@@ -14,7 +14,7 @@ export function FarmMindLogo({ size = 36 }: { size?: number }) {
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          fontFamily: "var(--font-orbitron), 'Arial Black', sans-serif",
+          fontFamily: "'Orbitron', 'Arial Black', sans-serif",
           fontWeight: 900,
           fontSize: `${size * 0.85}px`,
           color: "#9ca3af",
@@ -40,7 +40,7 @@ export function FarmMindLogo({ size = 36 }: { size?: number }) {
       {/* TRUST */}
       <span
         style={{
-          fontFamily: "var(--font-orbitron), 'Arial Black', sans-serif",
+          fontFamily: "'Orbitron', 'Arial Black', sans-serif",
           fontWeight: 900,
           fontSize: `${trustSize}px`,
           color: "#9ca3af",
@@ -56,7 +56,7 @@ export function FarmMindLogo({ size = 36 }: { size?: number }) {
         style={{
           position: "relative",
           display: "inline-block",
-          fontFamily: "var(--font-share-tech-mono), 'Courier New', monospace",
+          fontFamily: "'Share Tech Mono', 'Courier New', monospace",
           fontWeight: 700,
           fontSize: `${mindSize}px`,
           letterSpacing: `${mindLetterSpacing}px`,
