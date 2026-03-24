@@ -333,17 +333,13 @@ function LoginScreen() {
         @media (max-width: 768px) { .hero-grid { grid-template-columns: 1fr !important; } .pricing-grid { grid-template-columns: 1fr !important; } .stats-grid { grid-template-columns: repeat(2, 1fr) !important; } .nav-links { display: none !important; } }
       `}</style>
 
-      {/* === PROMO BANNER === */}
-      <PromoBanner />
-
       {/* === NAVBAR === */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(5,5,8,0.8)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 clamp(16px, 4vw, 48px)", height: "72px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <div style={{ position: "relative", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF40, transparent 70%)", filter: "blur(6px)" }} />
             <FarmMindLogo size={32} />
           </div>
-          <span style={{ fontWeight: 800, fontSize: "17px", letterSpacing: "-0.4px" }}>TRUST MIND<span style={{ color: "#007ABF" }}> AI</span></span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: "24px" }}>
