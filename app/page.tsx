@@ -238,16 +238,13 @@ function LoginScreen() {
         <div style={{ background: "rgba(10,10,18,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", backdropFilter: "blur(24px)", boxShadow: "0 0 80px rgba(0,122,191,0.12), 0 40px 80px rgba(0,0,0,0.5)", textAlign: "left", overflow: "hidden" }}>
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #007ABF40, transparent)", filter: "blur(4px)" }} />
               <FarmMindLogo size={28} />
             </div>
-            <div>
-              <span style={{ fontSize: "14px", fontWeight: 700, color: "white" }}>TRUST MIND AI</span>
-              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399" }} />
-                <span style={{ fontSize: "11px", color: "#64748b" }}>Demo en vivo · Pruébalo gratis</span>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+              <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399" }} />
+              <span style={{ fontSize: "11px", color: "#64748b" }}>Demo en vivo · Pruébalo gratis</span>
             </div>
           </div>
 
