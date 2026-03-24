@@ -190,6 +190,129 @@ function LoginScreen() {
     </button>
   );
 
+  // ── DEMO CHAT COMPONENT ─────────────────────────────────────────
+  const DemoChat = () => {
+    const [demoMessages, setDemoMessages] = useState<{role: string; text: string}[]>([
+      { role: "ai", text: "Hola! Soy TRUST MIND. Pregúntame sobre granjas de bots, proxies, servicios SMM o cómo automatizar tu crecimiento en redes sociales." }
+    ]);
+    const [demoInput, setDemoInput] = useState("");
+    const [demoLoading, setDemoLoading] = useState(false);
+    const demoChatRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      if (demoChatRef.current) {
+        demoChatRef.current.scrollTop = demoChatRef.current.scrollHeight;
+      }
+    }, [demoMessages]);
+
+    const sendDemoMessage = async () => {
+      const text = demoInput.trim();
+      if (!text || demoLoading) return;
+      setDemoInput("");
+      const newMessages = [...demoMessages, { role: "user", text }];
+      setDemoMessages(newMessages);
+      setDemoLoading(true);
+      try {
+        const apiMessages = newMessages.map(m => ({
+          role: m.role === "ai" ? "assistant" : "user",
+          content: m.text,
+        }));
+        const res = await fetch("/api/demo-chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: apiMessages }),
+        });
+        const data = await res.json();
+        setDemoMessages(prev => [...prev, { role: "ai", text: data.reply || data.error || "Error al responder" }]);
+      } catch {
+        setDemoMessages(prev => [...prev, { role: "ai", text: "Error de conexión. Intenta de nuevo." }]);
+      } finally {
+        setDemoLoading(false);
+      }
+    };
+
+    const suggestions = ["¿Cuántos followers puedo comprar?", "Delays seguros en Instagram", "¿Qué proxy recomiendas?"];
+
+    return (
+      <div style={{ position: "relative", maxWidth: "720px", margin: "70px auto 0" }}>
+        <div style={{ background: "rgba(10,10,18,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", backdropFilter: "blur(24px)", boxShadow: "0 0 80px rgba(0,122,191,0.12), 0 40px 80px rgba(0,0,0,0.5)", textAlign: "left", overflow: "hidden" }}>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #007ABF40, transparent)", filter: "blur(4px)" }} />
+              <FarmMindLogo size={28} />
+            </div>
+            <div>
+              <span style={{ fontSize: "14px", fontWeight: 700, color: "white" }}>TRUST MIND AI</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399" }} />
+                <span style={{ fontSize: "11px", color: "#64748b" }}>Demo en vivo · Pruébalo gratis</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div ref={demoChatRef} style={{ height: "280px", overflowY: "auto", padding: "20px 24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+            {demoMessages.map((msg, i) => (
+              <div key={i} style={{ display: "flex", gap: "10px", flexDirection: msg.role === "user" ? "row-reverse" : "row" }}>
+                <div style={{ width: "30px", height: "30px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg, #007ABF, #0050A0)" }}>
+                  {msg.role === "user" ? <User size={14} color="#7dd3fc" /> : <Bot size={14} color="white" />}
+                </div>
+                <div style={{ maxWidth: "82%", background: msg.role === "user" ? "linear-gradient(135deg, #007ABF, #005A99)" : "rgba(255,255,255,0.04)", border: msg.role === "ai" ? "1px solid rgba(255,255,255,0.06)" : "none", borderRadius: msg.role === "user" ? "18px 6px 18px 18px" : "6px 18px 18px 18px", padding: "12px 16px", fontSize: "13.5px", lineHeight: 1.65, color: "#e2e8f0" }}
+                  dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.+?)\*\*/g, "<strong style='color:white'>$1</strong>") }}
+                />
+              </div>
+            ))}
+            {demoLoading && (
+              <div style={{ display: "flex", gap: "10px" }}>
+                <div style={{ width: "30px", height: "30px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #007ABF, #0050A0)" }}>
+                  <Bot size={14} color="white" />
+                </div>
+                <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "6px 18px 18px 18px", padding: "14px 18px" }}>
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    {[0,1,2].map(j => (
+                      <div key={j} style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#007ABF", animation: `glow-pulse 1.2s ease-in-out ${j * 0.2}s infinite` }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Quick suggestions */}
+          {demoMessages.length <= 1 && (
+            <div style={{ padding: "0 24px 12px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {suggestions.map((s, i) => (
+                <button key={i} onClick={() => setDemoInput(s)} style={{ background: "rgba(0,122,191,0.1)", border: "1px solid rgba(0,122,191,0.25)", borderRadius: "20px", padding: "6px 14px", fontSize: "12px", color: "#7dd3fc", cursor: "pointer" }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Input */}
+          <div style={{ padding: "14px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", gap: "10px", alignItems: "center" }}>
+            <input
+              type="text"
+              value={demoInput}
+              onChange={e => setDemoInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && sendDemoMessage()}
+              placeholder="Escribe tu pregunta..."
+              style={{ flex: 1, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "10px 16px", color: "white", fontSize: "14px", outline: "none" }}
+            />
+            <button
+              onClick={sendDemoMessage}
+              disabled={demoLoading || !demoInput.trim()}
+              style={{ width: "40px", height: "40px", borderRadius: "12px", background: demoInput.trim() ? "linear-gradient(135deg, #007ABF, #0050A0)" : "rgba(255,255,255,0.05)", border: "none", cursor: demoInput.trim() ? "pointer" : "default", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.2s" }}
+            >
+              <Send size={16} color={demoInput.trim() ? "white" : "#374151"} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: "#050508", color: "#f0efff", fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", overflowX: "hidden" }}>
       <style>{`
@@ -275,37 +398,8 @@ function LoginScreen() {
           </div>
         </div>
 
-        {/* Floating preview card */}
-        <div style={{ position: "relative", maxWidth: "720px", margin: "70px auto 0", animation: "float 6s ease-in-out infinite" }}>
-          <div style={{ background: "rgba(10,10,18,0.95)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "24px", padding: "24px 28px", backdropFilter: "blur(24px)", boxShadow: "0 0 80px rgba(0, 122, 191, 0.12), 0 40px 80px rgba(0,0,0,0.5)", textAlign: "left" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "18px", paddingBottom: "16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ position: "relative", width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, #007ABF40, transparent)", filter: "blur(4px)" }} />
-                <FarmMindLogo size={28} />
-              </div>
-              <div>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "white" }}>TRUST MIND AI</span>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 6px #34d399" }} />
-                  <span style={{ fontSize: "11px", color: "#64748b" }}>Respondiendo al instante</span>
-                </div>
-              </div>
-            </div>
-            {[
-              { role: "user", text: "Quiero 5K followers para mi cuenta de TikTok, busca el mejor servicio" },
-              { role: "ai", text: "Encontre **TikTok Followers - Premium Quality** a $1.20/1K. Para 5,000 followers el costo seria **$6.00 USD**. Tu saldo actual: $12.40. Confirmas el pedido?" },
-            ].map((msg, i) => (
-              <div key={i} style={{ display: "flex", gap: "10px", flexDirection: msg.role === "user" ? "row-reverse" : "row", marginBottom: "12px" }}>
-                <div style={{ width: "30px", height: "30px", borderRadius: "12px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: msg.role === "user" ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg, #007ABF, #0050A0)" }}>
-                  {msg.role === "user" ? <User size={14} color="#7dd3fc" /> : <Bot size={14} color="white" />}
-                </div>
-                <div style={{ maxWidth: "82%", background: msg.role === "user" ? "linear-gradient(135deg, #007ABF, #005A99)" : "rgba(255,255,255,0.04)", border: msg.role === "ai" ? "1px solid rgba(255,255,255,0.06)" : "none", borderRadius: msg.role === "user" ? "18px 6px 18px 18px" : "6px 18px 18px 18px", padding: "12px 16px", fontSize: "13.5px", lineHeight: 1.65, color: "#e2e8f0" }}
-                  dangerouslySetInnerHTML={{ __html: msg.text.replace(/\*\*(.+?)\*\*/g, "<strong style='color:white'>$1</strong>") }}
-                />
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Interactive Demo Chat */}
+        <DemoChat />
       </section>
 
       {/* === STATS / SOCIAL PROOF === */}
