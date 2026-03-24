@@ -245,7 +245,7 @@ function LoginScreen() {
           {/* Badge */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 18px", borderRadius: "100px", background: "rgba(0, 122, 191, 0.08)", border: "1px solid rgba(0, 122, 191, 0.25)", marginBottom: "32px", animation: "scale-in 0.5s ease-out" }}>
             <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399", animation: "glow-pulse 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 600, letterSpacing: "0.3px" }}>Agente activo 24/7 · Powered by Claude</span>
+            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 600, letterSpacing: "0.3px" }}>Agente activo 24/7</span>
           </div>
 
           {/* Headline */}
@@ -461,7 +461,7 @@ function LoginScreen() {
           </h2>
           <p style={{ color: "#64748b", fontSize: "16px", marginBottom: "40px", lineHeight: 1.6 }}>Unete a la comunidad de operadores que ya usan TRUST MIND para automatizar sus granjas.</p>
           <GoogleButton large />
-          <p style={{ fontSize: "12px", color: "#475569", marginTop: "16px" }}>Powered by Anthropic Claude · Datos encriptados end-to-end</p>
+          <p style={{ fontSize: "12px", color: "#475569", marginTop: "16px" }}>Datos encriptados end-to-end</p>
         </div>
       </section>
 
@@ -471,7 +471,7 @@ function LoginScreen() {
           <FarmMindLogo size={22} />
           <span style={{ fontSize: "13px", color: "#475569", fontWeight: 600 }}>TRUST MIND AI</span>
         </div>
-        <span style={{ fontSize: "12px", color: "#333d4d" }}>© 2025 Artificial Humans · Powered by Anthropic Claude</span>
+        <span style={{ fontSize: "12px", color: "#333d4d" }}>© 2025 TRUST MIND</span>
       </footer>
     </div>
   );
