@@ -6,8 +6,6 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { TrustFooter } from "@/app/components/TrustFooter";
-import { PromoBanner } from "@/app/components/PromoBanner";
-
 export interface LandingFeature {
   emoji: string;
   title: string;
@@ -142,9 +140,6 @@ export default function LandingTemplate({
         @keyframes glow-pulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
         @keyframes slide-in { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
       `}</style>
-
-      {/* === PROMO BANNER === */}
-      <PromoBanner />
 
       {/* === NAVBAR === */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(7,7,14,0.85)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${accentColor}15`, padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
