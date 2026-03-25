@@ -38,20 +38,24 @@ export async function POST(req: Request) {
     }
 
     const admin = getSupabaseAdmin();
+    const orderPrice = parseFloat(price);
 
-    // Check user balance
-    const { data: profile } = await admin
-      .from("smm_balances")
-      .select("balance")
-      .eq("user_id", user.id)
-      .single();
+    // Deduct balance atomically via RPC (prevents race conditions)
+    const { data: newBalance, error: deductError } = await admin.rpc("decrement_balance", {
+      p_user_id: user.id,
+      p_amount: orderPrice,
+    });
 
-    const userBalance = profile?.balance || 0;
-
-    if (userBalance < price) {
-      return Response.json({
-        error: `Saldo insuficiente. Necesitas $${price.toFixed(2)} USD, tienes $${userBalance.toFixed(2)} USD`
-      }, { status: 400 });
+    if (deductError) {
+      if (deductError.message?.includes("insufficient_balance")) {
+        const { data: balCheck } = await admin.from("smm_balances").select("balance").eq("user_id", user.id).single();
+        const currentBal = parseFloat(balCheck?.balance) || 0;
+        return Response.json({
+          error: `Saldo insuficiente. Necesitas $${orderPrice.toFixed(2)} USD, tienes $${currentBal.toFixed(2)} USD`
+        }, { status: 400 });
+      }
+      console.error("Buy account deduct error:", deductError);
+      return Response.json({ error: "Error procesando el pago" }, { status: 500 });
     }
 
     // Create order record in smm_orders (jap_order_id = 0 for manual orders)
@@ -65,23 +69,19 @@ export async function POST(req: Request) {
         category: "Cuenta Premium",
         link: user.email || "manual",
         quantity: 1,
-        rate: parseFloat(price),
-        charge: parseFloat(price),
+        rate: orderPrice,
+        charge: orderPrice,
         status: "pending",
       })
       .select()
       .single();
 
     if (orderError) {
+      // Refund balance on order creation failure
+      await admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderPrice });
       console.error("Buy account insert error:", orderError);
-      return Response.json({ error: "Error guardando el pedido" }, { status: 500 });
+      return Response.json({ error: "Error guardando el pedido. Saldo reembolsado." }, { status: 500 });
     }
-
-    // Deduct balance — UPDATE directo para evitar bug de upsert sin onConflict
-    await admin
-      .from("smm_balances")
-      .update({ balance: userBalance - parseFloat(price), updated_at: new Date().toISOString() })
-      .eq("user_id", user.id);
 
     return Response.json({ success: true, order });
   } catch (error) {

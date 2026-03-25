@@ -230,23 +230,6 @@ async function executeTool(
       rate: string;
     };
 
-    // Check balance first — parseFloat porque NUMERIC de PostgreSQL llega como string
-    const { data: balanceData, error: balanceError } = await admin
-      .from("smm_balances")
-      .select("balance")
-      .eq("user_id", userId)
-      .single();
-
-    if (balanceError || !balanceData) {
-      console.error("place_smm_order balance fetch error:", balanceError);
-      return JSON.stringify({
-        error: "No se pudo verificar tu saldo. Intenta de nuevo.",
-        success: false,
-        debug: { balanceError: balanceError?.message, hasData: !!balanceData },
-      });
-    }
-
-    const userBalance = parseFloat(balanceData.balance) || 0;
     const parsedRate = parseFloat(rate);
     if (isNaN(parsedRate) || parsedRate <= 0) {
       return JSON.stringify({
@@ -256,14 +239,26 @@ async function executeTool(
     }
     const orderCost = (parsedRate / 1000) * quantity;
 
-    if (userBalance < orderCost) {
-      return JSON.stringify({
-        error: `Saldo insuficiente. Necesitas $${orderCost.toFixed(4)}, tienes $${userBalance.toFixed(4)}`,
-        success: false,
-      });
+    // Deduct balance atomically FIRST via RPC (prevents race conditions)
+    const { data: newBalanceValue, error: deductError } = await admin.rpc("decrement_balance", {
+      p_user_id: userId,
+      p_amount: orderCost,
+    });
+
+    if (deductError) {
+      if (deductError.message?.includes("insufficient_balance")) {
+        const { data: balCheck } = await admin.from("smm_balances").select("balance").eq("user_id", userId).single();
+        const currentBal = parseFloat(balCheck?.balance) || 0;
+        return JSON.stringify({
+          error: `Saldo insuficiente. Necesitas $${orderCost.toFixed(4)}, tienes $${currentBal.toFixed(4)}`,
+          success: false,
+        });
+      }
+      console.error("place_smm_order deduct error:", deductError);
+      return JSON.stringify({ error: "No se pudo procesar el pago. Intenta de nuevo.", success: false });
     }
 
-    // Place order via JAP
+    // Balance already deducted — now place order via JAP
     try {
       const { addOrder, getBalance: getJapBalance } = await import("@/app/lib/jap");
 
@@ -271,9 +266,10 @@ async function executeTool(
       try {
         const japBal = await getJapBalance();
         const japBalNum = parseFloat(japBal.balance) || 0;
-        // El costo real en JAP es sin markup (dividido entre 3)
         const realJapCost = orderCost / 3.0;
         if (japBalNum < realJapCost) {
+          // Refund the deducted balance
+          await admin.rpc("increment_balance", { p_user_id: userId, p_amount: orderCost });
           console.error(`JAP balance too low: $${japBalNum}, need $${realJapCost.toFixed(4)}`);
           return JSON.stringify({
             error: "El proveedor de servicios no tiene saldo disponible en este momento. Contacta al administrador.",
@@ -282,15 +278,16 @@ async function executeTool(
         }
       } catch (japBalErr) {
         console.error("JAP balance check failed:", japBalErr);
-        // Continuar de todos modos, el addOrder dará el error real si falla
       }
 
       const japResult = await addOrder({ service: service_id, link, quantity });
 
       if (japResult.error) {
+        // Refund the deducted balance
+        await admin.rpc("increment_balance", { p_user_id: userId, p_amount: orderCost });
         console.error("JAP addOrder error:", japResult.error);
         return JSON.stringify({
-          error: `Error del proveedor: ${japResult.error}. Tu saldo NO fue afectado.`,
+          error: `Error del proveedor: ${japResult.error}. Tu saldo fue reembolsado.`,
           success: false,
         });
       }
@@ -309,12 +306,7 @@ async function executeTool(
         status: "pending",
       });
 
-      // Deduct balance — UPDATE directo para evitar bug de upsert sin onConflict
-      const newBalance = userBalance - orderCost;
-      await admin.from("smm_balances")
-        .update({ balance: newBalance, updated_at: new Date().toISOString() })
-        .eq("user_id", userId);
-
+      const newBalance = parseFloat(newBalanceValue) || 0;
       return JSON.stringify({
         success: true,
         order_id: japResult.order,
@@ -323,8 +315,10 @@ async function executeTool(
         message: `Pedido #${japResult.order} creado exitosamente. Costo: $${orderCost.toFixed(4)}. Saldo restante: $${newBalance.toFixed(4)}`,
       });
     } catch (err) {
+      // Refund on unexpected error
+      await admin.rpc("increment_balance", { p_user_id: userId, p_amount: orderCost });
       console.error("place_smm_order error:", err);
-      return JSON.stringify({ error: "Error al procesar el pedido en el panel. Tu saldo NO fue afectado.", success: false });
+      return JSON.stringify({ error: "Error al procesar el pedido. Tu saldo fue reembolsado.", success: false });
     }
   }
 

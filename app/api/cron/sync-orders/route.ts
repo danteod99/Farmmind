@@ -9,14 +9,14 @@ function getSupabaseAdmin() {
   );
 }
 
-// Called by Vercel cron or external scheduler every 5–10 minutes
-// Protected by CRON_SECRET env var
+// Called by Vercel cron or external scheduler
+// Protected by CRON_SECRET env var (REQUIRED)
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  // Reject if secret is set and header doesn't match
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  // ALWAYS reject if CRON_SECRET is not configured or doesn't match
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

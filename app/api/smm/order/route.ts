@@ -67,56 +67,17 @@ export async function POST(req: Request) {
       p_amount: orderCost,
     });
 
-    // Si el RPC no existe aún, fallback al método anterior
-    if (deductError?.message?.includes("function") || deductError?.code === "42883") {
-      // Fallback: verificar y descontar de forma no-atómica
-      const { data: profile } = await admin
-        .from("smm_balances")
-        .select("balance")
-        .eq("user_id", user.id)
-        .single();
-
-      const userBalance = parseFloat(profile?.balance) || 0;
-      if (userBalance < orderCost) {
+    if (deductError) {
+      if (deductError.message?.includes("insufficient_balance")) {
+        const { data: balCheck } = await admin.from("smm_balances").select("balance").eq("user_id", user.id).single();
+        const currentBal = parseFloat(balCheck?.balance) || 0;
         return Response.json({
-          error: `Balance insuficiente. Necesitas $${orderCost.toFixed(4)}, tienes $${userBalance.toFixed(4)}`
+          error: `Balance insuficiente. Necesitas $${orderCost.toFixed(4)}, tienes $${currentBal.toFixed(4)}`
         }, { status: 400 });
       }
-
-      // Hacer el pedido en JAP
-      const japResult = await addOrder({ service: serviceId, link, quantity: parsedQuantity });
-      if (japResult.error) {
-        return Response.json({ error: japResult.error }, { status: 400 });
-      }
-
-      const { data: order } = await admin
-        .from("smm_orders")
-        .insert({
-          user_id: user.id,
-          jap_order_id: japResult.order,
-          service_id: serviceId,
-          service_name: serviceName,
-          category,
-          link,
-          quantity: parsedQuantity,
-          rate: parsedRate,
-          charge: orderCost,
-          status: "pending",
-        })
-        .select()
-        .single();
-
-      await admin
-        .from("smm_balances")
-        .update({ balance: userBalance - orderCost, updated_at: new Date().toISOString() })
-        .eq("user_id", user.id);
-
-      return Response.json({ success: true, order, japOrderId: japResult.order });
-    }
-
-    if (deductError) {
+      console.error("Decrement balance error:", deductError);
       return Response.json({
-        error: `Balance insuficiente. Necesitas $${orderCost.toFixed(4)}`
+        error: `Error al procesar el pago. Intenta de nuevo.`
       }, { status: 400 });
     }
 

@@ -88,14 +88,6 @@ export async function POST(req: Request) {
 
     if (shouldCredit) {
       const amountToCredit = parseFloat(price_amount) || tx.amount;
-
-      const { data: balance } = await admin
-        .from("smm_balances")
-        .select("balance")
-        .eq("user_id", tx.user_id)
-        .single();
-
-      const currentBalance = balance?.balance || 0;
       let bonusAmount = 0;
 
       // Apply promo code bonus if present and not yet applied
@@ -139,32 +131,18 @@ export async function POST(req: Request) {
 
       const totalToCredit = amountToCredit + bonusAmount;
 
-      // Increment balance atomically via RPC
-      const { error: rpcError } = await admin.rpc("increment_balance", {
+      // Increment balance atomically via RPC (no fallback — RPC must exist)
+      const { data: newBalance, error: rpcError } = await admin.rpc("increment_balance", {
         p_user_id: tx.user_id,
         p_amount: totalToCredit,
       });
 
-      let newBalance = currentBalance + totalToCredit;
-
       if (rpcError) {
-        // Fallback: upsert directo si el RPC no existe aún
-        await admin
-          .from("smm_balances")
-          .upsert({
-            user_id: tx.user_id,
-            balance: newBalance,
-            updated_at: new Date().toISOString(),
-          });
-      } else {
-        // Read the actual new balance from DB after atomic operation
-        const { data: updatedBal } = await admin
-          .from("smm_balances")
-          .select("balance")
-          .eq("user_id", tx.user_id)
-          .single();
-        newBalance = parseFloat(updatedBal?.balance) || newBalance;
+        console.error("Error incrementing balance via RPC:", rpcError);
+        return Response.json({ error: "Error al acreditar saldo" }, { status: 500 });
       }
+
+      const finalBalance = parseFloat(newBalance) || 0;
 
       await admin
         .from("smm_transactions")
@@ -185,7 +163,7 @@ export async function POST(req: Request) {
         status: "credited",
         message,
         credited: true,
-        new_balance: newBalance,
+        new_balance: finalBalance,
         amount_credited: amountToCredit,
         bonus_applied: bonusAmount,
       });

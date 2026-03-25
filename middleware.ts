@@ -56,6 +56,21 @@ export async function middleware(request: NextRequest) {
   const host = (request.headers.get("host") || "").replace(/:\d+$/, ""); // Strip port
   const pathname = request.nextUrl.pathname;
 
+  // ── 0. Protect /admin routes at edge level ──
+  // Block access unless the user has a valid Supabase session cookie.
+  // The actual admin email check still happens client-side & in API routes,
+  // but this prevents unauthenticated users from even loading the admin JS bundle.
+  if (pathname.startsWith("/admin")) {
+    const sbAccessToken = request.cookies.getAll().find(
+      (c) => c.name.includes("auth-token") || c.name.includes("sb-") && c.name.includes("-auth-token")
+    );
+    if (!sbAccessToken?.value) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/smm";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // Skip non-page routes (API, Next internals, auth, static files)
   const isPageRoute =
     !pathname.startsWith("/api/") &&

@@ -96,36 +96,26 @@ export async function POST(
           }
         }
 
-        // Credit balance
-        const { data: existing } = await admin
-          .from("smm_balances")
-          .select("balance")
-          .eq("user_id", user.id)
-          .single();
+        // Credit balance atomically via RPC (prevents race conditions)
+        const { data: newBalance, error: rpcError } = await admin.rpc("increment_balance", {
+          p_user_id: user.id,
+          p_amount: creditAmount,
+        });
 
-        if (existing) {
-          await admin
-            .from("smm_balances")
-            .update({ balance: parseFloat(existing.balance) + creditAmount })
-            .eq("user_id", user.id);
-        } else {
-          await admin.from("smm_balances").insert({ user_id: user.id, balance: creditAmount });
+        if (rpcError) {
+          console.error("Error incrementing balance via RPC:", rpcError);
+          return Response.json({ error: "Error al acreditar saldo" }, { status: 500 });
         }
 
         // Mark as credited
         await admin.from("smm_transactions").update({ credited: true, status: "finished" }).eq("id", tx.id);
 
-        // Get new balance
-        const { data: newBal } = await admin
-          .from("smm_balances")
-          .select("balance")
-          .eq("user_id", user.id)
-          .single();
+        const finalBalance = parseFloat(newBalance) || 0;
 
         return Response.json({
           credited: true,
           amount: creditAmount,
-          new_balance: parseFloat(newBal?.balance ?? 0),
+          new_balance: finalBalance,
           message: `$${creditAmount.toFixed(2)} USD acreditados a tu cuenta`,
         });
       }

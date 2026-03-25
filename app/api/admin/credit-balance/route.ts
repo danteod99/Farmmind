@@ -44,37 +44,19 @@ export async function POST(req: Request) {
     const admin = getSupabaseAdmin();
     const creditAmount = parseFloat(amount);
 
-    // Obtener balance actual
-    const { data: balanceRow, error: fetchError } = await admin
-      .from("smm_balances")
-      .select("balance")
-      .eq("user_id", target_user_id)
-      .single();
+    // Increment balance atomically via RPC (handles upsert internally, prevents race conditions)
+    const { data: newBalance, error: rpcError } = await admin.rpc("increment_balance", {
+      p_user_id: target_user_id,
+      p_amount: creditAmount,
+    });
 
-    const currentBalance = Number(balanceRow?.balance ?? 0);
-    const newBalance = currentBalance + creditAmount;
-
-    let dbError;
-
-    if (balanceRow) {
-      // Fila existente → UPDATE directo
-      const { error } = await admin
-        .from("smm_balances")
-        .update({ balance: newBalance, updated_at: new Date().toISOString() })
-        .eq("user_id", target_user_id);
-      dbError = error;
-    } else {
-      // No existe → INSERT
-      const { error } = await admin
-        .from("smm_balances")
-        .insert({ user_id: target_user_id, balance: newBalance, updated_at: new Date().toISOString() });
-      dbError = error;
+    if (rpcError) {
+      console.error("Error actualizando balance:", rpcError);
+      return Response.json({ error: "Error al actualizar balance: " + rpcError.message }, { status: 500 });
     }
 
-    if (dbError) {
-      console.error("Error actualizando balance:", dbError);
-      return Response.json({ error: "Error al actualizar balance: " + dbError.message }, { status: 500 });
-    }
+    const newBal = parseFloat(newBalance) || 0;
+    const previousBalance = newBal - creditAmount;
 
     // Registrar transacción manual
     await admin
@@ -89,12 +71,12 @@ export async function POST(req: Request) {
         nowpayments_data: { note: note || "Acreditación manual por administrador", admin: user.email },
       });
 
-    console.log(`Admin credit OK: user=${target_user_id}, +$${creditAmount}, prev=$${currentBalance}, new=$${newBalance}, admin=${user.email}`);
+    console.log(`Admin credit OK: user=${target_user_id}, +$${creditAmount}, prev=$${previousBalance.toFixed(2)}, new=$${newBal.toFixed(2)}, admin=${user.email}`);
 
     return Response.json({
       success: true,
-      previous_balance: currentBalance,
-      new_balance: newBalance,
+      previous_balance: previousBalance,
+      new_balance: newBal,
       credited: creditAmount,
     });
 

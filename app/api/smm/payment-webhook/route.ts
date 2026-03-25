@@ -87,20 +87,8 @@ export async function POST(req: Request) {
 
       if (rpcError) {
         console.error("Error incrementing balance via RPC:", rpcError);
-        // Fallback: upsert directo (menos seguro pero funcional)
-        const { data: balance } = await admin
-          .from("smm_balances")
-          .select("balance")
-          .eq("user_id", tx.user_id)
-          .single();
-        const currentBalance = balance?.balance || 0;
-        await admin
-          .from("smm_balances")
-          .upsert({
-            user_id: tx.user_id,
-            balance: currentBalance + amountToCredit,
-            updated_at: new Date().toISOString(),
-          });
+        // No fallback — RPC must exist. Log error for manual resolution.
+        return new Response("Balance credit failed", { status: 500 });
       }
 
       // Marcar transacción como acreditada
