@@ -14,8 +14,8 @@ export async function GET(request: Request) {
   // 3. Cookie fallback
   let panelSlug = searchParams.get("panel");
   if (!panelSlug) {
-    const host = (request.headers.get("host") || "").replace(/:\d+$/, "");
-    const subMatch = host.match(/^([a-z0-9][a-z0-9-]+)\.trustmind\.online$/);
+    const reqHost = (request.headers.get("host") || "").replace(/:\d+$/, "");
+    const subMatch = reqHost.match(/^([a-z0-9][a-z0-9-]+)\.trustmind\.online$/);
     if (subMatch && subMatch[1] !== "www") {
       panelSlug = subMatch[1];
     }
@@ -29,6 +29,9 @@ export async function GET(request: Request) {
 
   if (code) {
     const cookieStore = await cookies();
+    const host = (request.headers.get("host") || "").replace(/:\d+$/, "");
+    const isTrustmind = host.endsWith(".trustmind.online") || host === "trustmind.online";
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -39,9 +42,13 @@ export async function GET(request: Request) {
           },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           setAll(cookiesToSet: any[]) {
-            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) =>
-              cookieStore.set(name, value, options as Parameters<typeof cookieStore.set>[2])
-            );
+            cookiesToSet.forEach(({ name, value, options }: { name: string; value: string; options: unknown }) => {
+              const opts = options as Record<string, unknown>;
+              if (isTrustmind) {
+                opts.domain = ".trustmind.online";
+              }
+              cookieStore.set(name, value, opts as Parameters<typeof cookieStore.set>[2]);
+            });
           },
         },
       }
