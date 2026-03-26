@@ -7,6 +7,8 @@ export function PromoBanner() {
   const [visible, setVisible] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  // Hide on child panels
+  if (typeof window !== "undefined" && window.location.pathname.startsWith("/panel/")) return null;
   if (!visible) return null;
 
   const handleCopy = () => {
