@@ -524,7 +524,7 @@ export default function ProfilePage() {
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "50%", overflow: "hidden", border: "2px solid #007ABF40", flexShrink: 0 }}>
               {avatarPreview ? (
-                <img src={avatarPreview} alt="avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={avatarPreview} alt="avatar" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <div style={{ width: "100%", height: "100%", background: "#1a1a2e", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <User size={24} color="#3a3a5c" />
@@ -564,7 +564,7 @@ export default function ProfilePage() {
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "14px" }}>
               <div className="avatar-wrap" style={{ position: "relative", width: "90px", height: "90px", cursor: "pointer" }} onClick={() => fileRef.current?.click()}>
                 {avatarPreview ? (
-                  <img src={avatarPreview} alt="avatar" style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", border: "3px solid #007ABF40" }} />
+                  <img src={avatarPreview} alt="avatar" loading="lazy" style={{ width: "90px", height: "90px", borderRadius: "50%", objectFit: "cover", border: "3px solid #007ABF40" }} />
                 ) : (
                   <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: "#1a1a2e", border: "3px solid #2a2a42", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <User size={36} color="#3a3a5c" />
@@ -706,7 +706,7 @@ export default function ProfilePage() {
                   <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                     <div className="logo-wrap" style={{ position: "relative", width: "72px", height: "72px", cursor: "pointer", borderRadius: "14px", overflow: "hidden", border: "2px solid #2d2d44", background: "#0a0a0f", flexShrink: 0 }} onClick={() => logoRef.current?.click()}>
                       {editLogoPreview ? (
-                        <img src={editLogoPreview} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "4px" }} />
+                        <img src={editLogoPreview} alt="logo" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "contain", padding: "4px" }} />
                       ) : (
                         <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <Type size={22} color="#3a3a5c" />

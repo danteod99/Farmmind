@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     // Fetch all active orders across all users (not finished/cancelled)
     const { data: activeOrders, error } = await admin
       .from("smm_orders")
-      .select("id, jap_order_id, status, user_id")
+      .select("id, jap_order_id, status, user_id, charge")
       .in("status", ["pending", "processing", "inprogress", "active"])
       .limit(100);
 
@@ -45,6 +45,7 @@ export async function GET(req: NextRequest) {
     const statuses = await getMultipleOrders(japIds);
 
     let updatedCount = 0;
+    let refundedCount = 0;
 
     for (const order of activeOrders) {
       const japStatus = statuses[String(order.jap_order_id)];
@@ -53,25 +54,44 @@ export async function GET(req: NextRequest) {
       const newStatus = japStatus.status?.toLowerCase();
       if (!newStatus || newStatus === order.status) continue;
 
+      const updateData: Record<string, unknown> = {
+        status: newStatus,
+        start_count: japStatus.start_count ? parseInt(japStatus.start_count) : null,
+        remains: japStatus.remains ? parseInt(japStatus.remains) : null,
+        updated_at: new Date().toISOString(),
+      };
+
+      // Auto-refund if order was canceled or refunded by JAP
+      const isCancelledOrRefunded = newStatus === "canceled" || newStatus === "cancelled" || newStatus === "refunded";
+      if (isCancelledOrRefunded && order.charge && order.charge > 0) {
+        updateData.refunded = true;
+        const { error: refundError } = await admin.rpc("increment_balance", {
+          p_user_id: order.user_id,
+          p_amount: order.charge,
+        });
+        if (refundError) {
+          console.error(`[cron/sync-orders] Refund failed for order ${order.id}:`, refundError);
+        } else {
+          refundedCount++;
+          console.log(`[cron/sync-orders] Refunded $${order.charge} to user ${order.user_id} for order ${order.id}`);
+        }
+      }
+
       await admin
         .from("smm_orders")
-        .update({
-          status: newStatus,
-          start_count: japStatus.start_count ? parseInt(japStatus.start_count) : null,
-          remains: japStatus.remains ? parseInt(japStatus.remains) : null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", order.id);
 
       updatedCount++;
     }
 
-    console.log(`[cron/sync-orders] Synced ${updatedCount}/${activeOrders.length} orders`);
+    console.log(`[cron/sync-orders] Synced ${updatedCount}/${activeOrders.length} orders, refunded ${refundedCount}`);
 
     return Response.json({
       message: "Sync complete",
       checked: activeOrders.length,
       updated: updatedCount,
+      refunded: refundedCount,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {

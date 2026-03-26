@@ -71,17 +71,30 @@ export async function POST(req: Request) {
       });
     }
 
-    // Check if user already used this code
+    // Check if user already used this code (applied) or has a pending transaction with it.
+    // Checking only promo_applied=true would miss pending payments, allowing the user
+    // to create multiple transactions with the same promo code.
     const { data: alreadyUsed } = await admin
       .from("smm_transactions")
-      .select("id")
+      .select("id, promo_applied, status")
       .eq("user_id", user.id)
       .eq("promo_code", code.toUpperCase().trim())
-      .eq("promo_applied", true)
-      .limit(1);
+      .limit(10);
 
     if (alreadyUsed && alreadyUsed.length > 0) {
-      return Response.json({ valid: false, message: "Ya usaste este código anteriormente" });
+      // Block if any transaction already applied the promo
+      const applied = alreadyUsed.some((tx: { promo_applied: boolean }) => tx.promo_applied === true);
+      if (applied) {
+        return Response.json({ valid: false, message: "Ya usaste este código anteriormente" });
+      }
+      // Block if there's a pending (non-expired, non-failed) transaction with this promo
+      const pending = alreadyUsed.some(
+        (tx: { status: string }) =>
+          tx.status !== "expired" && tx.status !== "failed" && tx.status !== "refunded"
+      );
+      if (pending) {
+        return Response.json({ valid: false, message: "Ya tienes un pago pendiente con este código" });
+      }
     }
 
     return Response.json({

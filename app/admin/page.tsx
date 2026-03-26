@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
-import { Users, DollarSign, TrendingUp, LogOut, RefreshCw, Search, UserCheck, UserX, Clock, ChevronDown, ChevronUp, X, Tag, Gift, Trash2, ToggleLeft, ToggleRight, Plus } from "lucide-react";
+import { Users, DollarSign, TrendingUp, LogOut, RefreshCw, Search, UserCheck, UserX, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Tag, Gift, Trash2, ToggleLeft, ToggleRight, Plus } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
 const ADMIN_EMAILS = ["danteod99@gmail.com"];
@@ -57,6 +57,7 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "buyers" | "non-buyers" | "new">("all");
   const [sortBy, setSortBy] = useState<SortCol>("created_at");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
@@ -66,6 +67,10 @@ export default function AdminPage() {
   const [creditNote, setCreditNote] = useState<Record<string, string>>({});
   const [creditLoading, setCreditLoading] = useState<string | null>(null);
   const [creditMsg, setCreditMsg] = useState<Record<string, { text: string; ok: boolean }>>({});
+  // Pagination
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalFiltered, setTotalFiltered] = useState(0);
   // Tabs
   const [activeTab, setActiveTab] = useState<"users" | "promos">("users");
   // Promo codes
@@ -77,6 +82,7 @@ export default function AdminPage() {
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (activeTab === "promos") loadPromoCodes(); }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { const t = setTimeout(() => setDebouncedSearch(search), 350); return () => clearTimeout(t); }, [search]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -85,14 +91,22 @@ export default function AdminPage() {
     loadData();
   };
 
-  const loadData = async (showRefresh = false) => {
+  const loadData = async (showRefresh = false, pageOverride?: number) => {
     if (showRefresh) setRefreshing(true); else setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/smm-users");
+      const p = pageOverride ?? page;
+      const params = new URLSearchParams({ page: String(p), limit: "50", search: debouncedSearch, filter });
+      const res = await fetch(`/api/admin/smm-users?${params}`);
       if (!res.ok) throw new Error("Error al cargar datos");
       const data = await res.json();
-      setStats(data.stats); setUsers(data.users);
+      setStats(data.stats);
+      setUsers(data.users);
+      if (data.pagination) {
+        setPage(data.pagination.page);
+        setTotalPages(data.pagination.totalPages);
+        setTotalFiltered(data.pagination.totalFiltered);
+      }
     } catch (e) { setError(e instanceof Error ? e.message : "Error"); }
     finally { setLoading(false); setRefreshing(false); }
   };
@@ -157,18 +171,14 @@ export default function AdminPage() {
     finally { setCreditLoading(null); }
   };
 
+  // Reload when search, filter, or page changes (server-side filtering/pagination)
+  useEffect(() => {
+    if (!loading) loadData(true);
+  }, [debouncedSearch, filter, page]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Client-side sort (within the current page)
   const filtered = useMemo(() => {
-    let list = [...users];
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter((u) => u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q));
-    }
-    if (filter === "buyers") list = list.filter((u) => u.total_orders > 0);
-    if (filter === "non-buyers") list = list.filter((u) => u.total_orders === 0);
-    if (filter === "new") {
-      const w = new Date(); w.setDate(w.getDate() - 7);
-      list = list.filter((u) => new Date(u.created_at) > w);
-    }
+    const list = [...users];
     list.sort((a, b) => {
       const va = a[sortBy] ?? 0; const vb = b[sortBy] ?? 0;
       if (typeof va === "string" && typeof vb === "string")
@@ -176,7 +186,7 @@ export default function AdminPage() {
       return sortDir === "desc" ? Number(vb) - Number(va) : Number(va) - Number(vb);
     });
     return list;
-  }, [users, search, filter, sortBy, sortDir]);
+  }, [users, sortBy, sortDir]);
 
   const toggleSort = (col: SortCol) => {
     if (sortBy === col) setSortDir((d) => d === "desc" ? "asc" : "desc");
@@ -369,15 +379,15 @@ export default function AdminPage() {
         <div style={{ display:"flex", gap:"10px", marginBottom:"16px", flexWrap:"wrap", alignItems:"center" }}>
           <div style={{ position:"relative", flex:1, minWidth:"200px" }}>
             <Search size={14} style={{ position:"absolute", left:"11px", top:"50%", transform:"translateY(-50%)", color:"#5a6480" }} />
-            <input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Buscar email o nombre..."
+            <input value={search} onChange={(e)=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar email o nombre..."
               style={{ width:"100%", background:"#0d0d18", border:"1px solid #1e1e30", borderRadius:"9px", padding:"9px 11px 9px 32px", color:"white", fontSize:"13px", outline:"none", fontFamily:"inherit", boxSizing:"border-box" }} />
-            {search && <button onClick={()=>setSearch("")} style={{ position:"absolute", right:"9px", top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"#5a6480", cursor:"pointer" }}><X size={12}/></button>}
+            {search && <button onClick={()=>{setSearch("");setPage(1);}} style={{ position:"absolute", right:"9px", top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"#5a6480", cursor:"pointer" }}><X size={12}/></button>}
           </div>
           <div style={{ display:"flex", gap:"5px" }}>
             {(["all","buyers","non-buyers","new"] as const).map((f)=>{
               const lbl = { all:`Todos (${users.length})`, buyers:`Compraron (${stats?.buyers||0})`, "non-buyers":`Sin compras (${stats?.nonBuyers||0})`, new:`Nuevos (${stats?.newThisWeek||0})` };
               const on = filter===f;
-              return <button key={f} onClick={()=>setFilter(f)}
+              return <button key={f} onClick={()=>{setFilter(f);setPage(1);}}
                 style={{ padding:"7px 12px", borderRadius:"7px", border:`1px solid ${on?"#007ABF":"#1e1e30"}`, background:on?"#007ABF20":"transparent", color:on?"#88D0F0":"#5a6480", fontSize:"11px", fontWeight:on?700:500, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", transition:"all 0.15s" }}>
                 {lbl[f]}
               </button>;
@@ -412,7 +422,7 @@ export default function AdminPage() {
                   {/* User */}
                   <div style={{ display:"flex", alignItems:"center", gap:"9px", minWidth:0 }}>
                     {u.avatar
-                      ? <img src={u.avatar} alt="" style={{ width:"32px", height:"32px", borderRadius:"50%", objectFit:"cover", border:"2px solid #1e1e30", flexShrink:0 }}/>
+                      ? <img src={u.avatar} alt="" loading="lazy" style={{ width:"32px", height:"32px", borderRadius:"50%", objectFit:"cover", border:"2px solid #1e1e30", flexShrink:0 }}/>
                       : <div style={{ width:"32px", height:"32px", borderRadius:"50%", background:"#1a1a2e", border:"2px solid #1e1e30", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}><span style={{ fontSize:"12px", fontWeight:700, color:"#56B4E0" }}>{u.name[0]?.toUpperCase()}</span></div>
                     }
                     <div style={{ minWidth:0 }}>
@@ -527,9 +537,20 @@ export default function AdminPage() {
           })}
         </div>
 
-        <p style={{ textAlign:"center", color:"#3a3a5c", fontSize:"11px", marginTop:"14px" }}>
-          Mostrando {filtered.length} de {users.length} usuarios
-        </p>
+        {/* Pagination */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:"12px", marginTop:"16px" }}>
+          <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page<=1}
+            style={{ display:"flex", alignItems:"center", gap:"4px", padding:"7px 14px", borderRadius:"8px", background: page<=1?"#0d0d1a":"#007ABF18", border:`1px solid ${page<=1?"#1a1a2e":"#007ABF40"}`, color: page<=1?"#3a3a5c":"#56B4E0", fontSize:"12px", fontWeight:600, cursor: page<=1?"not-allowed":"pointer", fontFamily:"inherit", transition:"all 0.15s" }}>
+            <ChevronLeft size={14}/> Anterior
+          </button>
+          <span style={{ fontSize:"12px", color:"#8892a4", fontWeight:600 }}>
+            Pag. {page} de {totalPages} <span style={{ color:"#3a3a5c", fontWeight:400 }}>({totalFiltered} usuarios)</span>
+          </span>
+          <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={page>=totalPages}
+            style={{ display:"flex", alignItems:"center", gap:"4px", padding:"7px 14px", borderRadius:"8px", background: page>=totalPages?"#0d0d1a":"#007ABF18", border:`1px solid ${page>=totalPages?"#1a1a2e":"#007ABF40"}`, color: page>=totalPages?"#3a3a5c":"#56B4E0", fontSize:"12px", fontWeight:600, cursor: page>=totalPages?"not-allowed":"pointer", fontFamily:"inherit", transition:"all 0.15s" }}>
+            Siguiente <ChevronRight size={14}/>
+          </button>
+        </div>
         </>}
 
       </div>

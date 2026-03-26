@@ -118,13 +118,24 @@ export async function POST(req: Request) {
           ) {
             bonusAmount = parseFloat(promo.bonus_usd) || 0;
 
-            // Increment promo usage count
-            await admin
-              .from("promo_codes")
-              .update({ current_uses: promo.current_uses + 1 })
-              .eq("id", promo.id);
+            // Increment promo usage count atomically using RPC to prevent race conditions
+            // where parallel requests read the same current_uses and both write +1
+            const { error: promoIncError } = await admin.rpc("increment_promo_uses", {
+              p_promo_id: promo.id,
+              p_max_uses: promo.max_uses,
+            });
 
-            console.log(`Promo "${tx.promo_code}" applied: +$${bonusAmount} bonus for user=${tx.user_id}`);
+            if (promoIncError) {
+              // If increment failed (e.g., max uses reached), revert the promo lock
+              console.error("Failed to increment promo uses:", promoIncError);
+              await admin
+                .from("smm_transactions")
+                .update({ promo_applied: false })
+                .eq("id", tx.id);
+              bonusAmount = 0;
+            } else {
+              console.log(`Promo "${tx.promo_code}" applied: +$${bonusAmount} bonus for user=${tx.user_id}`);
+            }
           }
         }
       }
@@ -149,7 +160,8 @@ export async function POST(req: Request) {
         .update({
           status: "finished",
           credited: true,
-          promo_applied: bonusAmount > 0 ? true : false,
+          // Don't overwrite promo_applied here — it was already set atomically by the lock above.
+          // Setting it to false here would undo the lock and re-open the race condition.
         })
         .eq("id", tx.id);
 

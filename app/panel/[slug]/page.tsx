@@ -175,7 +175,7 @@ export default function ChildPanelLanding() {
             <div style={{ background: "#0d0d18", border: `1px solid ${bc}30`, borderRadius: 20, padding: "28px 32px", minWidth: 240, animation: "fade-up 0.8s ease-out" }}>
               <div style={{ textAlign: "center", marginBottom: 20 }}>
                 {logoUrl ? (
-                  <img src={logoUrl} alt={panelName} style={{ width: 56, height: 56, borderRadius: 14, objectFit: "cover", margin: "0 auto 12px" }} />
+                  <img src={logoUrl} alt={panelName} loading="lazy" style={{ width: 56, height: 56, borderRadius: 14, objectFit: "cover", margin: "0 auto 12px" }} />
                 ) : (
                   <div style={{ width: 56, height: 56, borderRadius: 14, background: `${bc}20`, border: `1px solid ${bc}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: bc, margin: "0 auto 12px" }}>
                     {panelName.charAt(0)}

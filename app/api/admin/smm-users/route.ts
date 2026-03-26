@@ -10,8 +10,14 @@ function getSupabaseAdmin() {
   );
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "50", 10)));
+    const searchQuery = searchParams.get("search") || "";
+    const filterType = searchParams.get("filter") || "all";
+
     const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -109,7 +115,7 @@ export async function GET() {
       };
     });
 
-    // Global stats
+    // Global stats (computed on full dataset before filtering/pagination)
     const totalUsers = users.length;
     const buyers = users.filter((u) => u.total_orders > 0).length;
     const nonBuyers = totalUsers - buyers;
@@ -121,9 +127,30 @@ export async function GET() {
     weekAgo.setDate(weekAgo.getDate() - 7);
     const newThisWeek = users.filter((u) => new Date(u.created_at) > weekAgo).length;
 
+    // Server-side filtering
+    let filteredUsers = [...users];
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filteredUsers = filteredUsers.filter(
+        (u) => u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q)
+      );
+    }
+    if (filterType === "buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders > 0);
+    if (filterType === "non-buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders === 0);
+    if (filterType === "new") {
+      filteredUsers = filteredUsers.filter((u) => new Date(u.created_at) > weekAgo);
+    }
+
+    const totalFiltered = filteredUsers.length;
+    const totalPages = Math.max(1, Math.ceil(totalFiltered / limit));
+    const safePage = Math.min(page, totalPages);
+    const offset = (safePage - 1) * limit;
+    const paginatedUsers = filteredUsers.slice(offset, offset + limit);
+
     return Response.json({
       stats: { totalUsers, buyers, nonBuyers, totalRevenue, totalRecharged, newThisWeek },
-      users,
+      users: paginatedUsers,
+      pagination: { page: safePage, limit, totalFiltered, totalPages },
     });
   } catch (error) {
     console.error("Admin SMM users error:", error);

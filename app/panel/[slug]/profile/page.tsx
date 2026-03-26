@@ -80,7 +80,7 @@ export default function ChildPanelProfile() {
         <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: 16, padding: 24, marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
             {user?.avatar ? (
-              <img src={user.avatar} alt={user.name} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid #2a2a42" }} />
+              <img src={user.avatar} alt={user.name} loading="lazy" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: "2px solid #2a2a42" }} />
             ) : (
               <div style={{ width: 56, height: 56, borderRadius: "50%", background: `${bc}18`, border: `1px solid ${bc}40`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <User size={24} color={bc} />

@@ -194,7 +194,7 @@ export default function ChildPanelAuth() {
           {/* Logo + Name */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             {logoUrl ? (
-              <img src={logoUrl} alt={panelName} style={{ width: 56, height: 56, borderRadius: 14, objectFit: "cover", margin: "0 auto 12px" }} />
+              <img src={logoUrl} alt={panelName} loading="lazy" style={{ width: 56, height: 56, borderRadius: 14, objectFit: "cover", margin: "0 auto 12px" }} />
             ) : (
               <div style={{ width: 56, height: 56, borderRadius: 14, background: `${bc}20`, border: `1px solid ${bc}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, fontWeight: 800, color: bc, margin: "0 auto 12px" }}>
                 {panelName.charAt(0)}
