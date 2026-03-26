@@ -280,6 +280,17 @@ export default function ServicesPage() {
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Facebook Pixel: CompleteRegistration for new users
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("registered") === "1") {
+      if ((window as /* eslint-disable-line @typescript-eslint/no-explicit-any */ any).fbq) {
+        (window as any).fbq("track", "CompleteRegistration");
+      }
+      window.history.replaceState({}, "", "/smm/services");
+    }
+  }, []);
+
   // Close suggestions when clicking outside
   useEffect(() => {
     const handler = (e: MouseEvent) => {

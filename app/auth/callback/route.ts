@@ -151,5 +151,31 @@ export async function GET(request: Request) {
     }
   }
 
+    // Check if this is a new user (no balance record yet = first login)
+    if (session?.user) {
+      try {
+        const admin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        const { data: bal } = await admin
+          .from("smm_balances")
+          .select("id")
+          .eq("user_id", session.user.id)
+          .single();
+
+        if (!bal) {
+          // New user — create balance and redirect with registration flag
+          await admin.from("smm_balances").insert({ user_id: session.user.id, balance: 0 });
+          return NextResponse.redirect(`${origin}/smm/services?registered=1`);
+        }
+      } catch (e) {
+        console.error("[Auth Callback] Error checking new user:", e);
+      }
+    }
+
+    return NextResponse.redirect(`${origin}/smm/services`);
+  }
+
   return NextResponse.redirect(`${origin}/smm/services`);
 }

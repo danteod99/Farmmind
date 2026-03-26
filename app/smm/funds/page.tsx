@@ -132,6 +132,13 @@ export default function FundsPage() {
       const data = await res.json();
       if (data.credited) {
         setVerifyMsg({ text: data.message || "¡Saldo acreditado!", ok: true });
+        // Facebook Pixel: Purchase event
+        if (typeof window !== "undefined" && (window as /* eslint-disable-line @typescript-eslint/no-explicit-any */ any).fbq) {
+          (window as any).fbq("track", "Purchase", {
+            value: data.amount_credited || 0,
+            currency: "USD",
+          });
+        }
         // Recargar balance y transacciones
         await fetchData();
       } else {
