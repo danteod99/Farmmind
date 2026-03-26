@@ -76,6 +76,9 @@ const WELCOME: Message = {
   content: "¡Hola! Soy el **Asistente IA de TRUST MIND**.\n\nPuedo buscar servicios, revisar tu saldo y hacer pedidos.\n\n📸 **Nuevo:** Envíame un screenshot de cualquier perfil de Instagram, TikTok o YouTube y detectaré el usuario automáticamente para hacer tu pedido.",
 };
 
+const LS_KEY = "farmmind_chat_messages";
+const MAX_STORED_MESSAGES = 50;
+
 const QUICK_QUESTIONS = [
   "¿Cuáles son los servicios más populares?",
   "¿Cuánto cuesta 1000 seguidores de Instagram?",
@@ -99,6 +102,48 @@ export default function AIPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Restore messages from localStorage after auth check
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LS_KEY);
+      if (stored) {
+        const parsed: Message[] = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMessages([WELCOME, ...parsed]);
+        }
+      }
+    } catch { /* corrupted data, ignore */ }
+  }, []);
+
+  // Save messages to localStorage (debounced), skip welcome message
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      const toSave = messages
+        .filter((m) => m.id !== "welcome")
+        .slice(-MAX_STORED_MESSAGES)
+        .map(({ id, role, content }) => ({ id, role, content })); // strip images to save space
+      if (toSave.length === 0) {
+        localStorage.removeItem(LS_KEY);
+      } else {
+        try { localStorage.setItem(LS_KEY, JSON.stringify(toSave)); } catch { /* quota exceeded */ }
+      }
+    }, 500);
+    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
+  }, [messages]);
+
+  // Clear localStorage on logout (auth state change)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        localStorage.removeItem(LS_KEY);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Solo hacer scroll dentro del contenedor de mensajes, no de toda la página
   useEffect(() => {
     const container = messagesContainerRef.current;
@@ -178,30 +223,41 @@ export default function AIPage() {
         body: JSON.stringify({ messages: apiMessages }),
       });
 
+      if (!res.ok) {
+        const errText = res.status === 429
+          ? "⚠️ Demasiadas solicitudes. Espera un momento e intenta de nuevo."
+          : "❌ Error del servidor. Intenta de nuevo.";
+        setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: errText } : m));
+        return;
+      }
+
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let fullContent = "";
+      let buffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value);
-        for (const line of chunk.split("\n")) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") break;
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.tool_loading === true) {
-                setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, toolLoading: true } : m));
-              } else if (parsed.tool_loading === false) {
-                setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, toolLoading: false } : m));
-              } else if (parsed.text) {
-                fullContent += parsed.text;
-                setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: fullContent, toolLoading: false } : m));
-              }
-            } catch { /* ignore */ }
-          }
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const data = line.slice(6);
+          if (data === "[DONE]") break;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.tool_loading === true) {
+              setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, toolLoading: true } : m));
+            } else if (parsed.tool_loading === false) {
+              setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, toolLoading: false } : m));
+            } else if (parsed.text) {
+              fullContent += parsed.text;
+              setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: fullContent, toolLoading: false } : m));
+            }
+          } catch { /* incomplete chunk, will be completed in next read */ }
         }
       }
     } catch {

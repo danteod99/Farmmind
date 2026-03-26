@@ -210,6 +210,7 @@ export default function OrdersPage() {
             <div style={{ flex: 1, minWidth: "200px", position: "relative" }}>
               <Search size={14} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#64748b" }} />
               <input value={search} onChange={(e) => setSearch(e.target.value)}
+                aria-label="Buscar pedidos por servicio o link"
                 placeholder="Buscar por servicio o link..."
                 style={{ width: "100%", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "10px", padding: "9px 12px 9px 34px", color: "white", fontSize: "13px", outline: "none" }} />
             </div>
@@ -222,6 +223,8 @@ export default function OrdersPage() {
                 const cfg = s !== "all" ? STATUS_CONFIG[s] : null;
                 return (
                   <button key={s} onClick={() => setStatusFilter(s)}
+                    aria-label={`Filtrar por estado: ${s === "all" ? "Todos" : STATUS_CONFIG[s].label}`}
+                    aria-pressed={active}
                     style={{ padding: "5px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: 500, border: "1px solid", borderColor: active ? (cfg?.color || "#007ABF") : "#2d2d44", background: active ? ((cfg?.color || "#007ABF") + "20") : "transparent", color: active ? (cfg?.color || "#56B4E0") : "#64748b", cursor: "pointer" }}>
                     {s === "all" ? "Todos" : STATUS_CONFIG[s].label}
                   </button>

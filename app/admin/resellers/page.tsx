@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
+import { isAdmin } from "@/app/lib/admin";
 import {
   Plus, ChevronDown, ChevronUp, Copy, Check, DollarSign,
   Users, Globe, ToggleLeft, ToggleRight, ArrowLeft, RefreshCw,
@@ -69,7 +70,7 @@ export default function AdminResellersPage() {
   useEffect(() => {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || user.email !== "danteod99@gmail.com") {
+      if (!user || !isAdmin(user.email)) {
         router.replace("/smm/services");
         return;
       }

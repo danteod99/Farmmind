@@ -9,7 +9,7 @@ import { supabase } from "@/app/lib/supabase";
 import { Users, DollarSign, TrendingUp, LogOut, RefreshCw, Search, UserCheck, UserX, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Tag, Gift, Trash2, ToggleLeft, ToggleRight, Plus } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
-const ADMIN_EMAILS = ["danteod99@gmail.com"];
+import { isAdmin } from "@/app/lib/admin";
 
 interface Stats {
   totalUsers: number; buyers: number; nonBuyers: number;
@@ -87,7 +87,7 @@ export default function AdminPage() {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/smm"); return; }
-    if (!ADMIN_EMAILS.includes(user.email || "")) { router.push("/smm"); return; }
+    if (!isAdmin(user.email)) { router.push("/smm"); return; }
     loadData();
   };
 

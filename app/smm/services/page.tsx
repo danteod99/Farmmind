@@ -619,6 +619,8 @@ export default function ServicesPage() {
                   return (
                     <button key={cat.name} onClick={() => setSelectedCategory(active && cat.name !== "all" ? "all" : cat.name)}
                       className="cat-pill"
+                      aria-label={`Filtrar por ${cat.label}`}
+                      aria-pressed={active}
                       style={{
                         padding: "7px 16px", borderRadius: "20px", fontSize: "12px", fontWeight: 700, border: "1px solid",
                         borderColor: active ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.06)",
@@ -670,6 +672,7 @@ export default function ServicesPage() {
                   }}
                   onFocus={() => { if (search.length >= 2) setShowSuggestions(true); }}
                   placeholder="Buscar servicios... ej: Instagram followers, TikTok likes"
+                  aria-label="Buscar servicios"
                   style={{ width: "100%", background: "#0d0d18", border: `1px solid ${showSuggestions && suggestions.length > 0 ? "#007ABF50" : "#1e1e30"}`, borderRadius: showSuggestions && suggestions.length > 0 ? "14px 14px 0 0" : "14px", padding: "13px 40px 13px 44px", color: "white", fontSize: "14px", outline: "none", transition: "all 0.15s", fontFamily: "inherit" }}
                 />
                 {search && (
@@ -714,7 +717,7 @@ export default function ServicesPage() {
               </div>
               <div className="svc-bottom-filters" style={{ display: "flex", gap: "8px" }}>
                 <div className="svc-cat-select-wrap" style={{ position: "relative" }}>
-                  <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setSearch(""); setShowSuggestions(false); }}
+                  <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setSearch(""); setShowSuggestions(false); }} aria-label="Filtrar por categoría"
                     style={{ appearance: "none", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "13px 44px 13px 16px", color: selectedCategory === "all" ? "#5a6480" : "white", fontSize: "14px", cursor: "pointer", outline: "none", minWidth: "160px", fontFamily: "inherit" }}>
                     <option value="all">Todas las categorías</option>
                     {["Instagram", "TikTok", "YouTube", "Facebook", "Twitter", "Telegram", "Spotify", "Discord", "Twitch", "Kick", "Pinterest", "LinkedIn", "Snapchat"].map((c) => (
@@ -857,13 +860,13 @@ export default function ServicesPage() {
                 <p style={{ fontSize: "13px" }}>Prueba con otro término o categoría</p>
               </div>
             ) : (
-              <div className="svc-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
+              <div className="svc-grid" role="list" aria-label="Lista de servicios" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
                 {filtered.map((service) => {
                   const cost1k = parseFloat(service.rate);
                   const platformColor = getPlatformColor(service.category);
 
                   return (
-                    <div key={service.service} className="service-card"
+                    <div key={service.service} className="service-card" role="listitem"
                       style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "18px", overflow: "hidden", borderLeft: `3px solid ${platformColor}` }}>
 
                       <div style={{ padding: "18px 18px 14px" }}>
@@ -917,7 +920,7 @@ export default function ServicesPage() {
 
       {/* ━━━ ORDER MODAL ━━━ */}
       {modal && (
-        <div style={{ position: "fixed", inset: 0, background: "#00000095", backdropFilter: "blur(8px)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+        <div style={{ position: "fixed", inset: 0, background: "#00000095", backdropFilter: "blur(8px)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }} role="dialog" aria-modal="true" aria-label="Confirmar pedido">
           <div style={{ background: "#0d0d18", border: "1px solid #2a2a42", borderRadius: "24px", width: "100%", maxWidth: "480px", padding: "28px", boxShadow: "0 24px 80px #00000080" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
               <div>
@@ -945,12 +948,14 @@ export default function ServicesPage() {
             <div style={{ marginBottom: "14px" }}>
               <label style={{ fontSize: "12px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "7px", letterSpacing: "0.2px" }}>Enlace del perfil o publicación</label>
               <input value={modal.link} onChange={(e) => setModal({ ...modal, link: e.target.value })}
+                aria-label="Enlace del perfil o publicación"
                 placeholder="https://instagram.com/usuario"
                 style={{ width: "100%", background: "#07070e", border: "1px solid #1e1e30", borderRadius: "12px", padding: "11px 14px", color: "white", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
             </div>
             <div style={{ marginBottom: "18px" }}>
               <label style={{ fontSize: "12px", fontWeight: 700, color: "#8892a4", display: "block", marginBottom: "7px", letterSpacing: "0.2px" }}>Cantidad</label>
               <input type="number" min={parseInt(modal.service.min)} max={parseInt(modal.service.max)}
+                aria-label="Cantidad"
                 value={modal.quantity} onChange={(e) => setModal({ ...modal, quantity: parseInt(e.target.value) || 0 })}
                 style={{ width: "100%", background: "#07070e", border: "1px solid #1e1e30", borderRadius: "12px", padding: "11px 14px", color: "white", fontSize: "14px", outline: "none", fontFamily: "inherit" }} />
             </div>

@@ -280,6 +280,7 @@ export default function FundsPage() {
                       <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#64748b", fontSize: "15px", fontWeight: 600 }}>$</span>
                       <input
                         type="number" min="1" max="500" placeholder="Monto personalizado..."
+                        aria-label="Monto de recarga en USD"
                         value={customAmount}
                         onChange={(e) => { setCustomAmount(e.target.value); setUseCustom(true); }}
                         onFocus={() => setUseCustom(true)}
@@ -295,6 +296,8 @@ export default function FundsPage() {
                         const active = selectedCrypto === crypto.id;
                         return (
                           <button key={crypto.id} onClick={() => setSelectedCrypto(crypto.id)}
+                            aria-label={`Pagar con ${crypto.label} (${crypto.network})`}
+                            aria-pressed={active}
                             style={{ padding: "14px", borderRadius: "12px", border: "1px solid", borderColor: active ? crypto.color : "#2d2d44", background: active ? crypto.color + "15" : "#0a0a0f", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", transition: "all 0.15s", position: "relative" }}>
                             <span style={{ fontSize: "22px", fontWeight: 700, color: crypto.color }}>{crypto.icon}</span>
                             <div style={{ textAlign: "left" }}>

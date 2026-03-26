@@ -12,8 +12,7 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { getServices } from "@/app/lib/jap";
-
-const ADMIN_EMAILS = ["danteod99@gmail.com"];
+import { isAdmin } from "@/app/lib/admin";
 
 function getSupabaseAdmin() {
   return createClient(
@@ -40,7 +39,7 @@ async function verifyAdmin() {
     }
   );
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || !ADMIN_EMAILS.includes(user.email ?? "")) return null;
+  if (!user || !isAdmin(user.email)) return null;
   return user;
 }
 

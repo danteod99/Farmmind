@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
+import { isAdmin } from "@/app/lib/admin";
 import { useRouter } from "next/navigation";
 
 interface NavLink {
@@ -52,7 +53,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
       `}</style>
 
       {/* ── NAVBAR ── */}
-      <nav style={{
+      <nav aria-label="Navegación principal" style={{
         position: "sticky", top: 0, zIndex: 50,
         background: "rgba(5,5,8,0.85)", backdropFilter: "blur(24px) saturate(1.2)",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -67,6 +68,8 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
           <button
             className="smm-hamburger"
             onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobileOpen}
             style={{
               width: "38px", height: "38px", borderRadius: "10px",
               background: mobileOpen ? "#007ABF20" : "transparent",
@@ -100,6 +103,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
           {links.map(({ href, label, active, external }) => (
             <Link key={href} href={href}
               {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              {...(active ? { "aria-current": "page" as const } : {})}
               className="smm-nav-link"
               style={{
                 padding: "6px 13px", borderRadius: "10px", fontSize: "13px",
@@ -126,7 +130,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
             <span style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${balance.toFixed(2)}</span>
           </Link>
 
-          {userEmail === "danteod99@gmail.com" && (
+          {isAdmin(userEmail) && (
             <Link href="/admin" style={{
               padding: "6px 10px", borderRadius: "8px",
               background: "#1a0a2e", border: "1px solid #3a1a5e",
@@ -156,6 +160,8 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
       {mobileOpen && (
         <div
           className="smm-mobile-drawer"
+          role="menu"
+          aria-label="Menú de navegación"
           style={{
             position: "fixed", top: "60px", left: 0, right: 0, zIndex: 49,
             background: "rgba(7,7,14,0.97)", backdropFilter: "blur(20px)",
@@ -181,6 +187,8 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
           {links.map(({ href, label, active, external }) => (
             <Link key={href} href={href}
               {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              {...(active ? { "aria-current": "page" as const } : {})}
+              role="menuitem"
               onClick={() => setMobileOpen(false)}
               style={{
                 padding: "13px 16px", borderRadius: "12px", fontSize: "15px",
@@ -194,7 +202,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
             </Link>
           ))}
 
-          {userEmail === "danteod99@gmail.com" && (
+          {isAdmin(userEmail) && (
             <Link href="/admin" onClick={() => setMobileOpen(false)} style={{ padding: "13px 16px", borderRadius: "12px", fontSize: "15px", fontWeight: 500, color: "#a78bfa", background: "#0d0d18", border: "1px solid #1e1e30", textDecoration: "none", display: "block" }}>
               ⚙️ Admin
             </Link>

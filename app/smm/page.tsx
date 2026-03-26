@@ -8,6 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { ShoppingCart, Clock, DollarSign, TrendingUp, Plus, ArrowRight, LogOut, Zap, CheckCircle, AlertCircle, Loader } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import { isAdmin } from "@/app/lib/admin";
 import ChatPopup from "@/app/components/ChatPopup";
 
 interface Order {
@@ -171,7 +172,7 @@ export default function SMMDashboard() {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
               )}
             </Link>
-            {userEmail === "danteod99@gmail.com" && (
+            {isAdmin(userEmail) && (
               <Link href="/admin" style={{ padding: "6px 12px", borderRadius: "8px", background: "#1a0a2e", border: "1px solid #3a1a5e", color: "#a78bfa", fontSize: "12px", fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: "5px" }}>
                 ⚙️ Admin
               </Link>

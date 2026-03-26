@@ -194,6 +194,7 @@ export default function ChatPopup() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
+          aria-label="Abrir chat con asistente AI"
           style={{
             position: "fixed", bottom: "24px", right: "24px", zIndex: 60,
             display: "flex", alignItems: "center", gap: "10px",
@@ -261,7 +262,7 @@ export default function ChatPopup() {
           {/* Messages */}
           {!minimized && (
             <>
-              <div className="popup-msg-scroll" style={{ flex: 1, overflowY: "auto", padding: "16px 14px", display: "flex", flexDirection: "column", gap: "14px" }}>
+              <div className="popup-msg-scroll" role="log" aria-label="Mensajes del chat" style={{ flex: 1, overflowY: "auto", padding: "16px 14px", display: "flex", flexDirection: "column", gap: "14px" }}>
                 {messages.map((m) => (
                   <div key={m.id} style={{ display: "flex", gap: "8px", flexDirection: m.role === "user" ? "row-reverse" : "row", alignItems: "flex-end" }}>
                     {/* Avatar */}
@@ -349,12 +350,14 @@ export default function ChatPopup() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                    aria-label="Escribe tu mensaje"
                     placeholder={pendingImg ? "Comentario opcional..." : "Escribe tu mensaje..."}
                     rows={1}
                     style={{ flex: 1, background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "12px", padding: "9px 12px", color: "white", fontSize: "13px", outline: "none", fontFamily: "inherit", resize: "none", lineHeight: "1.4", maxHeight: "80px", overflowY: "auto" }}
                   />
                   <button
                     onClick={() => sendMessage()}
+                    aria-label="Enviar mensaje"
                     disabled={(!input.trim() && !pendingImg) || isStreaming}
                     style={{ width: "36px", height: "36px", borderRadius: "10px", background: (input.trim() || pendingImg) && !isStreaming ? "linear-gradient(135deg, #007ABF, #005F96)" : "#1a1a2e", border: "none", color: (input.trim() || pendingImg) && !isStreaming ? "white" : "#3d4a5c", cursor: (input.trim() || pendingImg) && !isStreaming ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "all 0.15s" }}>
                     {isStreaming
