@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 const CUSTOM_DOMAIN = "www.trustmind.online";
 const MAIN_DOMAINS = [
@@ -52,14 +53,40 @@ async function resolveCustomDomain(domain: string): Promise<string | null> {
   return null;
 }
 
+// ── Helper: create Supabase middleware client that forwards auth cookies ──
+// This ensures PKCE code_verifier and session cookies are properly passed
+// between browser ↔ middleware ↔ route handlers.
+function createSupabaseMiddleware(request: NextRequest, response: NextResponse) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options as Parameters<typeof response.cookies.set>[2])
+          );
+        },
+      },
+    }
+  );
+  return supabase;
+}
+
 export async function middleware(request: NextRequest) {
   const host = (request.headers.get("host") || "").replace(/:\d+$/, ""); // Strip port
   const pathname = request.nextUrl.pathname;
 
+  // ── Supabase Auth: refresh session & forward cookies (including PKCE code_verifier) ──
+  let supabaseResponse = NextResponse.next({ request });
+  const supabase = createSupabaseMiddleware(request, supabaseResponse);
+  await supabase.auth.getUser();
+
   // ── 0. Protect /admin routes at edge level ──
-  // Block access unless the user has a valid Supabase session cookie.
-  // The actual admin email check still happens client-side & in API routes,
-  // but this prevents unauthenticated users from even loading the admin JS bundle.
   if (pathname.startsWith("/admin")) {
     const sbAccessToken = request.cookies.getAll().find(
       (c) => c.name.includes("auth-token") || c.name.includes("sb-") && c.name.includes("-auth-token")
@@ -88,38 +115,37 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── 2. Subdomain detection for child panels (slug.trustmind.online) ──
-  // Exclude www and other known subdomains
   const subdomainMatch = host.match(/^([a-z0-9][a-z0-9-]+)\.trustmind\.online$/);
   if (subdomainMatch && isPageRoute && subdomainMatch[1] !== "www") {
     const subSlug = subdomainMatch[1];
-    // Rewrite subdomain to /panel/[slug]
     const url = request.nextUrl.clone();
     if (pathname === "/" || pathname === "") {
       url.pathname = `/panel/${subSlug}`;
     } else if (!pathname.startsWith(`/panel/${subSlug}`)) {
       url.pathname = `/panel/${subSlug}${pathname}`;
     }
-    const response = pathname.startsWith(`/panel/${subSlug}`) ? NextResponse.next() : NextResponse.rewrite(url);
+    const response = pathname.startsWith(`/panel/${subSlug}`)
+      ? NextResponse.next({ request })
+      : NextResponse.rewrite(url);
+    // Copy Supabase auth cookies to the routing response
+    supabaseResponse.cookies.getAll().forEach((c) => response.cookies.set(c.name, c.value));
     response.headers.set("X-Reseller-Slug", subSlug);
     response.cookies.set("reseller_slug", subSlug, { path: "/", maxAge: 86400, sameSite: "lax", secure: true, httpOnly: true });
     return response;
   }
 
   // ── 3. Custom domain detection for child panels ──
-  // If the host is NOT a known main domain, check if it's a reseller's custom domain
-  // Note: subdomains of trustmind.online are handled in step 2 above
   const isMainDomain = MAIN_DOMAINS.some((d) => host === d) || host === "www.trustmind.online";
 
   if (!isMainDomain && isPageRoute) {
     const slug = await resolveCustomDomain(host);
 
     if (slug) {
-      // Rewrite to /panel/[slug] internally, keeping the custom domain in the browser
       const url = request.nextUrl.clone();
 
-      // If already on /panel/[slug], pass through
       if (pathname.startsWith(`/panel/${slug}`)) {
-        const response = NextResponse.next();
+        const response = NextResponse.next({ request });
+        supabaseResponse.cookies.getAll().forEach((c) => response.cookies.set(c.name, c.value));
         response.headers.set("X-Reseller-Slug", slug);
         response.cookies.set("reseller_slug", slug, {
           path: "/",
@@ -131,7 +157,6 @@ export async function middleware(request: NextRequest) {
         return response;
       }
 
-      // Rewrite root or other paths to /panel/[slug]
       if (pathname === "/" || pathname === "") {
         url.pathname = `/panel/${slug}`;
       } else {
@@ -139,6 +164,7 @@ export async function middleware(request: NextRequest) {
       }
 
       const response = NextResponse.rewrite(url);
+      supabaseResponse.cookies.getAll().forEach((c) => response.cookies.set(c.name, c.value));
       response.headers.set("X-Reseller-Slug", slug);
       response.cookies.set("reseller_slug", slug, {
         path: "/",
@@ -156,20 +182,19 @@ export async function middleware(request: NextRequest) {
     const slugMatch = pathname.match(/^\/panel\/([^/]+)/);
     if (slugMatch) {
       const slug = slugMatch[1];
-      const response = NextResponse.next();
-      response.headers.set("X-Reseller-Slug", slug);
-      response.cookies.set("reseller_slug", slug, {
+      supabaseResponse.headers.set("X-Reseller-Slug", slug);
+      supabaseResponse.cookies.set("reseller_slug", slug, {
         path: "/",
         maxAge: 86400,
         sameSite: "lax",
         secure: true,
         httpOnly: true,
       });
-      return response;
+      return supabaseResponse;
     }
   }
 
-  return NextResponse.next();
+  return supabaseResponse;
 }
 
 export const config = {
