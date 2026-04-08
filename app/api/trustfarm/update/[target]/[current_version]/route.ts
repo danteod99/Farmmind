@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 // TrustFarm latest version config
 // Update these values when releasing a new version
-const LATEST_VERSION = "1.0.9";
-const RELEASE_NOTES = "Pagos NOWPayments, automatizaciones TikTok/Instagram/Facebook/Spotify, login TrustMind";
+const LATEST_VERSION = "1.1.1";
+const RELEASE_NOTES = "Fix pantallas en blanco, scrcpy video streaming, agent estable";
 const RELEASE_DATE = new Date().toISOString();
 
 const DOWNLOAD_BASE = "https://github.com/danteod99/trustfarm-releases/releases/download";
@@ -11,16 +11,16 @@ const DOWNLOAD_BASE = "https://github.com/danteod99/trustfarm-releases/releases/
 // Platform-specific download URLs and signatures
 const PLATFORMS: Record<string, { url: string; signature: string }> = {
   "windows-x86_64": {
-    url: `${DOWNLOAD_BASE}/v${LATEST_VERSION}/TrustFarm_${LATEST_VERSION}_x64-setup.nsis.zip`,
-    signature: "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZGJoZFo0QjhreHQva0N6eWxXY2pxOVZtbmhwam9JOEJacDd2Um5kTFlPTTY0RW5SVEdOOUlqVVNBQzF4dFRZWDlkcm9DTTFOMmpWTkhFWEZTaHJ6ZHkvS3V6OGUzQ3dnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NTIwMDk4CWZpbGU6VHJ1c3RGYXJtXzEuMC45X3g2NC1zZXR1cC5uc2lzLnppcAo3YUY2elBSNGdxRWlsZmt5NVpWbW42UWFVZ0ludnhFMlNTVDlSbmdRNFQwdVM4VjB5WHNxYWsxYi9GRVZmdVlhYlBBdTQyTnJoYXJqTXlyWjR0QTdCdz09Cg==",
+    url: `${DOWNLOAD_BASE}/v${LATEST_VERSION}/TrustFarm_1.0.9_x64-setup.nsis.zip`,
+    signature: "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZGJoZFo0QjhreHJNTXJ1Vml5L2dvN25zZExJNU1yWXYzZFIyUTk2NmZmKzhlMHg3Z0ZUUy9PQkQ0dFR6WUFoa2Nld2FBb241djF4RHlwUlJQOG1UM28vbDVBaGFFdlFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NjAzMzQzCWZpbGU6VHJ1c3RGYXJtXzEuMC45X3g2NC1zZXR1cC5uc2lzLnppcAprZ2w2VUZ5VmVQOVF6WDVJUkJMUVBCSUl3VFBkRHVZQVBKaEx3SHNnbG5KTXZBWHVFdUVEdk5jNFF6Vi9KLzNIbHJ5N255YlBtcnluMkhBZGtlOGREQT09Cg==",
   },
   "darwin-aarch64": {
     url: `${DOWNLOAD_BASE}/v${LATEST_VERSION}/TrustFarm.app.tar.gz`,
-    signature: "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZGJoZFo0QjhreHN5dG5BV0c0WGZ1Qno0Q25hVTBRT0RkK2pOd2xJSURqTHBlUUUwVGFzM0JEdTgzNWVIL01sNDVLdU50aHgxUllsL3lCdWdZQ3UrMG4rOFkvdE0zNWdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NTE5ODQxCWZpbGU6VHJ1c3RGYXJtLmFwcC50YXIuZ3oKNTRaSkFrOW15SGllWGJYdVZDbmN6Nmw2ZUd1UmZORGIzSko3aS9oeEYvOUZ4aFdyWmFIdHYrY09mN2lSbkx1SlZ1UGRRU0ZaaERjaWVyZjRjMkZjQmc9PQo=",
+    signature: "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZGJoZFo0QjhreHJrQUFWYlRrSW9VUVR6b2xvT0h0VEJySFJXN3Y5cy80REZFV2JqSXY1d0tQeDBmOHQxQmxidnRVR1VYMHZuYkpaL0RzWEhqL3VtWEIzL1MwazlCcFFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NjAzMDM4CWZpbGU6VHJ1c3RGYXJtLmFwcC50YXIuZ3oKRHVya0Rka3BjR3Jma05GdFhIcko3NWxQb3dxWm1jcFoyQmYrK3ltYTkzNGRaMUxITitZZC96cHNtaG82b0ZHellUaldsb1BOMFE3R044OGV3OEF6Qnc9PQo=",
   },
   "darwin-x86_64": {
     url: `${DOWNLOAD_BASE}/v${LATEST_VERSION}/TrustFarm.app.tar.gz`,
-    signature: "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZGJoZFo0QjhreHN5dG5BV0c0WGZ1Qno0Q25hVTBRT0RkK2pOd2xJSURqTHBlUUUwVGFzM0JEdTgzNWVIL01sNDVLdU50aHgxUllsL3lCdWdZQ3UrMG4rOFkvdE0zNWdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NTE5ODQxCWZpbGU6VHJ1c3RGYXJtLmFwcC50YXIuZ3oKNTRaSkFrOW15SGllWGJYdVZDbmN6Nmw2ZUd1UmZORGIzSko3aS9oeEYvOUZ4aFdyWmFIdHYrY09mN2lSbkx1SlZ1UGRRU0ZaaERjaWVyZjRjMkZjQmc9PQo=",
+    signature: "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZGJoZFo0QjhreHJrQUFWYlRrSW9VUVR6b2xvT0h0VEJySFJXN3Y5cy80REZFV2JqSXY1d0tQeDBmOHQxQmxidnRVR1VYMHZuYkpaL0RzWEhqL3VtWEIzL1MwazlCcFFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NjAzMDM4CWZpbGU6VHJ1c3RGYXJtLmFwcC50YXIuZ3oKRHVya0Rka3BjR3Jma05GdFhIcko3NWxQb3dxWm1jcFoyQmYrK3ltYTkzNGRaMUxITitZZC96cHNtaG82b0ZHellUaldsb1BOMFE3R044OGV3OEF6Qnc9PQo=",
   },
 };
 
