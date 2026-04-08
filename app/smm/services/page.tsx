@@ -258,6 +258,9 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
+  const [allServicesLoaded, setAllServicesLoaded] = useState(false);
+  const [loadingAll, setLoadingAll] = useState(false);
+  const [totalServices, setTotalServices] = useState(0);
   const [balance, setBalance] = useState(0);
   const [userName, setUserName] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
@@ -277,6 +280,38 @@ export default function ServicesPage() {
   const [activeTab, setActiveTab] = useState<"services" | "cuentas">("services");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // AI Assistant
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiExpanded, setAiExpanded] = useState(false);
+
+  const handleAiSubmit = async () => {
+    if (!aiQuery.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiResponse("");
+    setAiExpanded(true);
+    try {
+      const svcList = services.slice(0, 40).map(s => `[${s.service}] ${s.name} — $${s.rate}/1K (min: ${s.min}, max: ${s.max})`).join("\n");
+      const prompt = `El usuario quiere: "${aiQuery}"\n\nServicios disponibles:\n${svcList}\n\nRecomienda el mejor servicio del catálogo, muestra el ID, nombre, precio y explica brevemente. Responde en español, máximo 4 líneas. Si piden seguidores, likes, views, etc. recomienda el servicio exacto. Di "Busca el servicio por nombre arriba para ordenar."`;
+      const res = await fetch("/api/demo-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [{ role: "user", content: prompt }] }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiResponse(data.reply || "No pude procesar tu solicitud.");
+      } else {
+        setAiResponse("Error al conectar con el asistente.");
+      }
+    } catch {
+      setAiResponse("Error de conexión.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -322,8 +357,9 @@ export default function ServicesPage() {
 
   const fetchData = async (userId: string) => {
     try {
+      // Load featured services first (fast) + orders + stats in parallel
       const [servRes, ordRes, statsRes] = await Promise.all([
-        fetch("/api/smm/services"),
+        fetch("/api/smm/services?featured=true"),
         fetch("/api/smm/orders"),
         fetch("/api/smm/service-stats"),
       ]);
@@ -331,6 +367,7 @@ export default function ServicesPage() {
         const data = await servRes.json();
         const list = Array.isArray(data) ? data : (Array.isArray(data.services) ? data.services : []);
         setServices(list);
+        if (data.total) setTotalServices(data.total);
       }
       if (ordRes.ok) {
         const data = await ordRes.json();
@@ -343,6 +380,22 @@ export default function ServicesPage() {
       void userId;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAllServices = async () => {
+    if (allServicesLoaded || loadingAll) return;
+    setLoadingAll(true);
+    try {
+      const res = await fetch("/api/smm/services");
+      if (res.ok) {
+        const data = await res.json();
+        const list = Array.isArray(data) ? data : (Array.isArray(data.services) ? data.services : []);
+        setServices(list);
+        setAllServicesLoaded(true);
+      }
+    } finally {
+      setLoadingAll(false);
     }
   };
 
@@ -575,6 +628,100 @@ export default function ServicesPage() {
           ]}
         />
 
+        {/* ━━━ NEW SOFTWARE BANNER ━━━ */}
+        <a
+          href="/downloads"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            padding: "10px 20px",
+            background: "linear-gradient(90deg, #E1306C, #8134AF, #4d7cff, #1877F2)",
+            color: "white",
+            fontSize: 13,
+            fontWeight: 700,
+            textDecoration: "none",
+            letterSpacing: "0.3px",
+            cursor: "pointer",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "2px 10px", borderRadius: 6, background: "rgba(255,255,255,0.2)", fontSize: 11, fontWeight: 800 }}>
+            NUEVO
+          </span>
+          <span>TrustInsta & TrustFace Desktop — Gestiona cientos de cuentas con anti-deteccion</span>
+          <span style={{ fontSize: 16 }}>→</span>
+          <span style={{ fontSize: 11, opacity: 0.8, textDecoration: "underline" }}>Descargar gratis</span>
+        </a>
+
+        {/* ━━━ AI ASSISTANT ━━━ */}
+        <div style={{
+          padding: "20px 28px",
+          background: "linear-gradient(135deg, rgba(0,122,191,0.06), #050508)",
+          borderBottom: "1px solid rgba(0,122,191,0.15)",
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          <div style={{ position: "absolute", top: -30, right: -30, width: 100, height: 100, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,122,191,0.15), transparent)", filter: "blur(25px)", pointerEvents: "none" }} />
+          <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(0,122,191,0.15)", border: "1px solid rgba(0,122,191,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00B4D8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v1a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+              </div>
+              <div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: "white" }}>Asistente AI</p>
+                <p style={{ fontSize: 11, color: "#5a6480" }}>Pide lo que necesitas y te recomiendo el mejor servicio</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <input
+                type="text"
+                placeholder="Ej: Quiero 1000 seguidores para Instagram..."
+                value={aiQuery}
+                onChange={(e) => setAiQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAiSubmit()}
+                style={{ flex: 1, padding: "12px 16px", borderRadius: 10, background: "#0a0a14", border: "1px solid rgba(0,122,191,0.2)", color: "white", fontSize: 13, outline: "none", fontFamily: "inherit" }}
+              />
+              <button
+                onClick={handleAiSubmit}
+                disabled={aiLoading || !aiQuery.trim()}
+                style={{
+                  padding: "12px 20px", borderRadius: 10,
+                  background: aiLoading ? "rgba(0,122,191,0.4)" : "linear-gradient(135deg, #00B4D8, #007ABF)",
+                  color: "white", fontSize: 13, fontWeight: 700, border: "none",
+                  cursor: aiLoading ? "wait" : "pointer", fontFamily: "inherit",
+                  display: "flex", alignItems: "center", gap: 6,
+                  boxShadow: "0 0 16px rgba(0,122,191,0.3)",
+                  opacity: !aiQuery.trim() ? 0.4 : 1,
+                }}
+              >
+                {aiLoading ? (
+                  <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", animation: "spin 0.6s linear infinite" }} />
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                )}
+                {aiLoading ? "Pensando..." : "Preguntar"}
+              </button>
+            </div>
+            {aiExpanded && aiResponse && (
+              <div style={{ marginTop: 12, padding: "14px 16px", borderRadius: 10, background: "#0a0a14", border: "1px solid rgba(0,122,191,0.15)", fontSize: 13, color: "#c8d0e0", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                {aiResponse}
+              </div>
+            )}
+            {!aiExpanded && (
+              <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+                {["1000 seguidores Instagram", "Likes para TikTok", "Views YouTube", "Seguidores Facebook"].map((q) => (
+                  <button key={q} onClick={() => setAiQuery(q)} style={{ padding: "5px 12px", borderRadius: 8, background: "rgba(0,122,191,0.08)", border: "1px solid rgba(0,122,191,0.15)", color: "#7a8599", fontSize: 11, cursor: "pointer", fontFamily: "inherit" }}>
+                    {q}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* ━━━ HERO BANNER ━━━ */}
         <div className="svc-hero" style={{
           position: "relative", overflow: "hidden",
@@ -617,7 +764,7 @@ export default function ServicesPage() {
                 {[{ name: "all", label: "✦ Todos", color: "#007ABF", glow: "#007ABF" }, ...POPULAR_CATEGORIES.map((c) => ({ name: c, label: c, color: PLATFORM_COLORS[c].color, glow: PLATFORM_COLORS[c].glow }))].map((cat) => {
                   const active = selectedCategory === cat.name;
                   return (
-                    <button key={cat.name} onClick={() => setSelectedCategory(active && cat.name !== "all" ? "all" : cat.name)}
+                    <button key={cat.name} onClick={() => { const next = active && cat.name !== "all" ? "all" : cat.name; setSelectedCategory(next); if (next !== "all" && !allServicesLoaded) loadAllServices(); }}
                       className="cat-pill"
                       aria-label={`Filtrar por ${cat.label}`}
                       aria-pressed={active}
@@ -667,7 +814,7 @@ export default function ServicesPage() {
                   onChange={(e) => {
                     setSearch(e.target.value);
                     setShowSuggestions(true);
-                    if (e.target.value.trim()) { setSelectedCategory("all"); setShowAllJAP(true); }
+                    if (e.target.value.trim()) { setSelectedCategory("all"); setShowAllJAP(true); if (!allServicesLoaded) loadAllServices(); }
                     else { setShowAllJAP(false); }
                   }}
                   onFocus={() => { if (search.length >= 2) setShowSuggestions(true); }}
@@ -717,7 +864,7 @@ export default function ServicesPage() {
               </div>
               <div className="svc-bottom-filters" style={{ display: "flex", gap: "8px" }}>
                 <div className="svc-cat-select-wrap" style={{ position: "relative" }}>
-                  <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setSearch(""); setShowSuggestions(false); }} aria-label="Filtrar por categoría"
+                  <select value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value); setSearch(""); setShowSuggestions(false); if (e.target.value !== "all" && !allServicesLoaded) loadAllServices(); }} aria-label="Filtrar por categoría"
                     style={{ appearance: "none", background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "14px", padding: "13px 44px 13px 16px", color: selectedCategory === "all" ? "#5a6480" : "white", fontSize: "14px", cursor: "pointer", outline: "none", minWidth: "160px", fontFamily: "inherit" }}>
                     <option value="all">Todas las categorías</option>
                     {["Instagram", "TikTok", "YouTube", "Facebook", "Twitter", "Telegram", "Spotify", "Discord", "Twitch", "Kick", "Pinterest", "LinkedIn", "Snapchat"].map((c) => (
@@ -834,7 +981,7 @@ export default function ServicesPage() {
                   <h2 style={{ fontSize: "24px", fontWeight: 800, color: "white", letterSpacing: "-0.5px", lineHeight: "1.1" }}>Servicios Social Media</h2>
                   <p style={{ fontSize: "12px", color: "#5a6480", marginTop: "2px", fontWeight: 500 }}>
                     {!search && selectedCategory === "all"
-                      ? (showAllJAP ? `${services.length.toLocaleString()} servicios disponibles` : "Top 10 destacados")
+                      ? (showAllJAP ? `${services.length.toLocaleString()} servicios disponibles` : `Top 10 destacados${totalServices ? ` de ${totalServices.toLocaleString()}` : ""}`)
                       : `${filtered.length} resultado${filtered.length !== 1 ? "s" : ""}`}
                     {" · "}
                     <span style={{ color: "#56B4E0" }}>
@@ -845,10 +992,15 @@ export default function ServicesPage() {
               </div>
 
               {!search && selectedCategory === "all" && (
-                <button onClick={() => setShowAllJAP(!showAllJAP)} className="toggle-btn"
-                  style={{ padding: "9px 18px", borderRadius: "10px", border: "1px solid #2a2a42", background: "transparent", color: "#56B4E0", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", transition: "all 0.15s", fontFamily: "inherit" }}>
-                  <ChevronDown size={13} style={{ transform: showAllJAP ? "rotate(180deg)" : "none", transition: "transform 0.25s" }} />
-                  {showAllJAP ? "Ver menos" : `Ver todos (${services.length.toLocaleString()})`}
+                <button onClick={() => { if (!showAllJAP && !allServicesLoaded) { loadAllServices(); } setShowAllJAP(!showAllJAP); }} className="toggle-btn"
+                  style={{ padding: "9px 18px", borderRadius: "10px", border: "1px solid #2a2a42", background: "transparent", color: "#56B4E0", fontSize: "12px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: "7px", transition: "all 0.15s", fontFamily: "inherit" }}
+                  disabled={loadingAll}>
+                  {loadingAll ? (
+                    <><div style={{ width: "13px", height: "13px", borderRadius: "50%", border: "2px solid #56B4E030", borderTopColor: "#56B4E0", animation: "spin 0.7s linear infinite" }} /> Cargando...</>
+                  ) : (
+                    <><ChevronDown size={13} style={{ transform: showAllJAP ? "rotate(180deg)" : "none", transition: "transform 0.25s" }} />
+                    {showAllJAP ? "Ver menos" : `Ver todos${totalServices ? ` (${totalServices.toLocaleString()})` : ""}`}</>
+                  )}
                 </button>
               )}
             </div>

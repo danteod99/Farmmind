@@ -134,6 +134,42 @@ export default function ChildPanelServices() {
     }
   };
 
+  // AI Assistant state
+  const [aiQuery, setAiQuery] = useState("");
+  const [aiResponse, setAiResponse] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiExpanded, setAiExpanded] = useState(false);
+
+  const handleAiSubmit = async () => {
+    if (!aiQuery.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiResponse("");
+    setAiExpanded(true);
+
+    try {
+      // Build context with available services
+      const serviceList = services.slice(0, 30).map(s => `${s.name} — $${s.rate} (min: ${s.min}, max: ${s.max})`).join("\n");
+      const prompt = `El usuario quiere: "${aiQuery}"\n\nServicios disponibles:\n${serviceList}\n\nRecomienda el mejor servicio, explica brevemente qué hace, y di el precio. Responde en español, corto y directo. Si piden seguidores, likes, views, etc. recomienda el servicio exacto del catálogo. Termina diciendo "Haz click en el servicio para ordenar."`;
+
+      const res = await fetch("/api/demo-chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: [{ role: "user", content: prompt }] }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAiResponse(data.reply || data.message || "No pude procesar tu solicitud.");
+      } else {
+        setAiResponse("Error al conectar con el asistente. Intenta de nuevo.");
+      }
+    } catch {
+      setAiResponse("Error de conexión. Verifica tu internet.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const bc = brandColor;
 
   if (panelLoading || loading) {
@@ -170,6 +206,127 @@ export default function ChildPanelServices() {
       />
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 20px" }}>
+        {/* AI Assistant Box */}
+        <div style={{
+          marginBottom: 24,
+          padding: "20px 24px",
+          borderRadius: 16,
+          background: `linear-gradient(135deg, ${bc}10, #0d0d18)`,
+          border: `1px solid ${bc}30`,
+          position: "relative",
+          overflow: "hidden",
+        }}>
+          {/* Glow decoration */}
+          <div style={{ position: "absolute", top: -40, right: -40, width: 120, height: 120, borderRadius: "50%", background: `radial-gradient(circle, ${bc}20, transparent)`, filter: "blur(30px)", pointerEvents: "none" }} />
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, position: "relative" }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 10,
+              background: `${bc}20`, border: `1px solid ${bc}40`,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={bc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v1a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+              </svg>
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "white" }}>Asistente AI</p>
+              <p style={{ fontSize: 11, color: "#5a6480" }}>Dime qué necesitas y te recomiendo el mejor servicio</p>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 8, position: "relative" }}>
+            <input
+              type="text"
+              placeholder="Ej: Quiero 1000 seguidores para Instagram..."
+              value={aiQuery}
+              onChange={(e) => setAiQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAiSubmit()}
+              style={{
+                flex: 1,
+                padding: "12px 16px",
+                borderRadius: 10,
+                background: "#0a0a16",
+                border: `1px solid ${bc}25`,
+                color: "white",
+                fontSize: 13,
+                outline: "none",
+                fontFamily: "inherit",
+              }}
+            />
+            <button
+              onClick={handleAiSubmit}
+              disabled={aiLoading || !aiQuery.trim()}
+              style={{
+                padding: "12px 20px",
+                borderRadius: 10,
+                background: aiLoading ? `${bc}50` : bc,
+                color: "white",
+                fontSize: 13,
+                fontWeight: 700,
+                border: "none",
+                cursor: aiLoading ? "wait" : "pointer",
+                fontFamily: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: `0 0 16px ${bc}30`,
+                opacity: !aiQuery.trim() ? 0.4 : 1,
+              }}
+            >
+              {aiLoading ? (
+                <div style={{ width: 16, height: 16, borderRadius: "50%", border: "2px solid #fff4", borderTopColor: "#fff", animation: "spin 0.6s linear infinite" }} />
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              )}
+              {aiLoading ? "Pensando..." : "Preguntar"}
+            </button>
+          </div>
+
+          {/* AI Response */}
+          {aiExpanded && aiResponse && (
+            <div style={{
+              marginTop: 12,
+              padding: "14px 16px",
+              borderRadius: 10,
+              background: "#0a0a16",
+              border: `1px solid ${bc}20`,
+              fontSize: 13,
+              color: "#c8d0e0",
+              lineHeight: 1.7,
+              whiteSpace: "pre-wrap",
+            }}>
+              {aiResponse}
+            </div>
+          )}
+
+          {/* Quick suggestions */}
+          {!aiExpanded && (
+            <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+              {["1000 seguidores Instagram", "Likes para TikTok", "Views YouTube", "Seguidores Facebook"].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => { setAiQuery(q); }}
+                  style={{
+                    padding: "5px 12px",
+                    borderRadius: 8,
+                    background: `${bc}10`,
+                    border: `1px solid ${bc}20`,
+                    color: "#8892a4",
+                    fontSize: 11,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: "white", marginBottom: 6 }}>

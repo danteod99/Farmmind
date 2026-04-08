@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: www.facebook.com *.supabase.co *.googleusercontent.com",
       "font-src 'self' fonts.gstatic.com",
       "connect-src 'self' *.supabase.co api.nowpayments.io connect.facebook.net api.stripe.com api.anthropic.com",
-      "frame-src js.stripe.com",
+      "frame-src js.stripe.com www.loom.com",
     ].join("; ");
 
     return [

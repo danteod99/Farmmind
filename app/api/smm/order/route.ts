@@ -1,4 +1,5 @@
 import { addOrder, getOrderStatus } from "@/app/lib/jap";
+import { addBFOrder, getBFOrderStatus } from "@/app/lib/bulkfollows";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
@@ -95,11 +96,18 @@ export async function POST(req: Request) {
     let balanceDeducted = true;
 
     try {
-      // Hacer el pedido en JAP
-      const japResult = await addOrder({ service: serviceId, link, quantity: parsedQuantity });
+      // Route to correct provider based on serviceId
+      // BulkFollows services have IDs >= 900000 (offset applied in services route)
+      const isBulkFollows = serviceId >= 900000;
+      const actualServiceId = isBulkFollows ? serviceId - 900000 : serviceId;
+      const providerName = isBulkFollows ? "BulkFollows" : "JAP";
+
+      const japResult = isBulkFollows
+        ? await addBFOrder({ service: actualServiceId, link, quantity: parsedQuantity })
+        : await addOrder({ service: actualServiceId, link, quantity: parsedQuantity });
 
       if (japResult.error) {
-        // JAP returned an error — refund
+        // Provider returned an error — refund
         await admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost });
         balanceDeducted = false;
         return Response.json({ error: japResult.error }, { status: 400 });
@@ -111,7 +119,8 @@ export async function POST(req: Request) {
         .insert({
           user_id: user.id,
           jap_order_id: japResult.order,
-          service_id: serviceId,
+          provider: providerName,
+          service_id: actualServiceId,
           service_name: serviceName,
           category,
           link,
@@ -136,7 +145,7 @@ export async function POST(req: Request) {
       // Unexpected throw after balance deduction — refund
       if (balanceDeducted) {
         console.error("Refunding balance after unexpected error. User:", user.id, "Amount:", orderCost);
-        await admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost }).catch((refundErr: unknown) => {
+        await (admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost }) as unknown as Promise<unknown>).catch((refundErr: unknown) => {
           console.error("CRITICAL: Refund failed after error! User:", user.id, "Amount:", orderCost, "RefundError:", refundErr);
         });
       }
@@ -175,7 +184,13 @@ export async function GET(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autenticado" }, { status: 401 });
 
-    const status = await getOrderStatus(parseInt(orderId));
+    // Check which provider the order belongs to
+    const admin = getSupabaseAdmin();
+    const { data: orderRecord } = await admin.from("smm_orders").select("provider, jap_order_id").eq("jap_order_id", parseInt(orderId)).single();
+
+    const status = orderRecord?.provider === "BulkFollows"
+      ? await getBFOrderStatus(parseInt(orderId))
+      : await getOrderStatus(parseInt(orderId));
     return Response.json(status);
   } catch (error) {
     console.error("SMM order status error:", error);

@@ -149,7 +149,6 @@ export async function GET(request: Request) {
       response.cookies.set("panel_auth_slug", "", { path: "/", maxAge: 0 });
       return response;
     }
-  }
 
     // Check if this is a new user (no balance record yet = first login)
     if (session?.user) {
@@ -179,3 +178,4 @@ export async function GET(request: Request) {
 
   return NextResponse.redirect(`${origin}/smm/services`);
 }
+

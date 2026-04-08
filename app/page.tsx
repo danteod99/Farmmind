@@ -341,6 +341,7 @@ function LoginScreen() {
         <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
           <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: "24px" }}>
             <a href="#features" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Features</a>
+            <a href="#software" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Software</a>
             <a href="#pricing" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Precios</a>
             <a href="https://www.skool.com/artificial-humans-7653/about" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Comunidad ↗</a>
           </div>
@@ -442,6 +443,81 @@ function LoginScreen() {
               <p style={{ fontSize: "14px", color: "#7a8599", lineHeight: 1.65 }}>{f.desc}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* === SOFTWARE DESKTOP === */}
+      <section id="software" style={{ padding: "60px 32px 80px", maxWidth: "1100px", margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: "60px" }}>
+          <div style={{ display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", padding: "6px 14px", background: "rgba(0,122,191,0.08)", borderRadius: "6px" }}>Software Desktop</div>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-0.035em", color: "white", marginBottom: "14px" }}>
+            Herramientas para escalar
+          </h2>
+          <p style={{ color: "#64748b", fontSize: "16px", maxWidth: "550px", margin: "0 auto", lineHeight: 1.7 }}>Apps de escritorio profesionales para gestionar cuentas, automatizar y crecer en cada plataforma.</p>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
+          {[
+            {
+              name: "TrustInsta Desktop",
+              desc: "Multi-Account Manager para Instagram. Perfiles aislados, anti-deteccion, warm-up inteligente, scraper de seguidores y verificador de shadowban.",
+              icon: "TI",
+              gradient: "linear-gradient(135deg, #E1306C, #F77737)",
+              badge: "Instagram",
+              badgeColor: "#E1306C",
+              version: "v1.3.0",
+              price: "$99/mes",
+            },
+            {
+              name: "TrustFace Desktop",
+              desc: "Multi-Account Manager para Facebook. Marketplace automation, Messenger masivo, gestion de grupos, engagement automatizado y scraper profundo.",
+              icon: "TF",
+              gradient: "linear-gradient(135deg, #1877F2, #0d5bc4)",
+              badge: "Facebook",
+              badgeColor: "#1877F2",
+              version: "v1.3.0",
+              price: "$99/mes",
+            },
+            {
+              name: "TrustFarm Desktop",
+              desc: "Phone Farm Manager. Controla cientos de dispositivos Android, screen mirroring, auto-login con 2FA y editor visual de automatizaciones.",
+              icon: "TF",
+              gradient: "linear-gradient(135deg, #7b9bff, #4f46e5)",
+              badge: "Phone Farming",
+              badgeColor: "#7b9bff",
+              version: "v1.2.0",
+              price: "Pronto",
+            },
+          ].map((app) => (
+            <div key={app.name} className="feature-card" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "32px", position: "relative", overflow: "hidden", cursor: "default" }}>
+              <div style={{ position: "absolute", top: "-30px", right: "-30px", width: "160px", height: "160px", borderRadius: "50%", background: `radial-gradient(circle, ${app.badgeColor}15, transparent 70%)`, pointerEvents: "none" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", marginBottom: "18px" }}>
+                <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: app.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: 900, color: "white", letterSpacing: "-1px" }}>
+                  {app.icon}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: "17px", fontWeight: 700, color: "white", letterSpacing: "-0.2px", marginBottom: "2px" }}>{app.name}</h3>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <span style={{ fontSize: "10px", fontWeight: 700, color: app.badgeColor, textTransform: "uppercase", padding: "2px 8px", background: `${app.badgeColor}15`, borderRadius: "4px" }}>{app.badge}</span>
+                    <span style={{ fontSize: "11px", color: "#64748b" }}>{app.version}</span>
+                  </div>
+                </div>
+              </div>
+              <p style={{ fontSize: "14px", color: "#7a8599", lineHeight: 1.65, marginBottom: "20px" }}>{app.desc}</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "18px", fontWeight: 800, color: "white" }}>{app.price}</span>
+                <Link href="/downloads" style={{ fontSize: "13px", fontWeight: 600, color: "#007ABF", textDecoration: "none", padding: "8px 18px", borderRadius: "10px", border: "1px solid rgba(0,122,191,0.3)", background: "rgba(0,122,191,0.08)", transition: "all 0.2s" }} onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.background = "rgba(0,122,191,0.2)"; }} onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.background = "rgba(0,122,191,0.08)"; }}>
+                  Descargar
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ textAlign: "center", marginTop: "32px" }}>
+          <Link href="/downloads" style={{ fontSize: "14px", fontWeight: 600, color: "#007ABF", textDecoration: "none", transition: "color 0.2s" }} onMouseEnter={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#00B4D8"; }} onMouseLeave={(e: React.MouseEvent<HTMLAnchorElement>) => { e.currentTarget.style.color = "#007ABF"; }}>
+            Ver todas las descargas y requisitos →
+          </Link>
         </div>
       </section>
 

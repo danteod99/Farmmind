@@ -151,6 +151,14 @@ export default function OrdersPage() {
           ]}
         />
 
+        {/* Software Banner */}
+        <a href="/downloads" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "10px 20px", background: "linear-gradient(90deg, #E1306C, #8134AF, #4d7cff, #1877F2)", color: "white", fontSize: 13, fontWeight: 700, textDecoration: "none", letterSpacing: "0.3px", cursor: "pointer" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "2px 10px", borderRadius: 6, background: "rgba(255,255,255,0.2)", fontSize: 11, fontWeight: 800 }}>NUEVO</span>
+          <span>TrustInsta & TrustFace Desktop — Gestiona cientos de cuentas con anti-deteccion</span>
+          <span style={{ fontSize: 16 }}>→</span>
+          <span style={{ fontSize: 11, opacity: 0.8, textDecoration: "underline" }}>Descargar gratis</span>
+        </a>
+
         {/* Hero */}
         <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #000C18 0%, #001530 35%, #000A14 65%, #07070e 100%)", borderBottom: "1px solid #002860", padding: "44px 28px 36px" }}>
           <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>

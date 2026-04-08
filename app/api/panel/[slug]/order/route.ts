@@ -155,7 +155,7 @@ export async function POST(
 
     if (resellerDeductError) {
       // Refund client balance since reseller deduction failed
-      await admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost }).catch((refundErr: unknown) => {
+      await (admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost }) as unknown as Promise<unknown>).catch((refundErr: unknown) => {
         console.error("[Panel Order] CRITICAL: Client refund failed after reseller deduct error! User:", user.id, "Amount:", orderCost, "RefundError:", refundErr);
       });
       console.error("[Panel Order] Reseller balance deduct error:", resellerDeductError);
@@ -170,10 +170,10 @@ export async function POST(
       if (japResult.error || !japResult.order) {
         // JAP failed — refund both balances
         await Promise.all([
-          admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost }).catch((err: unknown) => {
+          (admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost }) as unknown as Promise<unknown>).catch((err: unknown) => {
             console.error("[Panel Order] CRITICAL: Client refund failed after JAP error! User:", user.id, "Amount:", orderCost, "Error:", err);
           }),
-          admin.rpc("increment_reseller_balance", { p_reseller_id: reseller.id, p_amount: orderCost }).catch((err: unknown) => {
+          (admin.rpc("increment_reseller_balance", { p_reseller_id: reseller.id, p_amount: orderCost }) as unknown as Promise<unknown>).catch((err: unknown) => {
             console.error("[Panel Order] CRITICAL: Reseller refund failed after JAP error! Reseller:", reseller.id, "Amount:", orderCost, "Error:", err);
           }),
         ]);
@@ -216,10 +216,10 @@ export async function POST(
       // Unexpected throw after both balances deducted — refund both
       console.error("[Panel Order] Unexpected error after balance deduction, refunding. User:", user.id, "Reseller:", reseller.id, "Amount:", orderCost);
       await Promise.all([
-        admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost }).catch((err: unknown) => {
+        (admin.rpc("increment_balance", { p_user_id: user.id, p_amount: orderCost }) as unknown as Promise<unknown>).catch((err: unknown) => {
           console.error("[Panel Order] CRITICAL: Client refund failed! User:", user.id, "Amount:", orderCost, "Error:", err);
         }),
-        admin.rpc("increment_reseller_balance", { p_reseller_id: reseller.id, p_amount: orderCost }).catch((err: unknown) => {
+        (admin.rpc("increment_reseller_balance", { p_reseller_id: reseller.id, p_amount: orderCost }) as unknown as Promise<unknown>).catch((err: unknown) => {
           console.error("[Panel Order] CRITICAL: Reseller refund failed! Reseller:", reseller.id, "Amount:", orderCost, "Error:", err);
         }),
       ]);

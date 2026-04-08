@@ -21,10 +21,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TRUST MIND AI — Tu Agente de Granja de Bots",
-  description: "Agente AI especializado en granjas de bots. Gestiona GenFarmer, proxies y dispositivos desde un chat.",
+  metadataBase: new URL("https://www.trustmind.online"),
+  title: {
+    default: "TrustMind — Software para Granjas de Bots y Redes Sociales",
+    template: "%s | TrustMind",
+  },
+  description: "Plataforma todo-en-uno para gestionar granjas de bots, cuentas de Instagram, Facebook y TikTok. Software antideteccion, automatizaciones y panel SMM con IA.",
+  keywords: ["bot farm", "granja de bots", "instagram automation", "facebook automation", "tiktok automation", "SMM panel", "antidetect browser", "phone farm", "social media manager", "trustmind"],
+  authors: [{ name: "TrustMind" }],
+  creator: "TrustMind",
   icons: {
     icon: "/favicon.svg",
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_ES",
+    url: "https://www.trustmind.online",
+    siteName: "TrustMind",
+    title: "TrustMind — Software para Granjas de Bots y Redes Sociales",
+    description: "Plataforma todo-en-uno para gestionar granjas de bots, cuentas de Instagram, Facebook y TikTok. Software antideteccion, automatizaciones y panel SMM con IA.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TrustMind — Software para Granjas de Bots y Redes Sociales",
+    description: "Plataforma todo-en-uno para gestionar granjas de bots, cuentas de Instagram, Facebook y TikTok.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "https://www.trustmind.online",
   },
 };
 
@@ -73,6 +100,26 @@ export default function RootLayout({
         )}
       </head>
       <body className={`${jakartaSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "TrustMind",
+              "url": "https://www.trustmind.online",
+              "description": "Plataforma todo-en-uno para gestionar granjas de bots, automatizaciones de redes sociales y panel SMM con IA.",
+              "sameAs": [],
+              "offers": {
+                "@type": "AggregateOffer",
+                "priceCurrency": "USD",
+                "lowPrice": "0",
+                "highPrice": "899",
+                "offerCount": "6"
+              }
+            }),
+          }}
+        />
         <PromoBanner />
         {children}
       </body>
