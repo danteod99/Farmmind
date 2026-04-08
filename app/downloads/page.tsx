@@ -40,9 +40,9 @@ const APPS = [
       { icon: Zap, text: "CapSolver integrado para captchas" },
     ],
     downloads: {
-      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustmind-releases/releases/latest/download/TrustInsta-Desktop-1.4.3-arm64.dmg" },
+      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.4.3/TrustInsta-Desktop-1.4.3-arm64.dmg" },
       macIntel: { label: "macOS (Intel)", size: "Proximamente", url: "#" },
-      windows: { label: "Windows x64", size: "93 MB", url: "https://github.com/danteod99/trustmind-releases/releases/latest/download/TrustInsta-Desktop-Setup-1.4.3.exe" },
+      windows: { label: "Windows x64", size: "93 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.4.0/TrustInsta-Desktop-Setup-1.4.0.exe" },
     },
     version: "1.4.3",
     requirements: ["macOS 12+ o Windows 10+", "4 GB RAM minimo", "500 MB espacio en disco"],
@@ -66,9 +66,9 @@ const APPS = [
       { icon: Shield, text: "Warm-up y programador de tareas" },
     ],
     downloads: {
-      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustface-releases/releases/latest/download/TrustFace-Desktop-1.4.1-arm64.dmg" },
+      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.4.1/TrustFace-Desktop-1.4.1-arm64.dmg" },
       macIntel: { label: "macOS (Intel)", size: "Proximamente", url: "#" },
-      windows: { label: "Windows x64", size: "93 MB", url: "https://github.com/danteod99/trustface-releases/releases/latest/download/TrustFace-Desktop-Setup-1.4.1.exe" },
+      windows: { label: "Windows x64", size: "93 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.4.0/TrustFace-Desktop-Setup-1.4.0.exe" },
     },
     version: "1.4.1",
     requirements: ["macOS 12+ o Windows 10+", "4 GB RAM minimo", "500 MB espacio en disco"],
