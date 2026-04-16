@@ -74,7 +74,7 @@ export default function AdminPage() {
   // Tabs
   const [activeTab, setActiveTab] = useState<"users" | "promos" | "downloads">("users");
   // Downloads
-  const [dlStats, setDlStats] = useState<{ apps: { name: string; total: number; mac: number; windows: number; latest: string | null; releases: { version: string; date: string; mac: number; windows: number; total: number }[] }[]; grandTotal: number } | null>(null);
+  const [dlStats, setDlStats] = useState<{ apps: { name: string; total: number; mac: number; windows: number; latest: string | null; paidActive: number; releases: { version: string; date: string; mac: number; windows: number; total: number }[] }[]; grandTotal: number; subscriptions: { totalActive: number; totalEver: number; conversionRate: string } } | null>(null);
   const [dlLoading, setDlLoading] = useState(false);
   // Promo codes
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
@@ -571,10 +571,24 @@ export default function AdminPage() {
               <div style={{ textAlign:"center", padding:"40px", color:"#5a6480" }}>Cargando estadisticas...</div>
             ) : dlStats ? (
               <>
-                {/* Grand total */}
-                <div style={{ background:"linear-gradient(135deg, #007ABF18, #007ABF08)", border:"1px solid #007ABF30", borderRadius:"16px", padding:"24px", marginBottom:"20px", textAlign:"center" }}>
-                  <div style={{ fontSize:"42px", fontWeight:800, color:"#56B4E0" }}>{dlStats.grandTotal}</div>
-                  <div style={{ fontSize:"13px", color:"#8892a4", fontWeight:600, marginTop:"4px" }}>Descargas totales (todas las apps)</div>
+                {/* Summary cards */}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))", gap:"12px", marginBottom:"20px" }}>
+                  <div style={{ background:"linear-gradient(135deg, #007ABF18, #007ABF08)", border:"1px solid #007ABF30", borderRadius:"16px", padding:"20px", textAlign:"center" }}>
+                    <div style={{ fontSize:"36px", fontWeight:800, color:"#56B4E0" }}>{dlStats.grandTotal}</div>
+                    <div style={{ fontSize:"11px", color:"#8892a4", fontWeight:600, marginTop:"4px" }}>Descargas totales</div>
+                  </div>
+                  <div style={{ background:"linear-gradient(135deg, #34d39918, #34d39908)", border:"1px solid #34d39930", borderRadius:"16px", padding:"20px", textAlign:"center" }}>
+                    <div style={{ fontSize:"36px", fontWeight:800, color:"#34d399" }}>{dlStats.subscriptions.totalActive}</div>
+                    <div style={{ fontSize:"11px", color:"#8892a4", fontWeight:600, marginTop:"4px" }}>Suscripciones Pro activas</div>
+                  </div>
+                  <div style={{ background:"linear-gradient(135deg, #a78bfa18, #a78bfa08)", border:"1px solid #a78bfa30", borderRadius:"16px", padding:"20px", textAlign:"center" }}>
+                    <div style={{ fontSize:"36px", fontWeight:800, color:"#a78bfa" }}>{dlStats.subscriptions.totalEver}</div>
+                    <div style={{ fontSize:"11px", color:"#8892a4", fontWeight:600, marginTop:"4px" }}>Pagaron alguna vez</div>
+                  </div>
+                  <div style={{ background:"linear-gradient(135deg, #f59e0b18, #f59e0b08)", border:"1px solid #f59e0b30", borderRadius:"16px", padding:"20px", textAlign:"center" }}>
+                    <div style={{ fontSize:"36px", fontWeight:800, color:"#f59e0b" }}>{dlStats.subscriptions.conversionRate}%</div>
+                    <div style={{ fontSize:"11px", color:"#8892a4", fontWeight:600, marginTop:"4px" }}>Tasa de conversion</div>
+                  </div>
                 </div>
 
                 {/* Per-app cards */}
@@ -605,6 +619,10 @@ export default function AdminPage() {
                           <div style={{ flex:1, background:"#0a0a0f", borderRadius:"10px", padding:"10px 14px", textAlign:"center" }}>
                             <div style={{ fontSize:"18px", fontWeight:700, color:"#f0efff" }}>{app.windows}</div>
                             <div style={{ fontSize:"10px", color:"#5a6480", fontWeight:600, marginTop:"2px" }}>Windows</div>
+                          </div>
+                          <div style={{ flex:1, background:"#34d39910", border:"1px solid #34d39920", borderRadius:"10px", padding:"10px 14px", textAlign:"center" }}>
+                            <div style={{ fontSize:"18px", fontWeight:700, color:"#34d399" }}>{app.paidActive}</div>
+                            <div style={{ fontSize:"10px", color:"#5a6480", fontWeight:600, marginTop:"2px" }}>Pro activo</div>
                           </div>
                         </div>
                         {/* Per-version breakdown */}
