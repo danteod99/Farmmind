@@ -94,6 +94,9 @@ export default function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState("");
   const [isOAuth,       setIsOAuth]       = useState(false);
 
+  // ── Software subscriptions ────────────────────────────────────────────
+  const [subs, setSubs] = useState<{ product: string; tier: string; expires_at: string }[]>([]);
+
   // ── Password ─────────────────────────────────────────────────────────
   const [newPass,     setNewPass]     = useState("");
   const [confirmPass, setConfirmPass] = useState("");
@@ -207,6 +210,14 @@ export default function ProfilePage() {
         setEditShowPoweredBy(res.show_powered_by !== false);
         if (res.domain_verified) setDomainStatus("ok");
       }
+      // Load software subscriptions
+      const { data: subData } = await supabase
+        .from("tm_subscriptions")
+        .select("product, tier, expires_at")
+        .eq("user_id", user.id)
+        .in("tier", ["pro"]);
+      if (subData) setSubs(subData);
+
       setResellerChecked(true);
       setLoading(false);
     })();
@@ -593,6 +604,108 @@ export default function ProfilePage() {
               style={{ width: "100%", padding: "14px", borderRadius: "14px", border: "none", background: profileSaved ? "linear-gradient(135deg, #34d399, #059669)" : "linear-gradient(135deg, #007ABF, #005F9E)", color: "white", fontSize: "15px", fontWeight: 700, cursor: saving || uploading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontFamily: "inherit", transition: "all 0.2s", opacity: saving || uploading ? 0.7 : 1 }}>
               {saving ? <><div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "white", animation: "spin 0.7s linear infinite" }} /> Guardando...</> : profileSaved ? <><Check size={16} /> ¡Guardado!</> : "Guardar cambios"}
             </button>
+
+            {/* ── Software Subscriptions ─────────────────────────── */}
+            <div style={{ borderTop: "1px solid #1a1a2e", paddingTop: "24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "18px" }}>
+                <Monitor size={18} color="#007ABF" />
+                <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#f0efff" }}>Mis Softwares</h3>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {/* TrustInsta */}
+                {(() => {
+                  const now = new Date();
+                  const insta = subs.find(s => {
+                    const p = (s.product || "").toLowerCase();
+                    return (p === "trustinsta" || p === "bundle" || p === "all") && new Date(s.expires_at) > now;
+                  });
+                  const active = !!insta;
+                  return (
+                    <div style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      background: active ? "#34d39910" : "#0a0a0f",
+                      border: `1px solid ${active ? "#34d39940" : "#1a1a2e"}`,
+                      borderRadius: "14px", padding: "14px 18px",
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div style={{
+                          width: "36px", height: "36px", borderRadius: "10px",
+                          background: "linear-gradient(135deg, #E1306C, #F77737)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: "13px", fontWeight: 800, color: "#fff",
+                        }}>TI</div>
+                        <div>
+                          <div style={{ fontSize: "14px", fontWeight: 700, color: "#f0efff" }}>TrustInsta Desktop</div>
+                          <div style={{ fontSize: "11px", color: "#5a6480", marginTop: "2px" }}>
+                            {active ? `Pro activo · Vence ${new Date(insta!.expires_at).toLocaleDateString("es")}` : "Sin suscripcion activa"}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {active ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: "5px", background: "#34d39920", border: "1px solid #34d39940", borderRadius: "8px", padding: "4px 10px" }}>
+                            <CheckCircle size={13} color="#34d399" />
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: "#34d399" }}>ACTIVO</span>
+                          </div>
+                        ) : (
+                          <Link href="/software" style={{
+                            fontSize: "11px", fontWeight: 700, color: "#007ABF",
+                            background: "#007ABF15", border: "1px solid #007ABF30",
+                            borderRadius: "8px", padding: "4px 12px", textDecoration: "none",
+                          }}>OBTENER</Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* TrustFace */}
+                {(() => {
+                  const now = new Date();
+                  const face = subs.find(s => {
+                    const p = (s.product || "").toLowerCase();
+                    return (p === "trustface" || p === "bundle" || p === "all") && new Date(s.expires_at) > now;
+                  });
+                  const active = !!face;
+                  return (
+                    <div style={{
+                      display: "flex", alignItems: "center", justifyContent: "space-between",
+                      background: active ? "#34d39910" : "#0a0a0f",
+                      border: `1px solid ${active ? "#34d39940" : "#1a1a2e"}`,
+                      borderRadius: "14px", padding: "14px 18px",
+                    }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div style={{
+                          width: "36px", height: "36px", borderRadius: "10px",
+                          background: "linear-gradient(135deg, #1877F2, #0d5bc4)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: "13px", fontWeight: 800, color: "#fff",
+                        }}>TF</div>
+                        <div>
+                          <div style={{ fontSize: "14px", fontWeight: 700, color: "#f0efff" }}>TrustFace Desktop</div>
+                          <div style={{ fontSize: "11px", color: "#5a6480", marginTop: "2px" }}>
+                            {active ? `Pro activo · Vence ${new Date(face!.expires_at).toLocaleDateString("es")}` : "Sin suscripcion activa"}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {active ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: "5px", background: "#34d39920", border: "1px solid #34d39940", borderRadius: "8px", padding: "4px 10px" }}>
+                            <CheckCircle size={13} color="#34d399" />
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: "#34d399" }}>ACTIVO</span>
+                          </div>
+                        ) : (
+                          <Link href="/software" style={{
+                            fontSize: "11px", fontWeight: 700, color: "#007ABF",
+                            background: "#007ABF15", border: "1px solid #007ABF30",
+                            borderRadius: "8px", padding: "4px 12px", textDecoration: "none",
+                          }}>OBTENER</Link>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
           </div>
         )}
 
