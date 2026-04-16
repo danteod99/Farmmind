@@ -65,7 +65,7 @@ export async function POST(
       .eq("user_id", user.id);
 
     // Credit balance if finished/confirmed
-    const creditStatuses = ["finished", "confirmed", "partially_paid"];
+    const creditStatuses = ["finished", "confirmed"];
     if (creditStatuses.includes(npData.payment_status)) {
       // Get the transaction
       const { data: tx } = await admin

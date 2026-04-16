@@ -13,8 +13,8 @@ import { isAdmin } from "@/app/lib/admin";
 
 interface Stats {
   totalUsers: number; buyers: number; nonBuyers: number;
-  totalRevenue: number; totalRecharged: number; newThisWeek: number;
-  softwareUsers: number;
+  totalRevenue: number; totalRecharged: number; realRecharges: number; promoRecharges: number;
+  newThisWeek: number; softwareUsers: number;
 }
 interface RecentOrder { service_name: string; charge: number; status: string; created_at: string; }
 interface UserRow {
@@ -258,7 +258,7 @@ export default function AdminPage() {
               { label:"Compraron",        val: stats.buyers,                        icon:<UserCheck size={17}/>, color:"#34d399", sub:`${stats.totalUsers>0?Math.round(stats.buyers/stats.totalUsers*100):0}% del total` },
               { label:"Sin compras",      val: stats.nonBuyers,                     icon:<UserX size={17}/>,     color:"#f87171", sub:"Usuarios inactivos" },
               { label:"Revenue SMM",      val:`$${stats.totalRevenue.toFixed(2)}`,  icon:<DollarSign size={17}/>,color:"#a78bfa", sub:"Total gastado" },
-              { label:"Total Recargado",  val:`$${stats.totalRecharged.toFixed(2)}`,icon:<TrendingUp size={17}/>,color:"#f59e0b", sub:"Depósitos crypto" },
+              { label:"Recargado Real",   val:`$${stats.realRecharges.toFixed(2)}`, icon:<TrendingUp size={17}/>,color:"#34d399", sub:`Promos: $${stats.promoRecharges.toFixed(2)}` },
               { label:"Nuevos 7d",        val: stats.newThisWeek,                   icon:<Clock size={17}/>,     color:"#00e5ff", sub:"Registros recientes" },
             ].map((s) => (
               <div key={s.label} className="sc" style={{ background:"#0d0d1a", border:"1px solid #1a1a2e", borderRadius:"14px", padding:"18px", transition:"all 0.2s" }}>

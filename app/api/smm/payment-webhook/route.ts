@@ -62,9 +62,9 @@ export async function POST(req: Request) {
       })
       .eq("id", tx.id);
 
-    // Acreditar cuando el pago está FINALIZADO, CONFIRMADO o PARCIALMENTE PAGADO (y no se ha acreditado antes)
+    // Acreditar solo cuando el pago está COMPLETAMENTE finalizado (NO partially_paid)
     const shouldCredit =
-      (payment_status === "finished" || payment_status === "confirmed" || payment_status === "partially_paid") &&
+      (payment_status === "finished" || payment_status === "confirmed") &&
       tx.credited !== true &&
       tx.status !== "finished" && tx.status !== "confirmed";
 

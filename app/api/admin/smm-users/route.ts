@@ -148,6 +148,17 @@ export async function GET(request: Request) {
     const totalRevenue = users.reduce((sum, u) => sum + u.total_spent, 0);
     const totalRecharged = users.reduce((sum, u) => sum + u.total_recharged, 0);
 
+    // Calculate real vs promo recharges from transactions
+    let realRecharges = 0;
+    let promoRecharges = 0;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (transactions || []).forEach((t: any) => {
+      if (t.credited) {
+        if (t.promo_code) promoRecharges += Number(t.amount || 0);
+        else realRecharges += Number(t.amount || 0);
+      }
+    });
+
     // New users this week
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
@@ -176,7 +187,7 @@ export async function GET(request: Request) {
     const paginatedUsers = filteredUsers.slice(offset, offset + limit);
 
     return Response.json({
-      stats: { totalUsers, buyers, nonBuyers, totalRevenue, totalRecharged, newThisWeek, softwareUsers },
+      stats: { totalUsers, buyers, nonBuyers, totalRevenue, totalRecharged, realRecharges, promoRecharges, newThisWeek, softwareUsers },
       users: paginatedUsers,
       pagination: { page: safePage, limit, totalFiltered, totalPages },
     });
