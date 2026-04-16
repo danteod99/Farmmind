@@ -14,6 +14,7 @@ import { isAdmin } from "@/app/lib/admin";
 interface Stats {
   totalUsers: number; buyers: number; nonBuyers: number;
   totalRevenue: number; totalRecharged: number; newThisWeek: number;
+  softwareUsers: number;
 }
 interface RecentOrder { service_name: string; charge: number; status: string; created_at: string; }
 interface UserRow {
@@ -22,6 +23,8 @@ interface UserRow {
   balance: number; total_orders: number; total_spent: number;
   total_recharged: number; last_order_at: string | null;
   last_order_name: string | null; recent_orders: RecentOrder[];
+  has_software: boolean;
+  software_sub: { product: string; active: boolean } | null;
 }
 
 function fmt(d: string | null) {
@@ -58,7 +61,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "buyers" | "non-buyers" | "new">("all");
+  const [filter, setFilter] = useState<"all" | "buyers" | "non-buyers" | "new" | "software">("all");
   const [sortBy, setSortBy] = useState<SortCol>("created_at");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -395,8 +398,8 @@ export default function AdminPage() {
             {search && <button onClick={()=>{setSearch("");setPage(1);}} style={{ position:"absolute", right:"9px", top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"#5a6480", cursor:"pointer" }}><X size={12}/></button>}
           </div>
           <div style={{ display:"flex", gap:"5px" }}>
-            {(["all","buyers","non-buyers","new"] as const).map((f)=>{
-              const lbl = { all:`Todos (${users.length})`, buyers:`Compraron (${stats?.buyers||0})`, "non-buyers":`Sin compras (${stats?.nonBuyers||0})`, new:`Nuevos (${stats?.newThisWeek||0})` };
+            {(["all","buyers","non-buyers","software","new"] as const).map((f)=>{
+              const lbl = { all:`Todos (${users.length})`, buyers:`Compraron (${stats?.buyers||0})`, "non-buyers":`Sin compras (${stats?.nonBuyers||0})`, software:`Software (${stats?.softwareUsers||0})`, new:`Nuevos (${stats?.newThisWeek||0})` };
               const on = filter===f;
               return <button key={f} onClick={()=>{setFilter(f);setPage(1);}}
                 style={{ padding:"7px 12px", borderRadius:"7px", border:`1px solid ${on?"#007ABF":"#1e1e30"}`, background:on?"#007ABF20":"transparent", color:on?"#88D0F0":"#5a6480", fontSize:"11px", fontWeight:on?700:500, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", transition:"all 0.15s" }}>
@@ -441,6 +444,8 @@ export default function AdminPage() {
                       <p style={{ fontSize:"11px", color:"#5a6480", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.email}</p>
                     </div>
                     <span style={{ padding:"2px 7px", borderRadius:"5px", background:buyer?"#34d39915":"#f8717115", border:`1px solid ${buyer?"#34d39930":"#f8717130"}`, fontSize:"9px", fontWeight:700, color:buyer?"#34d399":"#f87171", whiteSpace:"nowrap", flexShrink:0 }}>{buyer?"Comprador":"Sin compras"}</span>
+                    {u.has_software && <span style={{ padding:"2px 7px", borderRadius:"5px", background:"#007ABF15", border:"1px solid #007ABF30", fontSize:"9px", fontWeight:700, color:"#56B4E0", whiteSpace:"nowrap", flexShrink:0 }}>Software</span>}
+                    {u.software_sub?.active && <span style={{ padding:"2px 7px", borderRadius:"5px", background:"#a78bfa15", border:"1px solid #a78bfa30", fontSize:"9px", fontWeight:700, color:"#a78bfa", whiteSpace:"nowrap", flexShrink:0 }}>Pro</span>}
                   </div>
                   <p style={{ fontSize:"12px", color:"#8892a4" }}>{fmt(u.created_at)}</p>
                   <p style={{ fontSize:"13px", fontWeight:700, color:u.balance>0?"#34d399":"#3a3a5c" }}>${u.balance.toFixed(2)}</p>

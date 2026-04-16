@@ -56,7 +56,17 @@ export async function GET(request: Request) {
       .from("smm_orders")
       .select("user_id, charge, status, created_at, service_name, category");
 
-    // 4. Get recharge transactions per user
+    // 4. Get software device registrations (users who installed the desktop app)
+    const { data: devices } = await admin
+      .from("tm_devices")
+      .select("user_id, device_name, last_seen, created_at");
+
+    // 5. Get software subscriptions
+    const { data: subs } = await admin
+      .from("tm_subscriptions")
+      .select("user_id, product, tier, expires_at");
+
+    // 6. Get recharge transactions per user
     const { data: transactions } = await admin
       .from("smm_transactions")
       .select("user_id, amount, status, credited, created_at");
@@ -77,6 +87,20 @@ export async function GET(request: Request) {
       if (!txByUser[t.user_id]) txByUser[t.user_id] = [];
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (txByUser[t.user_id] as any[]).push(t);
+    });
+
+    // Software device map: user_id -> device info
+    const deviceUsers = new Set<string>();
+    (devices || []).forEach((d) => deviceUsers.add(d.user_id));
+
+    // Software subscription map: user_id -> sub info
+    const now = new Date();
+    const subMap: Record<string, { product: string; active: boolean }> = {};
+    (subs || []).forEach((s) => {
+      const active = new Date(s.expires_at) > now;
+      if (!subMap[s.user_id] || active) {
+        subMap[s.user_id] = { product: s.product || "all", active };
+      }
     });
 
     // Compose user list
@@ -112,6 +136,8 @@ export async function GET(request: Request) {
           status: o.status,
           created_at: o.created_at,
         })),
+        has_software: deviceUsers.has(u.id),
+        software_sub: subMap[u.id] || null,
       };
     });
 
@@ -126,6 +152,7 @@ export async function GET(request: Request) {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
     const newThisWeek = users.filter((u) => new Date(u.created_at) > weekAgo).length;
+    const softwareUsers = users.filter((u) => u.has_software).length;
 
     // Server-side filtering
     let filteredUsers = [...users];
@@ -137,6 +164,7 @@ export async function GET(request: Request) {
     }
     if (filterType === "buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders > 0);
     if (filterType === "non-buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders === 0);
+    if (filterType === "software") filteredUsers = filteredUsers.filter((u) => u.has_software);
     if (filterType === "new") {
       filteredUsers = filteredUsers.filter((u) => new Date(u.created_at) > weekAgo);
     }
@@ -148,7 +176,7 @@ export async function GET(request: Request) {
     const paginatedUsers = filteredUsers.slice(offset, offset + limit);
 
     return Response.json({
-      stats: { totalUsers, buyers, nonBuyers, totalRevenue, totalRecharged, newThisWeek },
+      stats: { totalUsers, buyers, nonBuyers, totalRevenue, totalRecharged, newThisWeek, softwareUsers },
       users: paginatedUsers,
       pagination: { page: safePage, limit, totalFiltered, totalPages },
     });
