@@ -31,7 +31,11 @@ export const metadata: Metadata = {
   authors: [{ name: "TrustMind" }],
   creator: "TrustMind",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     type: "website",
