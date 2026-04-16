@@ -72,7 +72,10 @@ export default function AdminPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalFiltered, setTotalFiltered] = useState(0);
   // Tabs
-  const [activeTab, setActiveTab] = useState<"users" | "promos">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "promos" | "downloads">("users");
+  // Downloads
+  const [dlStats, setDlStats] = useState<{ apps: { name: string; total: number; mac: number; windows: number; latest: string | null; releases: { version: string; date: string; mac: number; windows: number; total: number }[] }[]; grandTotal: number } | null>(null);
+  const [dlLoading, setDlLoading] = useState(false);
   // Promo codes
   const [promoCodes, setPromoCodes] = useState<PromoCode[]>([]);
   const [promoLoading, setPromoLoading] = useState(false);
@@ -81,7 +84,7 @@ export default function AdminPage() {
   const [promoMsg, setPromoMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (activeTab === "promos") loadPromoCodes(); }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (activeTab === "promos") loadPromoCodes(); if (activeTab === "downloads") loadDownloadStats(); }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const t = setTimeout(() => setDebouncedSearch(search), 350); return () => clearTimeout(t); }, [search]);
 
   const checkAuth = async () => {
@@ -109,6 +112,14 @@ export default function AdminPage() {
       }
     } catch (e) { setError(e instanceof Error ? e.message : "Error"); }
     finally { setLoading(false); setRefreshing(false); }
+  };
+
+  const loadDownloadStats = async () => {
+    setDlLoading(true);
+    try {
+      const res = await fetch("/api/admin/download-stats");
+      if (res.ok) { const d = await res.json(); setDlStats(d); }
+    } finally { setDlLoading(false); }
   };
 
   const loadPromoCodes = async () => {
@@ -261,7 +272,7 @@ export default function AdminPage() {
 
         {/* TABS */}
         <div style={{ display:"flex", gap:"8px", marginBottom:"24px", borderBottom:"1px solid #1a1a2e", paddingBottom:"0" }}>
-          {([["users","👥 Usuarios"],["promos","🎟️ Códigos Promo"]] as const).map(([tab, label]) => (
+          {([["users","👥 Usuarios"],["promos","🎟️ Códigos Promo"],["downloads","📥 Descargas"]] as const).map(([tab, label]) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               style={{ padding:"10px 18px", borderRadius:"10px 10px 0 0", border:"1px solid", borderBottom:"none", borderColor: activeTab===tab ? "#007ABF" : "transparent", background: activeTab===tab ? "#007ABF18" : "transparent", color: activeTab===tab ? "#56B4E0" : "#5a6480", fontSize:"13px", fontWeight: activeTab===tab ? 700 : 500, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" }}>
               {label}
@@ -552,6 +563,77 @@ export default function AdminPage() {
           </button>
         </div>
         </>}
+
+        {/* ═══════════════════ TAB: DESCARGAS ═══════════════════ */}
+        {activeTab === "downloads" && (
+          <div style={{ animation:"fi 0.3s ease-out" }}>
+            {dlLoading ? (
+              <div style={{ textAlign:"center", padding:"40px", color:"#5a6480" }}>Cargando estadisticas...</div>
+            ) : dlStats ? (
+              <>
+                {/* Grand total */}
+                <div style={{ background:"linear-gradient(135deg, #007ABF18, #007ABF08)", border:"1px solid #007ABF30", borderRadius:"16px", padding:"24px", marginBottom:"20px", textAlign:"center" }}>
+                  <div style={{ fontSize:"42px", fontWeight:800, color:"#56B4E0" }}>{dlStats.grandTotal}</div>
+                  <div style={{ fontSize:"13px", color:"#8892a4", fontWeight:600, marginTop:"4px" }}>Descargas totales (todas las apps)</div>
+                </div>
+
+                {/* Per-app cards */}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))", gap:"16px", marginBottom:"24px" }}>
+                  {dlStats.apps.map((app) => {
+                    const gradients: Record<string, string> = {
+                      TrustInsta: "linear-gradient(135deg, #E1306C20, #F7773710)",
+                      TrustFace: "linear-gradient(135deg, #1877F220, #0d5bc410)",
+                      TrustFarm: "linear-gradient(135deg, #7b9bff20, #4f46e510)",
+                    };
+                    const colors: Record<string, string> = {
+                      TrustInsta: "#E1306C", TrustFace: "#1877F2", TrustFarm: "#7b9bff",
+                    };
+                    return (
+                      <div key={app.name} style={{ background: gradients[app.name] || "#0d0d1a", border:`1px solid ${(colors[app.name] || "#007ABF")}30`, borderRadius:"16px", padding:"22px" }}>
+                        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"16px" }}>
+                          <div>
+                            <div style={{ fontSize:"15px", fontWeight:700, color:"#f0efff" }}>{app.name} Desktop</div>
+                            <div style={{ fontSize:"11px", color:"#5a6480", marginTop:"2px" }}>Ultima: {app.latest || "—"}</div>
+                          </div>
+                          <div style={{ fontSize:"28px", fontWeight:800, color: colors[app.name] || "#56B4E0" }}>{app.total}</div>
+                        </div>
+                        <div style={{ display:"flex", gap:"12px", marginBottom:"14px" }}>
+                          <div style={{ flex:1, background:"#0a0a0f", borderRadius:"10px", padding:"10px 14px", textAlign:"center" }}>
+                            <div style={{ fontSize:"18px", fontWeight:700, color:"#f0efff" }}>{app.mac}</div>
+                            <div style={{ fontSize:"10px", color:"#5a6480", fontWeight:600, marginTop:"2px" }}>macOS</div>
+                          </div>
+                          <div style={{ flex:1, background:"#0a0a0f", borderRadius:"10px", padding:"10px 14px", textAlign:"center" }}>
+                            <div style={{ fontSize:"18px", fontWeight:700, color:"#f0efff" }}>{app.windows}</div>
+                            <div style={{ fontSize:"10px", color:"#5a6480", fontWeight:600, marginTop:"2px" }}>Windows</div>
+                          </div>
+                        </div>
+                        {/* Per-version breakdown */}
+                        <div style={{ fontSize:"11px", fontWeight:700, color:"#5a6480", marginBottom:"8px", textTransform:"uppercase", letterSpacing:"0.5px" }}>Por version</div>
+                        <div style={{ maxHeight:"180px", overflow:"auto" }}>
+                          {app.releases.filter(r => r.total > 0).map((r) => (
+                            <div key={r.version} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"6px 0", borderBottom:"1px solid #1a1a2e" }}>
+                              <div>
+                                <span style={{ fontSize:"12px", color:"#f0efff", fontWeight:600 }}>{r.version}</span>
+                                <span style={{ fontSize:"10px", color:"#3a3a5c", marginLeft:"8px" }}>{new Date(r.date).toLocaleDateString("es", { day:"2-digit", month:"short" })}</span>
+                              </div>
+                              <div style={{ display:"flex", gap:"10px", fontSize:"11px" }}>
+                                <span style={{ color:"#8892a4" }}>Mac: {r.mac}</span>
+                                <span style={{ color:"#8892a4" }}>Win: {r.windows}</span>
+                                <span style={{ color: colors[app.name] || "#56B4E0", fontWeight:700 }}>{r.total}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <div style={{ textAlign:"center", padding:"40px", color:"#5a6480" }}>No se pudieron cargar las estadisticas</div>
+            )}
+          </div>
+        )}
 
       </div>
     </div>
