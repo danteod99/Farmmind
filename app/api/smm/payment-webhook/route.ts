@@ -63,7 +63,7 @@ export async function POST(req: Request) {
       .eq("id", tx.id);
 
     // Acreditar cuando el pago está finalizado, o partially_paid con >= 90% del monto
-    const actuallyPaidUsd = parseFloat(body.actually_paid_at_fiat || "0") || parseFloat(body.outcome_amount || "0") || 0;
+    const actuallyPaidUsd = parseFloat(data.actually_paid_at_fiat || "0") || parseFloat(data.outcome_amount || "0") || 0;
     const targetAmount = parseFloat(price_amount) || tx.amount;
     const paidEnough = payment_status === "partially_paid" && actuallyPaidUsd >= targetAmount * 0.9;
     const shouldCredit =
