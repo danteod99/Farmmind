@@ -92,11 +92,11 @@ const APPS = [
       { icon: Globe, text: "Whitelabel para distribuidores" },
     ],
     downloads: {
-      mac: { label: "macOS (Apple Silicon)", size: "8.6 MB", url: "https://github.com/danteod99/trustfarm-releases/releases/download/v1.1.1/TrustFarm_1.1.1_aarch64.dmg" },
+      mac: { label: "macOS (Apple Silicon)", size: "Proximamente", url: "#" },
       macIntel: { label: "macOS (Intel)", size: "Proximamente", url: "#" },
-      windows: { label: "Windows x64", size: "4.4 MB", url: "https://github.com/danteod99/trustfarm-releases/releases/download/v1.1.1/TrustFarm_1.1.1_x64-setup.exe" },
+      windows: { label: "Windows x64", size: "4.3 MB", url: "https://github.com/danteod99/trustfarm-releases/releases/download/v2.12.0/TrustFarm_2.12.0_x64-setup.exe" },
     },
-    version: "1.1.1",
+    version: "2.12.0",
     requirements: [
       "macOS 12+ o Windows 10+",
       "4 GB RAM minimo",
