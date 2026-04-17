@@ -40,11 +40,11 @@ const APPS = [
       { icon: Zap, text: "CapSolver integrado para captchas" },
     ],
     downloads: {
-      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.4.8/TrustInsta-Desktop-1.4.8-arm64.dmg" },
+      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.4.9/TrustInsta-Desktop-1.4.9-arm64.dmg" },
       macIntel: { label: "macOS (Intel)", size: "Proximamente", url: "#" },
-      windows: { label: "Windows x64", size: "95 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.4.8/TrustInsta-Desktop-Setup-1.4.8.exe" },
+      windows: { label: "Windows x64", size: "95 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.4.9/TrustInsta-Desktop-Setup-1.4.9.exe" },
     },
-    version: "1.4.8",
+    version: "1.4.9",
     requirements: ["macOS 12+ o Windows 10+", "4 GB RAM minimo", "500 MB espacio en disco"],
   },
   {
@@ -66,11 +66,11 @@ const APPS = [
       { icon: Shield, text: "Warm-up y programador de tareas" },
     ],
     downloads: {
-      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.4.6/TrustFace-Desktop-1.4.6-arm64.dmg" },
+      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.4.7/TrustFace-Desktop-1.4.7-arm64.dmg" },
       macIntel: { label: "macOS (Intel)", size: "Proximamente", url: "#" },
-      windows: { label: "Windows x64", size: "95 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.4.6/TrustFace-Desktop-Setup-1.4.6.exe" },
+      windows: { label: "Windows x64", size: "95 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.4.7/TrustFace-Desktop-Setup-1.4.7.exe" },
     },
-    version: "1.4.6",
+    version: "1.4.7",
     requirements: ["macOS 12+ o Windows 10+", "4 GB RAM minimo", "500 MB espacio en disco"],
   },
   {
