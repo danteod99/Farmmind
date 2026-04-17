@@ -265,6 +265,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 /* ------------------------------------------------------------------ */
 
 export default function SoftwarePage() {
+  const [mobileMenu, setMobileMenu] = useState(false);
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--foreground)" }}>
       {/* NAV */}
@@ -284,27 +285,51 @@ export default function SoftwarePage() {
             <FarmMindLogo size={28} />
           </Link>
           <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
-            <a href="#features" style={{ color: "var(--text-2)", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Features</a>
-            <a href="#pricing" style={{ color: "var(--text-2)", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Pricing</a>
-            <a href="#reviews" style={{ color: "var(--text-2)", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Reviews</a>
-            <a href="#faq" style={{ color: "var(--text-2)", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>FAQ</a>
-            <Link
-              href="/downloads"
-              style={{
-                background: "var(--accent)",
-                color: "#fff",
-                padding: "8px 20px",
-                borderRadius: 10,
-                fontSize: 14,
-                fontWeight: 600,
-                textDecoration: "none",
-              }}
+            <style>{`@media (max-width: 768px) { .sw-nav-links { display: none !important; } .sw-hamburger { display: flex !important; } } @media (min-width: 769px) { .sw-hamburger { display: none !important; } .sw-mobile-menu { display: none !important; } }`}</style>
+            <div className="sw-nav-links" style={{ display: "flex", gap: 32, alignItems: "center" }}>
+              <a href="#features" style={{ color: "var(--text-2)", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Features</a>
+              <a href="#pricing" style={{ color: "var(--text-2)", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Pricing</a>
+              <a href="#reviews" style={{ color: "var(--text-2)", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>Reviews</a>
+              <a href="#faq" style={{ color: "var(--text-2)", textDecoration: "none", fontSize: 14, fontWeight: 500 }}>FAQ</a>
+              <Link
+                href="/downloads"
+                style={{
+                  background: "var(--accent)",
+                  color: "#fff",
+                  padding: "8px 20px",
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                }}
+              >
+                Descargar
+              </Link>
+            </div>
+            <button
+              className="sw-hamburger"
+              onClick={() => setMobileMenu(!mobileMenu)}
+              style={{ display: "none", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, background: mobileMenu ? "var(--accent-glow)" : "transparent", border: `1px solid ${mobileMenu ? "var(--accent)" : "rgba(255,255,255,0.1)"}`, color: mobileMenu ? "var(--accent-light)" : "var(--text-2)", cursor: "pointer" }}
             >
-              Descargar
-            </Link>
+              {mobileMenu ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              )}
+            </button>
           </div>
         </div>
       </nav>
+      {/* Mobile menu */}
+      {mobileMenu && (
+        <div className="sw-mobile-menu" style={{ position: "sticky", top: 56, zIndex: 49, background: "rgba(5,5,8,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "16px 24px", display: "flex", flexDirection: "column", gap: 12 }}>
+          <a href="#features" onClick={() => setMobileMenu(false)} style={{ fontSize: 14, color: "var(--text-2)", textDecoration: "none", fontWeight: 500, padding: "8px 0" }}>Features</a>
+          <a href="#pricing" onClick={() => setMobileMenu(false)} style={{ fontSize: 14, color: "var(--text-2)", textDecoration: "none", fontWeight: 500, padding: "8px 0" }}>Pricing</a>
+          <a href="#reviews" onClick={() => setMobileMenu(false)} style={{ fontSize: 14, color: "var(--text-2)", textDecoration: "none", fontWeight: 500, padding: "8px 0" }}>Reviews</a>
+          <a href="#faq" onClick={() => setMobileMenu(false)} style={{ fontSize: 14, color: "var(--text-2)", textDecoration: "none", fontWeight: 500, padding: "8px 0" }}>FAQ</a>
+          <Link href="/downloads" style={{ display: "block", textAlign: "center", background: "var(--accent)", color: "#fff", padding: "10px 20px", borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: "none", marginTop: 4 }}>Descargar</Link>
+        </div>
+      )}
 
       {/* HERO */}
       <section style={{ padding: "100px 24px 60px", textAlign: "center", position: "relative", overflow: "hidden" }}>

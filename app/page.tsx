@@ -150,6 +150,7 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
 
 function LoginScreen() {
   const [loading, setLoading] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const handleGoogleLogin = async () => {
     setLoading(true);
     await supabase.auth.signInWithOAuth({
@@ -327,7 +328,8 @@ function LoginScreen() {
         .pricing-card:hover { transform: translateY(-2px); }
         .stat-item { transition: all 0.3s ease; }
         .stat-item:hover { transform: scale(1.05); }
-        @media (max-width: 768px) { .hero-grid { grid-template-columns: 1fr !important; } .pricing-grid { grid-template-columns: 1fr !important; } .stats-grid { grid-template-columns: repeat(2, 1fr) !important; } .nav-links { display: none !important; } }
+        @media (max-width: 768px) { .hero-grid { grid-template-columns: 1fr !important; } .pricing-grid { grid-template-columns: 1fr !important; } .stats-grid { grid-template-columns: repeat(2, 1fr) !important; } .nav-links { display: none !important; } .nav-hamburger { display: flex !important; } }
+        @media (min-width: 769px) { .nav-hamburger { display: none !important; } .nav-mobile-menu { display: none !important; } }
       `}</style>
 
       {/* === NAVBAR === */}
@@ -346,8 +348,32 @@ function LoginScreen() {
             <a href="https://www.skool.com/artificial-humans-7653/about" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Comunidad ↗</a>
           </div>
           <GoogleButton />
+          {/* Hamburger — mobile only */}
+          <button
+            className="nav-hamburger"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{ display: "none", alignItems: "center", justifyContent: "center", width: "40px", height: "40px", borderRadius: "10px", background: mobileMenuOpen ? "#007ABF20" : "transparent", border: `1px solid ${mobileMenuOpen ? "#007ABF50" : "#2a2a42"}`, color: mobileMenuOpen ? "#56B4E0" : "#94a3b8", cursor: "pointer" }}
+          >
+            {mobileMenuOpen ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            )}
+          </button>
         </div>
       </nav>
+      {/* Mobile menu dropdown */}
+      {mobileMenuOpen && (
+        <div className="nav-mobile-menu" style={{ position: "sticky", top: "72px", zIndex: 49, background: "rgba(5,5,8,0.95)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "16px 24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+          <a href="#features" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, padding: "8px 0" }}>Features</a>
+          <a href="#software" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, padding: "8px 0" }}>Software</a>
+          <a href="#pricing" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, padding: "8px 0" }}>Precios</a>
+          <a href="https://www.skool.com/artificial-humans-7653/about" target="_blank" rel="noreferrer" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, padding: "8px 0" }}>Comunidad ↗</a>
+          <div style={{ paddingTop: "8px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <GoogleButton large />
+          </div>
+        </div>
+      )}
 
       {/* === HERO === */}
       <section style={{ position: "relative", overflow: "hidden", padding: "clamp(60px, 10vw, 120px) 32px clamp(60px, 8vw, 100px)", textAlign: "center" }}>
