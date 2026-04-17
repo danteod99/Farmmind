@@ -65,8 +65,13 @@ export async function POST(
       .eq("user_id", user.id);
 
     // Credit balance if finished/confirmed
+    // Credit if finished/confirmed, or partially_paid with >= 90% of target
+    const actuallyPaidUsd = parseFloat(npData.actually_paid_at_fiat || "0") || parseFloat(npData.outcome_amount || "0") || 0;
+    const targetAmt = parseFloat(npData.price_amount || "0");
+    const paidEnough = npData.payment_status === "partially_paid" && targetAmt > 0 && actuallyPaidUsd >= targetAmt * 0.9;
     const creditStatuses = ["finished", "confirmed"];
-    if (creditStatuses.includes(npData.payment_status)) {
+    const shouldCreditPartial = paidEnough;
+    if (creditStatuses.includes(npData.payment_status) || shouldCreditPartial) {
       // Get the transaction
       const { data: tx } = await admin
         .from("smm_transactions")

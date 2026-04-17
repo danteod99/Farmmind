@@ -81,9 +81,12 @@ export async function POST(req: Request) {
       })
       .eq("id", tx.id);
 
-    // Acreditar solo si el pago está completamente finalizado (NO partially_paid)
+    // Acreditar si el pago está finalizado o parcialmente pagado (>= 90% del monto)
+    const actuallyPaidUsd = parseFloat(npData.actually_paid_at_fiat || "0") || parseFloat(npData.outcome_amount || "0") || 0;
+    const targetAmount = parseFloat(price_amount) || tx.amount;
+    const paidEnough = payment_status === "partially_paid" && actuallyPaidUsd >= targetAmount * 0.9;
     const shouldCredit =
-      (payment_status === "finished" || payment_status === "confirmed") &&
+      (payment_status === "finished" || payment_status === "confirmed" || paidEnough) &&
       tx.credited !== true;
 
     if (shouldCredit) {
