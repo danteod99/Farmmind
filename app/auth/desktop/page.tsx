@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 export default function DesktopAuthPage() {
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const hash = window.location.hash.substring(1);
@@ -16,10 +17,42 @@ export default function DesktopAuthPage() {
     if (accessToken && refreshToken) {
       const code = btoa(JSON.stringify({ a: accessToken, r: refreshToken }));
       setToken(code);
+      setLoading(false);
+      return;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("start") === "1") {
+      startOAuth();
     } else {
-      setError("No se encontraron los tokens de autenticacion.");
+      setLoading(false);
     }
   }, []);
+
+  const startOAuth = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        { auth: { flowType: "implicit" } }
+      );
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/desktop`,
+        },
+      });
+      if (oauthError) {
+        setError(oauthError.message);
+        setLoading(false);
+      }
+    } catch (e) {
+      setError(String(e));
+      setLoading(false);
+    }
+  };
 
   const copyToken = () => {
     navigator.clipboard.writeText(token);
@@ -28,10 +61,19 @@ export default function DesktopAuthPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#07070e", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "system-ui" }}>
       <div style={{ background: "#12121e", border: "1px solid #2a2a42", borderRadius: 20, padding: 40, maxWidth: 480, textAlign: "center" }}>
-        {error ? (
+        {loading ? (
+          <>
+            <div style={{ width: 48, height: 48, borderRadius: "50%", border: "3px solid #007ABF", borderTopColor: "transparent", margin: "0 auto 20px", animation: "spin 1s linear infinite" }} />
+            <p style={{ color: "white", fontSize: 16, fontWeight: 600 }}>Redirecting to Google...</p>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </>
+        ) : error ? (
           <>
             <p style={{ color: "#f87171", fontSize: 16, marginBottom: 12 }}>{error}</p>
-            <p style={{ color: "#5a6480", fontSize: 13 }}>Intenta de nuevo desde TrustFarm.</p>
+            <button onClick={startOAuth}
+              style={{ background: "#007ABF", color: "white", border: "none", borderRadius: 10, padding: "12px 32px", fontSize: 14, fontWeight: 700, cursor: "pointer", marginTop: 8 }}>
+              Try again
+            </button>
           </>
         ) : token ? (
           <>
@@ -56,7 +98,16 @@ export default function DesktopAuthPage() {
             </p>
           </>
         ) : (
-          <p style={{ color: "#5a6480" }}>Procesando autenticacion...</p>
+          <>
+            <h1 style={{ color: "white", fontSize: 22, fontWeight: 700, marginBottom: 8 }}>TrustFarm Desktop</h1>
+            <p style={{ color: "#5a6480", fontSize: 14, marginBottom: 24 }}>
+              Inicia sesion con Google para conectar tu cuenta.
+            </p>
+            <button onClick={startOAuth}
+              style={{ background: "#007ABF", color: "white", border: "none", borderRadius: 10, padding: "14px 32px", fontSize: 15, fontWeight: 700, cursor: "pointer", margin: "0 auto" }}>
+              Iniciar sesion con Google
+            </button>
+          </>
         )}
       </div>
     </div>
