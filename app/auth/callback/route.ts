@@ -64,6 +64,17 @@ export async function GET(request: Request) {
       return NextResponse.redirect(errorRedirect);
     }
 
+    // Desktop app login: redirect to /auth/desktop with tokens in hash
+    const isDesktop = searchParams.get("desktop") === "1";
+    if (isDesktop && session) {
+      const hashParams = new URLSearchParams({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token || "",
+        token_type: "bearer",
+      });
+      return NextResponse.redirect(`${origin}/auth/desktop#${hashParams.toString()}`);
+    }
+
     // If coming from a child panel, link user as reseller client
     if (panelSlug && session?.user) {
       try {
