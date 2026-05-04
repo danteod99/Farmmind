@@ -109,7 +109,7 @@ const PRICING = [
   },
   {
     name: "Pro",
-    price: "$99",
+    price: "$29",
     period: "/mes",
     profiles: "Perfiles ilimitados",
     highlight: true,
@@ -127,7 +127,7 @@ const PRICING = [
   },
   {
     name: "Lifetime",
-    price: "$499",
+    price: "$199",
     period: "pago unico",
     profiles: "Perfiles ilimitados",
     highlight: false,
