@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft, Copy, Check, Users, Wallet, Clock,
-  TrendingUp, Share2,
+  TrendingUp, Share2, ShoppingCart, Sparkles,
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { supabase } from "@/app/lib/supabase";
@@ -61,6 +61,7 @@ interface NetworkData {
   directs: DirectMember[];
   frontals: FrontalMember[];
   pendings: PendingMember[];
+  available_balance: number;
   commissions: {
     total_approved: number;
     total_pending: number;
@@ -235,12 +236,43 @@ export default function NetworkPage() {
           </div>
         )}
 
+        {/* SALDO DISPONIBLE - banner grande estilo /smm/funds */}
+        <section className="bg-gradient-to-br from-emerald-500/10 via-emerald-600/5 to-black border border-emerald-500/30 rounded-2xl p-6 sm:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-xs text-emerald-300/80 uppercase tracking-wider">
+                <Sparkles className="w-4 h-4" /> Saldo disponible
+              </div>
+              <div className="mt-2 text-4xl sm:text-5xl font-black text-emerald-400">
+                {formatMoney(data.available_balance)}
+              </div>
+              <p className="mt-1 text-sm text-white/60">
+                Tus comisiones se acreditan automáticamente como saldo. Úsalo para servicios SMM.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Link
+                href="/smm/services"
+                className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition"
+              >
+                <ShoppingCart className="w-4 h-4" /> Usar saldo
+              </Link>
+              <Link
+                href="/smm/funds"
+                className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition"
+              >
+                <Wallet className="w-4 h-4" /> Ver historial
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* Stats Row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatCard
-            icon={<Wallet className="w-5 h-5" />}
-            label="Comisiones aprobadas"
-            value={formatMoney(data.commissions.total_approved)}
+            icon={<TrendingUp className="w-5 h-5" />}
+            label="Comisiones acreditadas"
+            value={formatMoney(data.commissions.total_paid + data.commissions.total_approved)}
             color="text-emerald-400"
           />
           <StatCard
@@ -250,16 +282,16 @@ export default function NetworkPage() {
             color="text-yellow-400"
           />
           <StatCard
-            icon={<TrendingUp className="w-5 h-5" />}
-            label="Pagadas"
-            value={formatMoney(data.commissions.total_paid)}
-            color="text-blue-400"
-          />
-          <StatCard
             icon={<Users className="w-5 h-5" />}
             label="Directos"
             value={String(data.directs.length)}
             color="text-white"
+          />
+          <StatCard
+            icon={<Wallet className="w-5 h-5" />}
+            label="Total ganado"
+            value={formatMoney(data.commissions.total_all)}
+            color="text-blue-400"
           />
         </div>
 
@@ -441,14 +473,18 @@ export default function NetworkPage() {
         </section>
 
         {/* Footer info */}
-        <section className="text-xs text-white/40 border-t border-white/5 pt-4">
+        <section className="text-xs text-white/40 border-t border-white/5 pt-4 space-y-1">
           <p>
             <b className="text-white/60">Plan binario v1:</b> 15% bono directo por cada pago de un afiliado
             que invitaste. Los bonos de pata débil, matching y pool se activan en la próxima fase.
           </p>
-          <p className="mt-1">
+          <p>
             <b className="text-white/60">Pago para cobrar:</b> debes mantener tu suscripción activa
             ($200/mes) para recibir comisiones.
+          </p>
+          <p>
+            <b className="text-white/60">Acreditación instantánea:</b> cada comisión aprobada se suma
+            automáticamente a tu saldo SMM. Lo puedes usar en servicios o seguir acumulando.
           </p>
         </section>
       </main>

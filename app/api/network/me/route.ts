@@ -105,6 +105,13 @@ export async function GET() {
     .order("created_at", { ascending: false })
     .limit(10);
 
+  // Saldo disponible (smm_balances) — alimentado por trigger network_auto_credit_on_approve
+  const { data: balanceRow } = await sb
+    .from("smm_balances")
+    .select("balance")
+    .eq("user_id", userId)
+    .maybeSingle();
+
   return NextResponse.json({
     code,
     link: `${baseUrl}/r/${code}`,
@@ -112,6 +119,7 @@ export async function GET() {
     directs: (directs || []).map((d) => ({ ...d, email: emailsMap[d.user_id] || "" })),
     frontals: (frontals || []).map((f) => ({ ...f, email: emailsMap[f.user_id] || "" })),
     pendings: (pendings || []).map((p) => ({ ...p, email: emailsMap[p.user_id] || "" })),
+    available_balance: Number(balanceRow?.balance || 0),
     commissions: {
       total_approved: totalApproved,
       total_pending: totalPending,

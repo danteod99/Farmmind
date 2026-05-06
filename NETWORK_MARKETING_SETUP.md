@@ -5,7 +5,9 @@ Las fases siguientes (binario sobre pata débil, matching, pool) se construyen e
 
 ---
 
-## Que se entrega en este MVP
+## Que se entrega
+
+### Fase 1 - MVP
 
 - ✅ Link de invitación único por usuario: `trustmind.online/r/{CODIGO}`
 - ✅ Captura del sponsor en signup (pending placement)
@@ -14,22 +16,43 @@ Las fases siguientes (binario sobre pata débil, matching, pool) se construyen e
 - ✅ Bono directo 15% al sponsor cada vez que el directo paga (regla *pago para cobrar*)
 - ✅ Página `/network` con: link, árbol, directos, pendings, comisiones, historial
 - ✅ Idempotencia en webhook (no doble pago)
-- ❌ Bono binario sobre pata débil (Fase 2)
-- ❌ Matching multinivel (Fase 2)
-- ❌ Pool de rangos (Fase 2)
-- ❌ Compresión dinámica (Fase 2)
-- ❌ Pagos automáticos a afiliados via Stripe Connect (Fase 3)
+
+### Fase 2 - Saldo SMM integrado
+
+- ✅ Cada comisión aprobada se suma automáticamente al `smm_balances` del usuario
+- ✅ Cada comisión genera fila en `smm_transactions` tipo `commission`
+- ✅ El historial en `/smm/funds` distingue recargas crypto vs comisiones de red (badge verde 🎁)
+- ✅ Página `/network` muestra saldo disponible (mismo número que `/smm/funds`)
+- ✅ Botón directo "Usar saldo" → `/smm/services` para gastarlo en servicios
+- ✅ Trigger DB idempotente (no acredita 2 veces)
+- ✅ Backfill: comisiones approved previas se acreditan automáticamente al ejecutar el SQL
+
+### Fuera de alcance (Fase 3)
+
+- ❌ Bono binario sobre pata débil (10%) — necesita cron mensual + carry over
+- ❌ Matching multinivel (10%)
+- ❌ Pool de rangos (5%)
+- ❌ Compresión dinámica de uplines inactivos
+- ❌ Pagos automáticos en USDT/Stripe Connect (retiro de saldo a billetera externa)
 
 ---
 
 ## Despliegue (orden)
 
-### 1. Migración SQL en Supabase
+### 1. Migraciones SQL en Supabase
 
-Ir a **Supabase > SQL Editor** y ejecutar:
-```bash
+Ir a **Supabase > SQL Editor** y ejecutar **EN ORDEN**:
+
+```sql
+-- 1. Schema base (tablas + RPCs + RLS + seed comentado)
 supabase-network-marketing.sql
+
+-- 2. Integracion con saldo (trigger + auto-credit + backfill)
+supabase-network-balance-integration.sql
 ```
+
+> El segundo SQL incluye un bloque `DO $$` al final que hace **backfill** de comisiones existentes
+> aprobadas hacia el saldo. Es idempotente (solo procesa las que aún no se acreditaron).
 
 ### 2. Seed de los 4 socios fundadores
 

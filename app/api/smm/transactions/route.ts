@@ -34,10 +34,10 @@ export async function GET() {
     const admin = getSupabaseAdmin();
     const { data: transactions } = await admin
       .from("smm_transactions")
-      .select("id, amount, currency, status, created_at, payment_id, credited")
+      .select("id, amount, currency, status, created_at, payment_id, credited, tx_type, description, source_commission_id")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(30);
 
     return Response.json({ transactions: transactions || [] });
   } catch (error) {

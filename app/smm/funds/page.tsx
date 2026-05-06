@@ -32,6 +32,9 @@ interface Transaction {
   status: string;
   created_at: string;
   payment_id?: string;
+  tx_type?: string;        // 'crypto_topup' | 'commission' | 'manual_credit' | 'refund' | 'bonus'
+  description?: string;
+  source_commission_id?: string;
 }
 
 interface PaymentResult {
@@ -510,8 +513,12 @@ export default function FundsPage() {
                   <span style={{ fontSize: "13px", color: "white" }}>{transactions.filter(t => t.status === "finished").length}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "13px", color: "#64748b" }}>Total recargado</span>
-                  <span style={{ fontSize: "13px", color: "white" }}>${transactions.filter(t => t.status === "finished").reduce((s, t) => s + t.amount, 0).toFixed(2)}</span>
+                  <span style={{ fontSize: "13px", color: "#64748b" }}>Total recargado (crypto)</span>
+                  <span style={{ fontSize: "13px", color: "white" }}>${transactions.filter(t => t.status === "finished" && (!t.tx_type || t.tx_type === "crypto_topup")).reduce((s, t) => s + Number(t.amount), 0).toFixed(2)}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: "13px", color: "#64748b" }}>Comisiones de red</span>
+                  <span style={{ fontSize: "13px", color: "#10b981", fontWeight: 600 }}>${transactions.filter(t => t.tx_type === "commission").reduce((s, t) => s + Number(t.amount), 0).toFixed(2)}</span>
                 </div>
                 <div style={{ height: "1px", background: "#2d2d44", margin: "14px 0" }} />
                 <Link href="/smm/services" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "9px", borderRadius: "10px", background: "#007ABF20", color: "#56B4E0", fontSize: "13px", fontWeight: 600 }}>
@@ -524,19 +531,33 @@ export default function FundsPage() {
                 <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", overflow: "hidden" }}>
                   <div style={{ padding: "16px 20px", borderBottom: "1px solid #1e1e30", display: "flex", alignItems: "center", gap: "8px" }}>
                     <TrendingUp size={14} color="#64748b" />
-                    <p style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>Historial de recargas</p>
+                    <p style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>Historial de movimientos</p>
                   </div>
                   <div>
-                    {transactions.slice(0, 8).map((tx) => {
+                    {transactions.slice(0, 12).map((tx) => {
                       const s = STATUS_STYLE[tx.status] || STATUS_STYLE.waiting;
+                      const isCommission = tx.tx_type === "commission";
+                      const isCryptoTopup = !tx.tx_type || tx.tx_type === "crypto_topup";
+                      const labelLeft = isCommission
+                        ? (tx.description || "Comisión de red")
+                        : isCryptoTopup
+                          ? (tx.currency?.toUpperCase() || "USD")
+                          : (tx.description || tx.tx_type || "Movimiento");
+                      const sublabel = new Date(tx.created_at).toLocaleDateString("es-CO", { day: "numeric", month: "short" });
+                      const amountColor = isCommission ? "#10b981" : "white";
+                      const badge = isCommission
+                        ? { color: "#10b981", bg: "rgba(16,185,129,0.18)", label: "🎁 Comisión" }
+                        : isCryptoTopup
+                          ? s
+                          : s;
                       return (
                         <div key={tx.id} style={{ padding: "12px 20px", borderBottom: "1px solid #1a1a2e", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div>
-                            <p style={{ fontSize: "13px", fontWeight: 600, color: "white" }}>+${tx.amount.toFixed(2)}</p>
-                            <p style={{ fontSize: "11px", color: "#64748b" }}>{tx.currency?.toUpperCase()} · {new Date(tx.created_at).toLocaleDateString("es-CO", { day: "numeric", month: "short" })}</p>
+                            <p style={{ fontSize: "13px", fontWeight: 600, color: amountColor }}>+${tx.amount.toFixed(2)}</p>
+                            <p style={{ fontSize: "11px", color: "#64748b" }}>{labelLeft} · {sublabel}</p>
                           </div>
-                          <span style={{ fontSize: "11px", fontWeight: 600, color: s.color, background: s.bg, padding: "3px 8px", borderRadius: "6px" }}>
-                            {s.label}
+                          <span style={{ fontSize: "11px", fontWeight: 600, color: badge.color, background: badge.bg, padding: "3px 8px", borderRadius: "6px" }}>
+                            {badge.label}
                           </span>
                         </div>
                       );
