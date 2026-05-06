@@ -90,6 +90,43 @@ export async function POST(req: Request) {
         }
         break;
       }
+
+      case "invoice.paid":
+      case "invoice.payment_succeeded": {
+        // Bono Directo 15% al sponsor del que paga.
+        // Se ejecuta cada vez que se cobra la suscripcion (mes 1, mes 2, ...).
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+        const amountPaidUsd = (invoice.amount_paid || 0) / 100;
+        const invoiceId = invoice.id || `inv_${Date.now()}`;
+
+        if (amountPaidUsd > 0 && customerId) {
+          const { data: payerProfile } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("stripe_customer_id", customerId)
+            .maybeSingle();
+
+          if (payerProfile?.id) {
+            // Verificar si ya procesamos esta invoice (idempotencia)
+            const { data: existing } = await supabaseAdmin
+              .from("network_commissions")
+              .select("id")
+              .eq("source_payment", invoiceId)
+              .eq("type", "direct")
+              .maybeSingle();
+
+            if (!existing) {
+              await supabaseAdmin.rpc("network_grant_direct_bonus", {
+                p_payer_id: payerProfile.id,
+                p_payment_amount: amountPaidUsd,
+                p_invoice_id: invoiceId,
+              });
+            }
+          }
+        }
+        break;
+      }
     }
 
     return new Response("OK", { status: 200 });

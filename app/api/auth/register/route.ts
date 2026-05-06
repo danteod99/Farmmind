@@ -10,7 +10,7 @@ function getSupabaseAdmin() {
 
 export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, ref } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email y contraseña son requeridos" }, { status: 400 });
@@ -30,15 +30,36 @@ export async function POST(req: Request) {
     });
 
     if (error) {
-      // Handle duplicate email
       if (error.message.includes("already been registered") || error.message.includes("already exists")) {
         return NextResponse.json({ error: "Este correo ya tiene una cuenta. Intenta iniciar sesión." }, { status: 409 });
       }
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, user_id: data.user?.id });
-  } catch (e) {
+    const userId = data.user?.id;
+
+    // Si vino con codigo de referido, crear pending placement
+    if (userId && ref) {
+      const cleanRef = String(ref).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+      if (cleanRef) {
+        const { data: refRow } = await sb
+          .from("network_referral_codes")
+          .select("user_id")
+          .eq("code", cleanRef)
+          .maybeSingle();
+
+        if (refRow?.user_id && refRow.user_id !== userId) {
+          await sb.from("network_pending_placements").insert({
+            user_id: userId,
+            sponsor_id: refRow.user_id,
+            status: "pending",
+          });
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, user_id: userId });
+  } catch {
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }
