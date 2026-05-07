@@ -221,6 +221,7 @@ export default function FundsPage() {
             { href: "/smm/services", label: "Servicios" },
             { href: "/smm/orders", label: "Pedidos" },
             { href: "/smm/funds", label: "Recargar", active: true },
+            { href: "/network", label: "🌐 Mi Red" },
             { href: "/smm/ai", label: "🤖 Asistente IA" },
             { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
           ]}
