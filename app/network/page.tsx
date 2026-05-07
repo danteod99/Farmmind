@@ -6,10 +6,10 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft, Copy, Check, Users, Wallet, Clock,
+  Copy, Check, Users, Wallet, Clock,
   TrendingUp, Share2, ShoppingCart, Sparkles,
 } from "lucide-react";
-import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import { SmmNav } from "@/app/components/SmmNav";
 import { supabase } from "@/app/lib/supabase";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -97,6 +97,9 @@ export default function NetworkPage() {
   const [placing, setPlacing] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+  const [userAvatar, setUserAvatar] = useState("");
 
   // ── Auth check ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -107,7 +110,12 @@ export default function NetworkPage() {
         router.replace("/smm");
         return;
       }
-      if (mounted) setAuthReady(true);
+      if (mounted) {
+        setUserName(u.user.user_metadata?.full_name || u.user.email?.split("@")[0] || "Usuario");
+        setUserEmail(u.user.email || "");
+        setUserAvatar(u.user.user_metadata?.avatar_url || "");
+        setAuthReady(true);
+      }
     })();
     return () => { mounted = false; };
   }, [router]);
@@ -201,25 +209,20 @@ export default function NetworkPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="border-b border-white/10 bg-black/80 backdrop-blur sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-white/60 hover:text-white">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <FarmMindLogo />
-          </div>
-          <div className="flex items-center gap-4 text-sm">
-            <Link href="/profile" className="text-white/60 hover:text-white">
-              Mi perfil
-            </Link>
-            <Link href="/" className="text-white/60 hover:text-white">
-              Inicio
-            </Link>
-          </div>
-        </div>
-      </header>
+      <SmmNav
+        balance={data.available_balance}
+        userAvatar={userAvatar}
+        userName={userName}
+        userEmail={userEmail}
+        links={[
+          { href: "/smm/services", label: "Servicios" },
+          { href: "/smm/orders", label: "Pedidos" },
+          { href: "/smm/funds", label: "Recargar" },
+          { href: "/network", label: "🌐 Mi Red", active: true },
+          { href: "/smm/ai", label: "🤖 Asistente IA" },
+          { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+        ]}
+      />
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         {/* Title */}
