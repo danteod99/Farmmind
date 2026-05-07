@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Copy, Check, Users, Wallet, Clock,
-  TrendingUp, Share2, ShoppingCart, Sparkles,
+  TrendingUp, Share2, ShoppingCart, Sparkles, Lock, Zap,
 } from "lucide-react";
 import { SmmNav } from "@/app/components/SmmNav";
 import { supabase } from "@/app/lib/supabase";
@@ -62,6 +62,10 @@ interface NetworkData {
   frontals: FrontalMember[];
   pendings: PendingMember[];
   available_balance: number;
+  is_subscribed: boolean;
+  is_founder: boolean;
+  has_pending_placement: boolean;
+  sponsor_info: { user_id: string; display_name: string; email: string } | null;
   commissions: {
     total_approved: number;
     total_pending: number;
@@ -157,6 +161,23 @@ export default function NetworkPage() {
     });
   };
 
+  const startCheckout = async () => {
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/network/checkout", {
+        method: "POST",
+        credentials: "include",
+      });
+      const j = await res.json();
+      if (!res.ok || !j.url) {
+        throw new Error(j.error || "No se pudo iniciar el pago");
+      }
+      window.location.href = j.url;
+    } catch (e) {
+      setErrorMsg((e as Error).message);
+    }
+  };
+
   const placeUser = async (userId: string, leg: "left" | "right") => {
     setPlacing(userId);
     setErrorMsg(null);
@@ -237,6 +258,50 @@ export default function NetworkPage() {
           <div className="bg-red-500/10 border border-red-500/30 text-red-300 rounded-lg px-4 py-3 text-sm">
             {errorMsg}
           </div>
+        )}
+
+        {/* PAYWALL — usuario no suscrito y NO es fundador */}
+        {!data.is_subscribed && !data.is_founder && (
+          <section className="bg-gradient-to-br from-blue-700/20 via-blue-900/10 to-black border-2 border-blue-500/40 rounded-2xl p-6 sm:p-8">
+            {data.sponsor_info && (
+              <div className="text-sm text-blue-300/80 mb-3 flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Fuiste invitado por <b className="text-white">{data.sponsor_info.display_name}</b>
+              </div>
+            )}
+            <div className="flex items-start gap-4 mb-5">
+              <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
+                <Lock className="w-7 h-7" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Activa tu cuenta en la red</h2>
+                <p className="text-white/70 mt-1">
+                  Para acceder al curso, construir tu red y empezar a ganar comisiones, suscríbete por
+                  {" "}<b className="text-blue-300">$200/mes</b>.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+              <Benefit text="Acceso al curso completo de granjas de bots" />
+              <Benefit text="Tu propio link de invitación al activarte" />
+              <Benefit text="Bono directo del 15% por cada referido que pague" />
+              <Benefit text="Comisiones acreditadas como saldo SMM" />
+              <Benefit text="Bonos binario, matching y pool (próxima fase)" />
+              <Benefit text="Comunidad y soporte de los fundadores" />
+            </div>
+
+            <button
+              onClick={startCheckout}
+              className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold text-base flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/30"
+            >
+              <Zap className="w-5 h-5" /> Activar por $200/mes
+            </button>
+            <p className="text-xs text-white/40 mt-3">
+              Pago seguro con tarjeta (Stripe). Cancelas cuando quieras desde tu perfil.
+              Regla: <b>pago para cobrar</b> — solo recibes comisiones si tu suscripción está activa.
+            </p>
+          </section>
         )}
 
         {/* SALDO DISPONIBLE - banner grande estilo /smm/funds */}
@@ -496,6 +561,15 @@ export default function NetworkPage() {
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
+
+function Benefit({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-2 text-sm text-white/80">
+      <Check className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+      <span>{text}</span>
+    </div>
+  );
+}
 
 function StatCard({
   icon, label, value, color,

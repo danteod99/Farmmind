@@ -112,6 +112,41 @@ export async function GET() {
     .eq("user_id", userId)
     .maybeSingle();
 
+  // Estado de suscripcion + sponsor info para el paywall
+  const { data: profile } = await sb
+    .from("profiles")
+    .select("subscription_status, subscription_plan")
+    .eq("id", userId)
+    .maybeSingle();
+
+  const isSubscribed = profile?.subscription_status === "active" || profile?.subscription_plan === "pro";
+  const isFounder = myPos?.is_founder === true;
+
+  // Si tiene un pending placement, traer info del sponsor (para mostrar quien lo invito)
+  const { data: myPending } = await sb
+    .from("network_pending_placements")
+    .select("sponsor_id, status, created_at")
+    .eq("user_id", userId)
+    .eq("status", "pending")
+    .maybeSingle();
+
+  let sponsorInfo: { user_id: string; display_name: string; email: string } | null = null;
+  if (myPending?.sponsor_id) {
+    const { data: sponsorPos } = await sb
+      .from("network_positions")
+      .select("user_id, display_name")
+      .eq("user_id", myPending.sponsor_id)
+      .maybeSingle();
+    if (sponsorPos) {
+      const { data: u } = await sb.auth.admin.getUserById(sponsorPos.user_id);
+      sponsorInfo = {
+        user_id: sponsorPos.user_id,
+        display_name: sponsorPos.display_name || "Sponsor",
+        email: u.user?.email || "",
+      };
+    }
+  }
+
   return NextResponse.json({
     code,
     link: `${baseUrl}/r/${code}`,
@@ -120,6 +155,10 @@ export async function GET() {
     frontals: (frontals || []).map((f) => ({ ...f, email: emailsMap[f.user_id] || "" })),
     pendings: (pendings || []).map((p) => ({ ...p, email: emailsMap[p.user_id] || "" })),
     available_balance: Number(balanceRow?.balance || 0),
+    is_subscribed: Boolean(isSubscribed),
+    is_founder: isFounder,
+    has_pending_placement: Boolean(myPending),
+    sponsor_info: sponsorInfo,
     commissions: {
       total_approved: totalApproved,
       total_pending: totalPending,
