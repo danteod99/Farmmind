@@ -184,6 +184,7 @@ export async function GET(request: Request) {
         // ── Network marketing: capturar referido si vino con cookie 'ref' ──
         // Aplica solo a usuarios nuevos. Si existe la cookie 'ref' con codigo valido,
         // se crea un pending_placement para que el sponsor lo coloque en izq/der.
+        let cameWithReferral = false;
         if (isNewUser) {
           try {
             const cookieHeader = request.headers.get("cookie") || "";
@@ -200,7 +201,6 @@ export async function GET(request: Request) {
                 .maybeSingle();
 
               if (refRow?.user_id && refRow.user_id !== session.user.id) {
-                // Idempotente: solo inserta si no existe
                 const { data: existingPending } = await admin
                   .from("network_pending_placements")
                   .select("user_id")
@@ -220,6 +220,7 @@ export async function GET(request: Request) {
                     status: "pending",
                   });
                   console.log(`[Network] Pending placement creado: user=${session.user.id}, sponsor=${refRow.user_id}, ref=${refCode}`);
+                  cameWithReferral = true;
                 }
               }
             }
@@ -227,8 +228,12 @@ export async function GET(request: Request) {
             console.error("[Auth Callback] Error procesando referido:", e);
           }
 
-          // Redirect con flag y limpiando cookie ref
-          const response = NextResponse.redirect(`${origin}/smm/services?registered=1`);
+          // Si vino con referido -> redirigir a /network (paywall)
+          // Si no -> al panel SMM normal
+          const redirectUrl = cameWithReferral
+            ? `${origin}/network?registered=1`
+            : `${origin}/smm/services?registered=1`;
+          const response = NextResponse.redirect(redirectUrl);
           response.cookies.set("ref", "", { path: "/", maxAge: 0 });
           return response;
         }
