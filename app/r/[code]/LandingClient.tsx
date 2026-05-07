@@ -24,6 +24,13 @@ export default function LandingClient({ code, sponsor }: Props) {
   const [loading, setLoading] = useState(false);
   const [authenticated, setAuthenticated] = useState<boolean | null>(null);
 
+  // Setear cookie 'ref' en el cliente (server components no pueden setearla en render)
+  useEffect(() => {
+    if (typeof document !== "undefined" && code) {
+      document.cookie = `ref=${code}; path=/; max-age=${60 * 60 * 24 * 30}; SameSite=Lax; Secure`;
+    }
+  }, [code]);
+
   // Si ya está logueado, redirigir directo a /network (donde verá el paywall)
   useEffect(() => {
     let mounted = true;
@@ -31,7 +38,6 @@ export default function LandingClient({ code, sponsor }: Props) {
       const { data } = await supabase.auth.getUser();
       if (!mounted) return;
       if (data.user) {
-        // Ya logueado — pasar directo a /network
         router.replace("/network");
       } else {
         setAuthenticated(false);
