@@ -174,10 +174,63 @@ export async function GET(request: Request) {
           .eq("user_id", session.user.id)
           .single();
 
-        if (!bal) {
-          // New user — create balance and redirect with registration flag
+        const isNewUser = !bal;
+
+        if (isNewUser) {
+          // New user — create balance row
           await admin.from("smm_balances").insert({ user_id: session.user.id, balance: 0 });
-          return NextResponse.redirect(`${origin}/smm/services?registered=1`);
+        }
+
+        // ── Network marketing: capturar referido si vino con cookie 'ref' ──
+        // Aplica solo a usuarios nuevos. Si existe la cookie 'ref' con codigo valido,
+        // se crea un pending_placement para que el sponsor lo coloque en izq/der.
+        if (isNewUser) {
+          try {
+            const cookieHeader = request.headers.get("cookie") || "";
+            const refMatch = cookieHeader.match(/(?:^|;\s*)ref=([^;]+)/);
+            const refCode = refMatch
+              ? decodeURIComponent(refMatch[1]).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12)
+              : null;
+
+            if (refCode) {
+              const { data: refRow } = await admin
+                .from("network_referral_codes")
+                .select("user_id")
+                .eq("code", refCode)
+                .maybeSingle();
+
+              if (refRow?.user_id && refRow.user_id !== session.user.id) {
+                // Idempotente: solo inserta si no existe
+                const { data: existingPending } = await admin
+                  .from("network_pending_placements")
+                  .select("user_id")
+                  .eq("user_id", session.user.id)
+                  .maybeSingle();
+
+                const { data: existingPosition } = await admin
+                  .from("network_positions")
+                  .select("user_id")
+                  .eq("user_id", session.user.id)
+                  .maybeSingle();
+
+                if (!existingPending && !existingPosition) {
+                  await admin.from("network_pending_placements").insert({
+                    user_id: session.user.id,
+                    sponsor_id: refRow.user_id,
+                    status: "pending",
+                  });
+                  console.log(`[Network] Pending placement creado: user=${session.user.id}, sponsor=${refRow.user_id}, ref=${refCode}`);
+                }
+              }
+            }
+          } catch (e) {
+            console.error("[Auth Callback] Error procesando referido:", e);
+          }
+
+          // Redirect con flag y limpiando cookie ref
+          const response = NextResponse.redirect(`${origin}/smm/services?registered=1`);
+          response.cookies.set("ref", "", { path: "/", maxAge: 0 });
+          return response;
         }
       } catch (e) {
         console.error("[Auth Callback] Error checking new user:", e);
