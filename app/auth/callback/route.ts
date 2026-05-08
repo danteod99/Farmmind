@@ -2,6 +2,62 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import Stripe from "stripe";
+
+async function createCheckoutSessionUrl(
+  userId: string,
+  userEmail: string,
+  userName: string,
+  origin: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+): Promise<string | null> {
+  const priceId =
+    process.env.NEXT_PUBLIC_STRIPE_NETWORK_PRICE_ID ||
+    process.env.STRIPE_NETWORK_PRICE_ID;
+  if (!priceId || !process.env.STRIPE_SECRET_KEY) return null;
+
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2026-02-25.clover",
+    });
+
+    // Buscar/crear customer
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    let customerId: string | undefined = profile?.stripe_customer_id;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: userEmail,
+        name: userName,
+        metadata: { supabase_user_id: userId },
+      });
+      customerId = customer.id;
+      await admin.from("profiles").upsert({ id: userId, stripe_customer_id: customerId });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/network?payment=success`,
+      cancel_url: `${origin}/network?payment=cancel`,
+      subscription_data: {
+        metadata: { supabase_user_id: userId, plan_type: "network" },
+      },
+    });
+
+    return session.url;
+  } catch (e) {
+    console.error("[Auth Callback] Stripe checkout error:", e);
+    return null;
+  }
+}
 
 export async function GET(request: Request) {
   const fullUrl = request.url;
@@ -228,11 +284,21 @@ export async function GET(request: Request) {
             console.error("[Auth Callback] Error procesando referido:", e);
           }
 
-          // Si vino con referido -> redirigir a /network (paywall)
-          // Si no -> al panel SMM normal
-          const redirectUrl = cameWithReferral
-            ? `${origin}/network?registered=1`
-            : `${origin}/smm/services?registered=1`;
+          // Si vino con referido -> intentar mandar directo al Stripe Checkout.
+          // Si falla la creacion del checkout, caemos a /network donde ve el paywall.
+          let redirectUrl: string;
+          if (cameWithReferral) {
+            const checkoutUrl = await createCheckoutSessionUrl(
+              session.user.id,
+              session.user.email || "",
+              session.user.user_metadata?.full_name || session.user.email || "Usuario",
+              origin,
+              admin,
+            );
+            redirectUrl = checkoutUrl || `${origin}/network?registered=1`;
+          } else {
+            redirectUrl = `${origin}/smm/services?registered=1`;
+          }
           const response = NextResponse.redirect(redirectUrl);
           response.cookies.set("ref", "", { path: "/", maxAge: 0 });
           return response;
