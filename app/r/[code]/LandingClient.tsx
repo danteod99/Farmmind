@@ -19,10 +19,17 @@ interface Props {
   sponsor: SponsorData | null;
 }
 
+type AuthState =
+  | { kind: "loading" }
+  | { kind: "guest" }
+  | { kind: "logged_unsubscribed" }
+  | { kind: "logged_founder" }
+  | { kind: "logged_subscribed" };
+
 export default function LandingClient({ code, sponsor }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
+  const [auth, setAuth] = useState<AuthState>({ kind: "loading" });
 
   // Setear cookie 'ref' en el cliente (server components no pueden setearla en render)
   useEffect(() => {
@@ -31,30 +38,80 @@ export default function LandingClient({ code, sponsor }: Props) {
     }
   }, [code]);
 
-  // Si ya está logueado, redirigir directo a /network (donde verá el paywall)
+  // Detectar estado: invitado / logueado-sin-suscribir / fundador / suscriptor
   useEffect(() => {
     let mounted = true;
     (async () => {
       const { data } = await supabase.auth.getUser();
       if (!mounted) return;
-      if (data.user) {
-        router.replace("/network");
-      } else {
-        setAuthenticated(false);
+
+      if (!data.user) {
+        setAuth({ kind: "guest" });
+        return;
+      }
+
+      // Logueado: pedir info de su estado en la red
+      try {
+        const res = await fetch("/api/network/me", { credentials: "include" });
+        if (!res.ok) {
+          setAuth({ kind: "logged_unsubscribed" });
+          return;
+        }
+        const j = await res.json();
+        if (j.is_founder) setAuth({ kind: "logged_founder" });
+        else if (j.is_subscribed) setAuth({ kind: "logged_subscribed" });
+        else setAuth({ kind: "logged_unsubscribed" });
+      } catch {
+        setAuth({ kind: "logged_unsubscribed" });
       }
     })();
     return () => { mounted = false; };
-  }, [router]);
+  }, []);
 
-  const handleGoogleSignup = async () => {
+  const handlePrimaryCta = async () => {
     setLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+    if (auth.kind === "guest") {
+      // Crear cuenta -> OAuth -> callback -> /network
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+      return;
+    }
+    if (auth.kind === "logged_unsubscribed") {
+      // Ya logueado pero no pagó: ir directo a Stripe Checkout
+      try {
+        const res = await fetch("/api/network/checkout", {
+          method: "POST",
+          credentials: "include",
+        });
+        const j = await res.json();
+        if (j.url) {
+          window.location.href = j.url;
+        } else {
+          alert(j.error || "No se pudo iniciar el pago");
+          setLoading(false);
+        }
+      } catch {
+        alert("Error conectando con Stripe");
+        setLoading(false);
+      }
+      return;
+    }
+    if (auth.kind === "logged_subscribed" || auth.kind === "logged_founder") {
+      router.push("/network");
+    }
   };
 
-  if (authenticated === null) {
+  const ctaLabel =
+    auth.kind === "loading"          ? "Cargando..."
+    : auth.kind === "guest"          ? "Crear cuenta y activar"
+    : auth.kind === "logged_unsubscribed" ? "Activar por $200/mes"
+    : auth.kind === "logged_founder" ? "Ir a mi panel (eres fundador)"
+    : auth.kind === "logged_subscribed" ? "Ya estás activo — ir a mi panel"
+    : "Comenzar";
+
+  if (auth.kind === "loading") {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-blue-400">Cargando...</div>
@@ -146,18 +203,33 @@ export default function LandingClient({ code, sponsor }: Props) {
 
           {/* CTA */}
           <button
-            onClick={handleGoogleSignup}
+            onClick={handlePrimaryCta}
             disabled={loading}
-            className="mt-10 w-full flex items-center justify-center gap-3 px-8 py-5 bg-white text-black font-bold text-base rounded-2xl hover:bg-gray-100 transition disabled:opacity-50 shadow-lg"
+            className="mt-10 w-full flex items-center justify-center gap-3 px-8 py-5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-base rounded-2xl transition disabled:opacity-50 shadow-lg shadow-blue-500/30"
           >
-            <GoogleIcon />
-            {loading ? "Conectando..." : "Crear cuenta con Google"}
+            {auth.kind === "guest" && <GoogleIcon />}
+            {auth.kind === "logged_unsubscribed" && <Zap className="w-5 h-5" />}
+            {loading ? "Conectando..." : ctaLabel}
           </button>
 
           <div className="mt-4 text-center text-xs text-white/40">
-            Después de crear tu cuenta, completas el pago seguro de $200
-            <br />
-            y quedas activo en la red al instante.
+            {auth.kind === "guest" && (
+              <>
+                Login rápido con Google. Después completas el pago seguro de $200
+                <br />y quedas activo en la red al instante.
+              </>
+            )}
+            {auth.kind === "logged_unsubscribed" && (
+              <>
+                Pago seguro con tarjeta vía Stripe. Cancelas cuando quieras.
+              </>
+            )}
+            {auth.kind === "logged_founder" && (
+              <>Tienes acceso de fundador, no necesitas pagar suscripción.</>
+            )}
+            {auth.kind === "logged_subscribed" && (
+              <>Tu suscripción ya está activa. Comparte tu link para empezar a ganar.</>
+            )}
           </div>
         </section>
 
