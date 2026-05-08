@@ -625,7 +625,6 @@ export default function ServicesPage() {
           userEmail={userEmail}
           links={[
             { href: "/smm/services", label: "Servicios", active: true },
-            { href: "/smm/orders", label: "Pedidos" },
             { href: "/smm/funds", label: "Recargar" },
             { href: "/network", label: "🌐 Mi Red" },
             { href: "/cursos", label: "📚 Mis Cursos" },
@@ -682,6 +681,35 @@ export default function ServicesPage() {
           <span style={{ fontSize: 16 }}>→</span>
           <span style={{ fontSize: 11, opacity: 0.8, textDecoration: "underline" }}>Descargar gratis</span>
         </a>
+
+        {/* ━━━ SUB-TABS: Servicios / Pedidos ━━━ */}
+        <div style={{ borderBottom: "1px solid #1e1e30", background: "#070710" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 4, padding: "0 16px" }}>
+            <Link href="/smm/services" style={{
+              padding: "12px 18px",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#56B4E0",
+              borderBottom: "2px solid #007ABF",
+              textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              <Package size={14} /> Servicios
+            </Link>
+            <Link href="/smm/orders" style={{
+              padding: "12px 18px",
+              fontSize: 13,
+              fontWeight: 500,
+              color: "#94a3b8",
+              borderBottom: "2px solid transparent",
+              textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 6,
+              transition: "color 0.15s",
+            }}>
+              <ShoppingCart size={14} /> Mis Pedidos
+            </Link>
+          </div>
+        </div>
 
         {/* ━━━ AI ASSISTANT ━━━ */}
         <div style={{
