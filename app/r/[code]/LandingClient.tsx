@@ -86,16 +86,26 @@ export default function LandingClient({ code, sponsor }: Props) {
 
         {/* Hero */}
         <h1 className="text-4xl sm:text-6xl font-black leading-[1.05] tracking-tight">
-          Únete a la red de
-          <br />
+          Gana hasta{" "}
           <span className="bg-gradient-to-r from-blue-400 via-blue-500 to-cyan-400 bg-clip-text text-transparent">
-            TrustMind
+            40% de comisión
           </span>
+          <br />
+          construyendo tu red.
         </h1>
         <p className="mt-5 text-lg text-white/70 max-w-2xl">
-          Acceso completo al curso de granjas de bots + sistema de red de mercadeo
-          binaria. Construye tu downline y gana comisiones reales en saldo gastable.
+          Acceso al curso de granjas de bots + sistema de red de mercadeo binaria.
+          De cada $200 que pague tu downline, <b className="text-blue-300">hasta el 40%</b> se
+          reparte como comisión a la red. Tú cobras en saldo gastable.
         </p>
+
+        {/* Distribucion del 40% */}
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <CommissionPill pct="15%" label="Bono directo" highlight />
+          <CommissionPill pct="10%" label="Binario" />
+          <CommissionPill pct="10%" label="Matching" />
+          <CommissionPill pct="5%" label="Pool de rangos" />
+        </div>
 
         {/* Pricing card */}
         <section className="mt-10 bg-gradient-to-br from-blue-900/30 via-blue-800/10 to-black border-2 border-blue-500/40 rounded-3xl p-6 sm:p-10 shadow-2xl shadow-blue-900/20">
@@ -124,8 +134,8 @@ export default function LandingClient({ code, sponsor }: Props) {
             />
             <Benefit
               icon={<Wallet className="w-5 h-5" />}
-              title="15% bono directo"
-              desc="Por cada referido que pague su mensualidad"
+              title="Hasta 40% en comisiones"
+              desc="15% directo + 10% binario + 10% matching + 5% pool"
             />
             <Benefit
               icon={<ShieldCheck className="w-5 h-5" />}
@@ -195,6 +205,25 @@ export default function LandingClient({ code, sponsor }: Props) {
           © {new Date().getFullYear()} TrustMind · Scaling Tech Farm LLC
         </div>
       </footer>
+    </div>
+  );
+}
+
+function CommissionPill({
+  pct, label, highlight = false,
+}: { pct: string; label: string; highlight?: boolean }) {
+  return (
+    <div className={`rounded-xl border p-3 ${
+      highlight
+        ? "bg-blue-500/15 border-blue-500/40"
+        : "bg-white/5 border-white/10"
+    }`}>
+      <div className={`text-2xl font-black ${highlight ? "text-blue-300" : "text-white"}`}>
+        {pct}
+      </div>
+      <div className="text-[11px] uppercase tracking-wider text-white/50 mt-0.5">
+        {label}
+      </div>
     </div>
   );
 }
