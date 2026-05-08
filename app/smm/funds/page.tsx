@@ -219,7 +219,6 @@ export default function FundsPage() {
           userEmail={userEmail}
           links={[
             { href: "/smm/services", label: "Servicios" },
-            { href: "/smm/orders", label: "Pedidos" },
             { href: "/smm/funds", label: "Recargar", active: true },
             { href: "/network", label: "🌐 Mi Red" },
             { href: "/cursos", label: "📚 Mis Cursos" },

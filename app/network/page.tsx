@@ -237,7 +237,6 @@ export default function NetworkPage() {
         userEmail={userEmail}
         links={[
           { href: "/smm/services", label: "Servicios" },
-          { href: "/smm/orders", label: "Pedidos" },
           { href: "/smm/funds", label: "Recargar" },
           { href: "/network", label: "🌐 Mi Red", active: true },
           { href: "/cursos", label: "📚 Mis Cursos" },
