@@ -115,11 +115,18 @@ export async function GET() {
   // Estado de suscripcion + sponsor info para el paywall
   const { data: profile } = await sb
     .from("profiles")
-    .select("subscription_status, subscription_plan")
+    .select("subscription_status, subscription_plan, stripe_subscription_id")
     .eq("id", userId)
     .maybeSingle();
 
-  const isSubscribed = profile?.subscription_status === "active" || profile?.subscription_plan === "pro";
+  // Solo cuenta como suscrito si tiene plan 'pro' Y un stripe_subscription_id activo.
+  // El default de subscription_status en BD es 'active' aunque NO haya pagado,
+  // por eso no podemos confiar solo en eso.
+  const isSubscribed = (
+    profile?.subscription_plan === "pro" &&
+    Boolean(profile?.stripe_subscription_id) &&
+    (profile?.subscription_status === "active" || profile?.subscription_status === "trialing")
+  );
   const isFounder = myPos?.is_founder === true;
 
   // Si tiene un pending placement, traer info del sponsor (para mostrar quien lo invito)
