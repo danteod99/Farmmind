@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Copy, Check, Users, Wallet, Clock,
-  TrendingUp, Share2, ShoppingCart, Sparkles, Lock, Zap,
+  TrendingUp, Share2, ShoppingCart, Sparkles, Lock, Zap, Trash2,
 } from "lucide-react";
 import { SmmNav } from "@/app/components/SmmNav";
 import { supabase } from "@/app/lib/supabase";
@@ -178,6 +178,29 @@ export default function NetworkPage() {
       window.location.href = j.url;
     } catch (e) {
       setErrorMsg((e as Error).message);
+    }
+  };
+
+  const removeUser = async (userId: string, displayName: string) => {
+    if (!confirm(`¿Quitar a ${displayName} de tu red?\n\nEsto elimina su pendiente o posición. Si tiene gente debajo no se podrá quitar.`)) return;
+    setPlacing(userId);
+    setErrorMsg(null);
+    try {
+      const res = await fetch("/api/network/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ user_id: userId }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || "Error al quitar usuario");
+      }
+      await fetchData();
+    } catch (e) {
+      setErrorMsg((e as Error).message);
+    } finally {
+      setPlacing(null);
     }
   };
 
@@ -451,7 +474,7 @@ export default function NetworkPage() {
                     )}
                     <div className="text-xs text-white/40 mt-0.5">Registrado {formatDate(p.created_at)}</div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       disabled={placing === p.user_id || !p.has_paid}
                       onClick={() => placeUser(p.user_id, "left")}
@@ -467,6 +490,14 @@ export default function NetworkPage() {
                       title={!p.has_paid ? "Espera a que el usuario pague la suscripción" : (rightFrontal ? "Pata derecha ocupada (cae por spillover)" : "Colocar en derecha")}
                     >
                       Derecha →
+                    </button>
+                    <button
+                      disabled={placing === p.user_id}
+                      onClick={() => removeUser(p.user_id, memberDisplay(p.name, p.email))}
+                      className="px-2 py-1.5 bg-red-500/15 hover:bg-red-500/30 text-red-300 rounded text-xs font-semibold flex items-center gap-1 disabled:opacity-50"
+                      title="Quitar de mi red"
+                    >
+                      <Trash2 className="w-3 h-3" /> Quitar
                     </button>
                   </div>
                 </div>
@@ -494,6 +525,7 @@ export default function NetworkPage() {
                     <th className="text-left py-2">Pata</th>
                     <th className="text-left py-2">Bajo</th>
                     <th className="text-left py-2">Desde</th>
+                    <th className="text-right py-2">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -520,6 +552,16 @@ export default function NetworkPage() {
                           : "Spillover"}
                       </td>
                       <td className="py-2 text-white/40">{formatDate(d.created_at)}</td>
+                      <td className="py-2 text-right">
+                        <button
+                          disabled={placing === d.user_id}
+                          onClick={() => removeUser(d.user_id, memberDisplay(d.name, d.email))}
+                          className="px-2 py-1 bg-red-500/15 hover:bg-red-500/30 text-red-300 rounded text-xs font-semibold inline-flex items-center gap-1 disabled:opacity-50"
+                          title="Quitar de mi red"
+                        >
+                          <Trash2 className="w-3 h-3" /> Quitar
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
