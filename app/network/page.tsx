@@ -42,6 +42,7 @@ interface PendingMember {
   user_id: string;
   email: string;
   created_at: string;
+  has_paid: boolean;
 }
 
 interface CommissionRow {
@@ -419,32 +420,46 @@ export default function NetworkPage() {
               <Clock className="w-5 h-5" /> Pendientes de colocación ({data.pendings.length})
             </h2>
             <p className="text-sm text-white/60 mb-4">
-              Estos usuarios se registraron con tu link. Decide en qué pata los ubicas.
+              Estos usuarios se registraron con tu link. <b className="text-white/80">Solo los que ya pagaron</b> la suscripción
+              pueden ser colocados en la red. Si aún no han pagado, recuérdales activar su cuenta.
             </p>
             <div className="space-y-3">
               {data.pendings.map((p) => (
                 <div
                   key={p.user_id}
-                  className="bg-black/40 rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-3"
+                  className={`rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-3 ${
+                    p.has_paid ? "bg-black/40" : "bg-black/20 opacity-70"
+                  }`}
                 >
                   <div className="flex-1">
-                    <div className="font-medium">{maskEmail(p.email)}</div>
-                    <div className="text-xs text-white/40">Registrado {formatDate(p.created_at)}</div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium">{maskEmail(p.email)}</span>
+                      {p.has_paid ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300">
+                          <Check className="w-3 h-3" /> Pagó
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-yellow-500/20 text-yellow-300">
+                          <Clock className="w-3 h-3" /> Esperando pago
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs text-white/40 mt-0.5">Registrado {formatDate(p.created_at)}</div>
                   </div>
                   <div className="flex gap-2">
                     <button
-                      disabled={placing === p.user_id || Boolean(leftFrontal)}
+                      disabled={placing === p.user_id || !p.has_paid}
                       onClick={() => placeUser(p.user_id, "left")}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/30 rounded text-xs font-semibold"
-                      title={leftFrontal ? "Pata izquierda ocupada (cae por spillover)" : "Colocar en izquierda"}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed rounded text-xs font-semibold"
+                      title={!p.has_paid ? "Espera a que el usuario pague la suscripción" : (leftFrontal ? "Pata izquierda ocupada (cae por spillover)" : "Colocar en izquierda")}
                     >
                       {placing === p.user_id ? "..." : "← Izquierda"}
                     </button>
                     <button
-                      disabled={placing === p.user_id || Boolean(rightFrontal)}
+                      disabled={placing === p.user_id || !p.has_paid}
                       onClick={() => placeUser(p.user_id, "right")}
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/30 rounded text-xs font-semibold"
-                      title={rightFrontal ? "Pata derecha ocupada (cae por spillover)" : "Colocar en derecha"}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed rounded text-xs font-semibold"
+                      title={!p.has_paid ? "Espera a que el usuario pague la suscripción" : (rightFrontal ? "Pata derecha ocupada (cae por spillover)" : "Colocar en derecha")}
                     >
                       Derecha →
                     </button>
@@ -453,7 +468,7 @@ export default function NetworkPage() {
               ))}
             </div>
             <p className="text-xs text-white/40 mt-3">
-              Si tu pata ya está ocupada por un frontal, el usuario caerá automáticamente más abajo (spillover).
+              Cuando ambas patas están ocupadas, el nuevo usuario cae automáticamente más abajo (spillover).
             </p>
           </section>
         )}
