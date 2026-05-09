@@ -28,6 +28,7 @@ interface DirectMember {
   user_id: string;
   leg: "left" | "right" | null;
   email: string;
+  name: string;
   created_at: string;
   placement_parent_id: string | null;
 }
@@ -36,11 +37,13 @@ interface FrontalMember {
   user_id: string;
   leg: "left" | "right";
   email: string;
+  name: string;
 }
 
 interface PendingMember {
   user_id: string;
   email: string;
+  name: string;
   created_at: string;
   has_paid: boolean;
 }
@@ -85,11 +88,10 @@ function formatDate(s: string) {
   if (!s) return "";
   return new Date(s).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });
 }
-function maskEmail(email: string) {
-  if (!email) return "—";
-  const [u, d] = email.split("@");
-  if (!d) return email;
-  return `${u.slice(0, 3)}***@${d}`;
+function memberDisplay(name: string | undefined, email: string | undefined): string {
+  if (name && name.trim()) return name;
+  if (email && email.trim()) return email;
+  return "Usuario";
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
@@ -433,7 +435,7 @@ export default function NetworkPage() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium">{maskEmail(p.email)}</span>
+                      <span className="font-medium">{memberDisplay(p.name, p.email)}</span>
                       {p.has_paid ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300">
                           <Check className="w-3 h-3" /> Pagó
@@ -444,6 +446,9 @@ export default function NetworkPage() {
                         </span>
                       )}
                     </div>
+                    {p.name && p.email && (
+                      <div className="text-xs text-white/55 mt-0.5">{p.email}</div>
+                    )}
                     <div className="text-xs text-white/40 mt-0.5">Registrado {formatDate(p.created_at)}</div>
                   </div>
                   <div className="flex gap-2">
@@ -485,7 +490,7 @@ export default function NetworkPage() {
               <table className="w-full text-sm">
                 <thead className="text-xs text-white/50 uppercase">
                   <tr>
-                    <th className="text-left py-2">Email</th>
+                    <th className="text-left py-2">Nombre / Email</th>
                     <th className="text-left py-2">Pata</th>
                     <th className="text-left py-2">Bajo</th>
                     <th className="text-left py-2">Desde</th>
@@ -494,7 +499,12 @@ export default function NetworkPage() {
                 <tbody className="divide-y divide-white/5">
                   {data.directs.map((d) => (
                     <tr key={d.user_id}>
-                      <td className="py-2">{maskEmail(d.email)}</td>
+                      <td className="py-2">
+                        <div className="font-medium text-white">{memberDisplay(d.name, d.email)}</div>
+                        {d.name && d.email && (
+                          <div className="text-xs text-white/50">{d.email}</div>
+                        )}
+                      </td>
                       <td className="py-2">
                         {d.leg === "left" ? (
                           <span className="text-blue-400">← Izquierda</span>
@@ -647,7 +657,12 @@ function LegBox({ label, member }: { label: string; member?: FrontalMember }) {
     <div className="bg-black/40 border border-white/10 rounded-xl p-4 text-center">
       <div className="text-xs text-white/50 mb-2">{label}</div>
       {member ? (
-        <div className="text-sm font-medium">{maskEmail(member.email)}</div>
+        <>
+          <div className="text-sm font-medium truncate" title={member.email}>{memberDisplay(member.name, member.email)}</div>
+          {member.name && member.email && (
+            <div className="text-[10px] text-white/40 truncate mt-0.5">{member.email}</div>
+          )}
+        </>
       ) : (
         <div className="text-sm text-white/30 italic">Disponible</div>
       )}

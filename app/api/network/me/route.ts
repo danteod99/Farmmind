@@ -85,17 +85,29 @@ export async function GET() {
     });
   }
 
-  // Emails de los user_ids relacionados (para mostrarlos)
+  // Emails y nombres de los user_ids relacionados.
+  // Usamos getUserById en paralelo (no listUsers, que solo trae primeros 50).
   const allUserIds = new Set<string>();
   (directs || []).forEach((d) => allUserIds.add(d.user_id));
   (frontals || []).forEach((f) => allUserIds.add(f.user_id));
   (pendings || []).forEach((p) => allUserIds.add(p.user_id));
 
   const emailsMap: Record<string, string> = {};
+  const namesMap: Record<string, string> = {};
   if (allUserIds.size > 0) {
-    const { data: usersList } = await sb.auth.admin.listUsers();
-    (usersList?.users || []).forEach((u) => {
-      if (allUserIds.has(u.id)) emailsMap[u.id] = u.email || "";
+    const ids = Array.from(allUserIds);
+    const results = await Promise.all(
+      ids.map((id) => sb.auth.admin.getUserById(id).catch(() => null))
+    );
+    results.forEach((r, idx) => {
+      const u = r?.data?.user;
+      if (u) {
+        emailsMap[ids[idx]] = u.email || "";
+        namesMap[ids[idx]] =
+          u.user_metadata?.full_name ||
+          u.user_metadata?.name ||
+          (u.email ? u.email.split("@")[0] : "Usuario");
+      }
     });
   }
 
@@ -175,11 +187,20 @@ export async function GET() {
     code,
     link: `${baseUrl}/r/${code}`,
     position: myPos,
-    directs: (directs || []).map((d) => ({ ...d, email: emailsMap[d.user_id] || "" })),
-    frontals: (frontals || []).map((f) => ({ ...f, email: emailsMap[f.user_id] || "" })),
+    directs: (directs || []).map((d) => ({
+      ...d,
+      email: emailsMap[d.user_id] || "",
+      name: namesMap[d.user_id] || "",
+    })),
+    frontals: (frontals || []).map((f) => ({
+      ...f,
+      email: emailsMap[f.user_id] || "",
+      name: namesMap[f.user_id] || "",
+    })),
     pendings: (pendings || []).map((p) => ({
       ...p,
       email: emailsMap[p.user_id] || "",
+      name: namesMap[p.user_id] || "",
       has_paid: paidStateMap[p.user_id] === true,
     })),
     available_balance: Number(balanceRow?.balance || 0),
