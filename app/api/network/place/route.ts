@@ -58,7 +58,24 @@ export async function POST(req: Request) {
   });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    // Mensajes amigables segun el tipo de error
+    const msg = error.message || "";
+    if (msg.includes("user_not_paid")) {
+      return NextResponse.json(
+        { error: "Este usuario aún no ha pagado su suscripción. No puede ser colocado en la red hasta que active su cuenta." },
+        { status: 400 }
+      );
+    }
+    if (msg.includes("pending_not_found")) {
+      return NextResponse.json(
+        { error: "No se encontró el usuario pendiente o ya fue colocado." },
+        { status: 404 }
+      );
+    }
+    if (msg.includes("invalid_leg")) {
+      return NextResponse.json({ error: "Pata inválida (debe ser left o right)." }, { status: 400 });
+    }
+    return NextResponse.json({ error: msg }, { status: 400 });
   }
 
   return NextResponse.json({ success: true, placement_parent_id: data });

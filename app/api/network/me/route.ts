@@ -68,6 +68,23 @@ export async function GET() {
     .eq("sponsor_id", userId)
     .eq("status", "pending");
 
+  // Estado de pago de cada pending (para mostrar badge en UI)
+  const pendingIds = (pendings || []).map((p) => p.user_id);
+  const paidStateMap: Record<string, boolean> = {};
+  if (pendingIds.length > 0) {
+    const { data: pendingProfiles } = await sb
+      .from("profiles")
+      .select("id, subscription_plan, subscription_status, stripe_subscription_id")
+      .in("id", pendingIds);
+    (pendingProfiles || []).forEach((p) => {
+      paidStateMap[p.id] = (
+        p.subscription_plan === "pro" &&
+        Boolean(p.stripe_subscription_id) &&
+        (p.subscription_status === "active" || p.subscription_status === "trialing")
+      );
+    });
+  }
+
   // Emails de los user_ids relacionados (para mostrarlos)
   const allUserIds = new Set<string>();
   (directs || []).forEach((d) => allUserIds.add(d.user_id));
@@ -160,7 +177,11 @@ export async function GET() {
     position: myPos,
     directs: (directs || []).map((d) => ({ ...d, email: emailsMap[d.user_id] || "" })),
     frontals: (frontals || []).map((f) => ({ ...f, email: emailsMap[f.user_id] || "" })),
-    pendings: (pendings || []).map((p) => ({ ...p, email: emailsMap[p.user_id] || "" })),
+    pendings: (pendings || []).map((p) => ({
+      ...p,
+      email: emailsMap[p.user_id] || "",
+      has_paid: paidStateMap[p.user_id] === true,
+    })),
     available_balance: Number(balanceRow?.balance || 0),
     is_subscribed: Boolean(isSubscribed),
     is_founder: isFounder,
