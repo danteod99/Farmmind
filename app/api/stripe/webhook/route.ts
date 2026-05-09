@@ -39,35 +39,108 @@ export async function POST(req: Request) {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.supabase_user_id;
+        let userId = subscription.metadata?.supabase_user_id;
+        if (!userId) {
+          const customerId = subscription.customer as string;
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("stripe_customer_id", customerId)
+            .maybeSingle();
+          userId = profile?.id;
+        }
 
         if (userId) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const sub = subscription as any;
+          // Estados terminales sin pago = se trata como cancelado
+          const TERMINAL_NO_PAY = ["canceled", "unpaid", "incomplete_expired"];
+          const isTerminal = TERMINAL_NO_PAY.includes(subscription.status);
+
           await supabaseAdmin.from("profiles").upsert({
             id: userId,
             subscription_status: subscription.status,
-            stripe_subscription_id: subscription.id,
-            subscription_plan: "pro",
+            stripe_subscription_id: isTerminal ? null : subscription.id,
+            subscription_plan: isTerminal ? "free" : "pro",
             subscription_period_end: sub.current_period_end
               ? new Date(sub.current_period_end * 1000).toISOString()
               : null,
           });
+
+          // Si terminó sin pago, auto-remove de la red
+          if (isTerminal) {
+            const { data: pos } = await supabaseAdmin
+              .from("network_positions")
+              .select("user_id, is_founder")
+              .eq("user_id", userId)
+              .maybeSingle();
+            if (pos && !pos.is_founder) {
+              const { data: downline } = await supabaseAdmin
+                .from("network_positions")
+                .select("user_id")
+                .eq("placement_parent_id", userId)
+                .limit(1);
+              if (!downline || downline.length === 0) {
+                await supabaseAdmin.from("network_positions").delete().eq("user_id", userId);
+                await supabaseAdmin.from("network_pending_placements").delete().eq("user_id", userId);
+                console.log(`[Network] Removed user ${userId} (status=${subscription.status}, no downline)`);
+              }
+            }
+          }
         }
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.supabase_user_id;
+        let userId = subscription.metadata?.supabase_user_id;
+
+        // Si no hay metadata, buscar via stripe_customer_id (suscripciones antiguas)
+        if (!userId) {
+          const customerId = subscription.customer as string;
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("stripe_customer_id", customerId)
+            .maybeSingle();
+          userId = profile?.id;
+        }
 
         if (userId) {
+          // 1. Marcar perfil como cancelado (esto ya bloquea comisiones via "pago para cobrar")
           await supabaseAdmin.from("profiles").upsert({
             id: userId,
             subscription_status: "canceled",
             subscription_plan: "free",
             stripe_subscription_id: null,
           });
+
+          // 2. Auto-remove de la red de mercadeo
+          // Solo removemos si NO es founder Y NO tiene downline (para no romper el árbol).
+          // Si tiene downline, la posición queda pero "pago para cobrar" bloquea sus comisiones.
+          const { data: pos } = await supabaseAdmin
+            .from("network_positions")
+            .select("user_id, is_founder")
+            .eq("user_id", userId)
+            .maybeSingle();
+
+          if (pos && !pos.is_founder) {
+            const { data: downline } = await supabaseAdmin
+              .from("network_positions")
+              .select("user_id")
+              .eq("placement_parent_id", userId)
+              .limit(1);
+
+            if (!downline || downline.length === 0) {
+              // Sin downline → eliminamos completamente de la red
+              await supabaseAdmin.from("network_positions").delete().eq("user_id", userId);
+              await supabaseAdmin.from("network_pending_placements").delete().eq("user_id", userId);
+              console.log(`[Network] Removed user ${userId} from network (subscription canceled, no downline)`);
+            } else {
+              // Con downline → solo loggeamos, la posición queda pero comisiones bloqueadas
+              console.log(`[Network] User ${userId} canceled but has downline - kept position, commissions blocked`);
+            }
+          }
         }
         break;
       }
