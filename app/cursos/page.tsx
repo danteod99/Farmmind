@@ -121,6 +121,7 @@ export default function CursosPage() {
           { href: "/smm/funds", label: "Recargar" },
           { href: "/network", label: "🌐 Mi Red" },
           { href: "/cursos", label: "📚 Mis Cursos", active: true },
+          { href: "/granjas", label: "🤖 Granjas" },
           { href: "/smm/ai", label: "🤖 Asistente IA" },
         ]}
       />

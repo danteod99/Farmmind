@@ -279,6 +279,7 @@ export default function AIPage() {
     { href: "/smm/funds", label: "Recargar" },
     { href: "/network", label: "🌐 Mi Red" },
     { href: "/cursos", label: "📚 Mis Cursos" },
+    { href: "/granjas", label: "🤖 Granjas" },
     { href: "/smm/ai", label: "🤖 Asistente IA", active: true },
     { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
   ];
