@@ -266,6 +266,7 @@ export default function NetworkPage() {
           { href: "/smm/funds", label: "Recargar" },
           { href: "/network", label: "🌐 Mi Red", active: true },
           { href: "/cursos", label: "📚 Mis Cursos" },
+          { href: "/granjas", label: "🤖 Granjas" },
           { href: "/smm/ai", label: "🤖 Asistente IA" },
           { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
         ]}
