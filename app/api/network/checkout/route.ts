@@ -71,7 +71,7 @@ export async function POST() {
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/network?payment=success`,
+      success_url: `${origin}/bienvenida?payment=success`,
       cancel_url: `${origin}/network?payment=cancel`,
       subscription_data: {
         metadata: { supabase_user_id: user.id, plan_type: "network" },
