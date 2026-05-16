@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { SmmNav } from "@/app/components/SmmNav";
 import { supabase } from "@/app/lib/supabase";
+import WelcomeOnboarding from "@/app/components/WelcomeOnboarding";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -256,6 +257,13 @@ export default function NetworkPage() {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Onboarding al primer pago / registro */}
+      <WelcomeOnboarding
+        referralLink={data.link}
+        referralCode={data.code}
+        userName={userName}
+      />
+
       <SmmNav
         balance={data.available_balance}
         userAvatar={userAvatar}
