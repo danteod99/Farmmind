@@ -237,9 +237,10 @@ export async function GET(request: Request) {
           await admin.from("smm_balances").insert({ user_id: session.user.id, balance: 0 });
         }
 
-        // ── Network marketing: capturar referido si vino con cookie 'ref' ──
-        // Aplica solo a usuarios nuevos. Si existe la cookie 'ref' con codigo valido,
-        // se crea un pending_placement para que el sponsor lo coloque en izq/der.
+        // ── Network marketing: asignar sponsor ──
+        // 1. Si vino con cookie 'ref' valida -> ese es el sponsor
+        // 2. Si NO vino con ref -> CEO (founder al top) es el sponsor por default
+        // Aplica solo a usuarios nuevos.
         let cameWithReferral = false;
         if (isNewUser) {
           try {
@@ -249,39 +250,63 @@ export async function GET(request: Request) {
               ? decodeURIComponent(refMatch[1]).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12)
               : null;
 
+            let sponsorId: string | null = null;
+            let sponsorSource: "referral" | "ceo_default" = "ceo_default";
+
+            // Intentar resolver sponsor via codigo de referido
             if (refCode) {
               const { data: refRow } = await admin
                 .from("network_referral_codes")
                 .select("user_id")
                 .eq("code", refCode)
                 .maybeSingle();
-
               if (refRow?.user_id && refRow.user_id !== session.user.id) {
-                const { data: existingPending } = await admin
-                  .from("network_pending_placements")
-                  .select("user_id")
-                  .eq("user_id", session.user.id)
-                  .maybeSingle();
+                sponsorId = refRow.user_id;
+                sponsorSource = "referral";
+              }
+            }
 
-                const { data: existingPosition } = await admin
-                  .from("network_positions")
-                  .select("user_id")
-                  .eq("user_id", session.user.id)
-                  .maybeSingle();
+            // Fallback: si no hay sponsor valido, usar CEO (founder al top)
+            if (!sponsorId) {
+              const { data: ceo } = await admin
+                .from("network_positions")
+                .select("user_id")
+                .eq("is_founder", true)
+                .is("sponsor_id", null)
+                .is("placement_parent_id", null)
+                .order("created_at", { ascending: true })
+                .limit(1)
+                .maybeSingle();
+              if (ceo?.user_id && ceo.user_id !== session.user.id) {
+                sponsorId = ceo.user_id;
+              }
+            }
 
-                if (!existingPending && !existingPosition) {
-                  await admin.from("network_pending_placements").insert({
-                    user_id: session.user.id,
-                    sponsor_id: refRow.user_id,
-                    status: "pending",
-                  });
-                  console.log(`[Network] Pending placement creado: user=${session.user.id}, sponsor=${refRow.user_id}, ref=${refCode}`);
-                  cameWithReferral = true;
-                }
+            if (sponsorId) {
+              const { data: existingPending } = await admin
+                .from("network_pending_placements")
+                .select("user_id")
+                .eq("user_id", session.user.id)
+                .maybeSingle();
+
+              const { data: existingPosition } = await admin
+                .from("network_positions")
+                .select("user_id")
+                .eq("user_id", session.user.id)
+                .maybeSingle();
+
+              if (!existingPending && !existingPosition) {
+                await admin.from("network_pending_placements").insert({
+                  user_id: session.user.id,
+                  sponsor_id: sponsorId,
+                  status: "pending",
+                });
+                console.log(`[Network] Pending creado: user=${session.user.id}, sponsor=${sponsorId}, source=${sponsorSource}`);
+                cameWithReferral = sponsorSource === "referral";
               }
             }
           } catch (e) {
-            console.error("[Auth Callback] Error procesando referido:", e);
+            console.error("[Auth Callback] Error asignando sponsor:", e);
           }
 
           // Si vino con referido -> intentar mandar directo al Stripe Checkout.
