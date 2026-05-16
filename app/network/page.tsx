@@ -397,9 +397,16 @@ export default function NetworkPage() {
               <Share2 className="w-6 h-6" />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg font-semibold mb-1">Mi link de invitación</h2>
+              <div className="flex items-center gap-2 flex-wrap mb-1">
+                <h2 className="text-lg font-semibold">Mi link de invitación</h2>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500/30 to-cyan-500/30 border border-blue-400/40 text-blue-200">
+                  <Sparkles className="w-3 h-3" /> Gana hasta <b>40%</b>
+                </span>
+              </div>
               <p className="text-sm text-white/60 mb-3">
-                Comparte este link. Cada vez que un invitado pague, ganas <b className="text-blue-400">15%</b>.
+                Comparte este link. Por cada invitado que pague obtienes <b className="text-blue-300">15% directo</b> +
+                {" "}<b className="text-blue-300">25% adicional</b> en binario, matching y pool de rangos
+                {" "}(<b className="text-blue-200">hasta 40% total</b>).
               </p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
