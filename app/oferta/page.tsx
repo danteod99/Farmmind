@@ -533,7 +533,7 @@ export default function OfertaPage() {
                 </div>
 
                 {/* CTA */}
-                <button onClick={handleCheckout} disabled={loading}
+                <button onClick={() => handleCheckout()} disabled={loading}
                   style={{
                     width: "100%",
                     padding: "18px",
@@ -654,7 +654,7 @@ export default function OfertaPage() {
             </div>
 
             <div>
-              <button onClick={handleCheckout} disabled={loading}
+              <button onClick={() => handleCheckout()} disabled={loading}
                 style={{
                   padding: "20px 44px",
                   borderRadius: "14px",
