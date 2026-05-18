@@ -49,9 +49,17 @@ export default function OfertaPage() {
     const plan = planOverride || selectedPlan;
     setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) {
+      const priceId = plan === "yearly"
+        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+      // Llamar directo al server. Si no hay sesión devuelve 401 → entonces OAuth.
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+      if (res.status === 401) {
+        // Sin sesión: redirect a Google OAuth con plan preservado
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
           options: { redirectTo: `${window.location.origin}/oferta?signin=1&plan=${plan}` },
@@ -59,19 +67,11 @@ export default function OfertaPage() {
         if (error) alert("Error iniciando sesión: " + error.message);
         return;
       }
-      const priceId = plan === "yearly"
-        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
-        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
       const data = await res.json();
       if (data.url) { window.location.href = data.url; return; }
       alert(data.error || "Error conectando con Stripe. Intenta más tarde.");
-    } catch {
-      alert("Error. Intenta de nuevo.");
+    } catch (err) {
+      alert("Error: " + (err instanceof Error ? err.message : "desconocido"));
     } finally {
       setLoading(false);
     }
