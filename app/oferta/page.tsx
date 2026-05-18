@@ -112,12 +112,80 @@ export default function OfertaPage() {
           50% { opacity: 0.5; box-shadow: 0 0 14px currentColor; }
         }
         .vsl-section { animation: fade-up 0.7s ease-out backwards; }
+
+        /* ───── MOBILE OPTIMIZATIONS ───── */
+        @media (max-width: 768px) {
+          /* Urgency bar más compacta y centrada */
+          .vsl-urgency { font-size: 11px !important; padding: 8px 10px !important; line-height: 1.4 !important; }
+          .vsl-urgency strong { font-size: 12px !important; }
+          .vsl-urgency .vsl-urgency-sub { display: block !important; margin-left: 0 !important; margin-top: 3px !important; }
+
+          /* Hero más compacto */
+          .vsl-hero { padding: 24px 16px 20px !important; }
+          .vsl-hero h1 { font-size: clamp(26px, 7.5vw, 36px) !important; line-height: 1.1 !important; }
+          .vsl-hero p { font-size: 14px !important; }
+          .vsl-hero-image { aspect-ratio: 4/3 !important; border-radius: 14px !important; }
+          .vsl-hero-image-caption { padding: 14px 14px 10px !important; }
+          .vsl-hero-image-caption p:first-child { font-size: 11px !important; }
+          .vsl-hero-image-caption p:nth-child(2) { font-size: 12px !important; }
+          .vsl-hero-cta-primary { padding: 14px 22px !important; font-size: 15px !important; width: 100% !important; max-width: 320px !important; }
+          .vsl-hero-trust-row { gap: 12px !important; row-gap: 6px !important; }
+
+          /* Plataformas: 4 columnas fijas en mobile (más compacto) */
+          .vsl-platforms-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 8px !important; }
+          .vsl-platform-card { padding: 10px 4px !important; }
+          .vsl-platform-card svg { width: 22px !important; height: 22px !important; }
+          .vsl-platform-card span { font-size: 10px !important; }
+
+          /* Sections padding */
+          .vsl-section { padding-left: 16px !important; padding-right: 16px !important; padding-top: 48px !important; padding-bottom: 48px !important; }
+          .vsl-section h2 { font-size: clamp(22px, 5vw, 28px) !important; }
+          .vsl-section p { font-size: 14px !important; }
+
+          /* Problema bullets */
+          .vsl-problem-card { padding: 12px 14px !important; }
+          .vsl-problem-card p { font-size: 13px !important; }
+
+          /* Solución feature cards */
+          .vsl-feature-card { padding: 18px !important; }
+          .vsl-feature-card h3 { font-size: 14px !important; }
+          .vsl-feature-card p { font-size: 12px !important; }
+
+          /* Testimonios y YouTube cards */
+          .vsl-result-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .vsl-result-card-img { aspect-ratio: 4/3 !important; }
+          .vsl-result-card-body { padding: 16px !important; }
+
+          /* Pricing card */
+          .vsl-pricing-card { padding: 24px 18px !important; border-radius: 18px !important; }
+          .vsl-pricing-card h3 { font-size: 22px !important; }
+          .vsl-pricing-price { font-size: 56px !important; }
+          .vsl-pricing-cta { padding: 16px 12px !important; font-size: 15px !important; }
+          .vsl-toggle-btn { padding: 8px 16px !important; font-size: 11px !important; }
+
+          /* CTA final */
+          .vsl-final-cta-btn { padding: 16px 24px !important; font-size: 15px !important; width: 100% !important; max-width: 360px !important; white-space: normal !important; }
+          .vsl-final-countdown { font-size: 20px !important; letter-spacing: 1px !important; }
+
+          /* FAQ */
+          .vsl-faq-btn { padding: 14px 16px !important; font-size: 14px !important; }
+
+          /* Garantía */
+          .vsl-guarantee-icon { padding: 12px !important; }
+        }
+
+        @media (max-width: 420px) {
+          .vsl-hero h1 { font-size: 24px !important; }
+          .vsl-platforms-grid { grid-template-columns: repeat(4, 1fr) !important; }
+          .vsl-toggle-btn { padding: 7px 12px !important; }
+          .vsl-pricing-price { font-size: 48px !important; }
+        }
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
 
         {/* ── URGENCY BAR (sticky top) ── */}
-        <div style={{
+        <div className="vsl-urgency" style={{
           position: "sticky", top: 0, zIndex: 50,
           background: "linear-gradient(90deg, #b91c1c, #dc2626, #b91c1c)",
           padding: "10px 16px",
@@ -127,14 +195,14 @@ export default function OfertaPage() {
           letterSpacing: "0.3px",
           boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
         }}>
-          <span style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "8px", flexWrap: "wrap", justifyContent: "center" }}>
             <Clock size={14} /> OFERTA LIMITADA TERMINA EN <strong style={{ fontFamily: "monospace", fontSize: "14px", padding: "2px 6px", borderRadius: "4px", background: "rgba(0,0,0,0.25)" }}>{formatTime(secondsLeft)}</strong>
-            <span style={{ marginLeft: "12px", opacity: 0.85 }}>· Ahorra 60% · Solo HOY</span>
+            <span className="vsl-urgency-sub" style={{ marginLeft: "12px", opacity: 0.85 }}>· Ahorra 60% · Solo HOY</span>
           </span>
         </div>
 
         {/* ── HERO + VIDEO ── */}
-        <section className="vsl-section" style={{
+        <section className="vsl-section vsl-hero" style={{
           position: "relative", padding: "48px 20px 32px",
           background: "radial-gradient(ellipse 80% 50% at 50% 0%, #001830 0%, transparent 60%)",
           textAlign: "center",
@@ -172,7 +240,7 @@ export default function OfertaPage() {
             </p>
 
             {/* HERO IMAGE — Ejército de bots */}
-            <div style={{
+            <div className="vsl-hero-image" style={{
               position: "relative",
               maxWidth: "820px",
               margin: "0 auto 32px",
@@ -189,7 +257,7 @@ export default function OfertaPage() {
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               />
               {/* Bottom gradient + caption */}
-              <div style={{
+              <div className="vsl-hero-image-caption" style={{
                 position: "absolute", bottom: 0, left: 0, right: 0,
                 background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)",
                 padding: "24px 22px 18px",
@@ -205,7 +273,7 @@ export default function OfertaPage() {
             </div>
 
             {/* CTA principal */}
-            <button onClick={scrollToCta}
+            <button onClick={scrollToCta} className="vsl-hero-cta-primary"
               style={{
                 padding: "18px 36px",
                 borderRadius: "14px",
@@ -217,7 +285,7 @@ export default function OfertaPage() {
                 cursor: "pointer",
                 boxShadow: "0 8px 32px rgba(0, 180, 216, 0.4)",
                 animation: "pulse-cta 2.5s ease-out infinite",
-                display: "inline-flex", alignItems: "center", gap: "10px",
+                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px",
                 letterSpacing: "0.2px",
               }}>
               <Sparkles size={18} /> QUIERO ESTA OFERTA AHORA →
@@ -247,7 +315,7 @@ export default function OfertaPage() {
             }}>
               Funciona en tus plataformas favoritas
             </p>
-            <div style={{
+            <div className="vsl-platforms-grid" style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))",
               gap: "12px",
@@ -256,6 +324,7 @@ export default function OfertaPage() {
             }}>
               {PLATFORMS.map((p) => (
                 <div key={p.name}
+                  className="vsl-platform-card"
                   title={p.name}
                   style={{
                     display: "flex",
@@ -303,7 +372,7 @@ export default function OfertaPage() {
                 "Las agencias cobran $500-$2000/mes y los resultados son lentos",
                 "No tienes tiempo de estar todo el día metido en cada cuenta",
               ].map((p, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "14px 18px", background: "rgba(239, 68, 68, 0.05)", borderLeft: "3px solid #ef4444", borderRadius: "8px" }}>
+                <div key={i} className="vsl-problem-card" style={{ display: "flex", alignItems: "flex-start", gap: "12px", padding: "14px 18px", background: "rgba(239, 68, 68, 0.05)", borderLeft: "3px solid #ef4444", borderRadius: "8px" }}>
                   <XIcon size={18} color="#ef4444" style={{ flexShrink: 0, marginTop: 2 }} />
                   <p style={{ fontSize: "15px", color: "#e2e8f0", lineHeight: 1.5 }}>{p}</p>
                 </div>
@@ -332,7 +401,7 @@ export default function OfertaPage() {
                 { icon: <TrendingUp size={22} />, title: "Growth Dashboard", desc: "Métricas en tiempo real de tus campañas. Sabes exactamente cuánto creces cada día." },
                 { icon: <Crown size={22} />, title: "Soporte directo", desc: "Acceso prioritario a nuestro equipo. Respuesta en menos de 1 hora en horario laboral." },
               ].map((f) => (
-                <div key={f.title} style={{ padding: "24px", borderRadius: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div key={f.title} className="vsl-feature-card" style={{ padding: "24px", borderRadius: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
                   <div style={{ width: "44px", height: "44px", borderRadius: "12px", background: "rgba(0, 180, 216, 0.12)", border: "1px solid rgba(0, 180, 216, 0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "#7dd3fc", marginBottom: "14px" }}>
                     {f.icon}
                   </div>
@@ -357,7 +426,7 @@ export default function OfertaPage() {
 
             {/* TESTIMONIOS DE LA COMUNIDAD */}
             <p style={{ fontSize: "11px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", textAlign: "center" }}>💬 Testimonios de la comunidad</p>
-            <div style={{
+            <div className="vsl-result-grid" style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: "16px",
@@ -416,7 +485,7 @@ export default function OfertaPage() {
 
             {/* YOUTUBE ANALYTICS */}
             <p style={{ fontSize: "11px", fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", textAlign: "center" }}>📺 Resultados YouTube de la comunidad</p>
-            <div style={{
+            <div className="vsl-result-grid" style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
               gap: "16px",
@@ -466,7 +535,7 @@ export default function OfertaPage() {
               Hoy puedes acceder por <span style={{ color: "#fbbf24" }}>60% menos</span>
             </h2>
 
-            <div style={{
+            <div className="vsl-pricing-card" style={{
               position: "relative",
               padding: "40px 32px",
               borderRadius: "24px",
@@ -700,7 +769,7 @@ export default function OfertaPage() {
             </div>
 
             <div>
-              <button onClick={() => handleCheckout()} disabled={loading}
+              <button onClick={() => handleCheckout()} disabled={loading} className="vsl-final-cta-btn"
                 style={{
                   padding: "20px 44px",
                   borderRadius: "14px",
@@ -717,7 +786,7 @@ export default function OfertaPage() {
                     ? "0 8px 32px rgba(251, 191, 36, 0.4)"
                     : "0 8px 32px rgba(0, 180, 216, 0.4)",
                   animation: loading ? "none" : "pulse-cta 2.5s ease-out infinite",
-                  display: "inline-flex", alignItems: "center", gap: "10px",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px",
                 }}>
                 {loading
                   ? "Procesando..."
