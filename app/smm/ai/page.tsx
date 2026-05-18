@@ -279,9 +279,9 @@ export default function AIPage() {
     { href: "/smm/orders", label: "Pedidos" },
     { href: "/smm/funds", label: "Recargar" },
     { href: "/cursos", label: "Cursos" },
-    { href: "/downloads", label: "📥 Descargas" },
-    { href: "/smm/ai", label: "🤖 Asistente IA", active: true },
-    { href: "https://www.scalinglatam.site", label: "🤖 Granja de bots", external: true },
+    { href: "/downloads", label: "Descargas" },
+    { href: "/smm/ai", label: "Asistente IA", active: true },
+    { href: "https://www.scalinglatam.site", label: "Granja de bots", external: true },
   ];
 
   return (

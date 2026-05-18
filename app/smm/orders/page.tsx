@@ -147,9 +147,9 @@ export default function OrdersPage() {
             { href: "/smm/orders", label: "Pedidos", active: true },
             { href: "/smm/funds", label: "Recargar" },
             { href: "/cursos", label: "Cursos" },
-            { href: "/downloads", label: "📥 Descargas" },
-            { href: "/smm/ai", label: "🤖 Asistente IA" },
-            { href: "https://www.scalinglatam.site", label: "🤖 Granja de bots", external: true },
+            { href: "/downloads", label: "Descargas" },
+            { href: "/smm/ai", label: "Asistente IA" },
+            { href: "https://www.scalinglatam.site", label: "Granja de bots", external: true },
           ]}
         />
 
