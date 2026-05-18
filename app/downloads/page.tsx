@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Monitor,
@@ -17,8 +18,12 @@ import {
   ArrowLeft,
   CheckCircle,
   Star,
+  Crown,
+  Lock,
+  Sparkles,
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
+import { supabase } from "@/app/lib/supabase";
 
 const APPS = [
   {
@@ -107,13 +112,68 @@ const APPS = [
 ];
 
 export default function DownloadsPage() {
+  const router = useRouter();
   const [os, setOs] = useState<"mac" | "windows" | "unknown">("unknown");
+  const [authChecking, setAuthChecking] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent.toLowerCase();
     if (ua.includes("mac")) setOs("mac");
     else if (ua.includes("win")) setOs("windows");
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setIsLogged(false); setIsPro(false); return; }
+        setIsLogged(true);
+        const res = await fetch("/api/user/profile");
+        if (res.ok) {
+          const data = await res.json();
+          setIsPro(!!data.isPro);
+        }
+      } finally {
+        setAuthChecking(false);
+      }
+    })();
+  }, []);
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/downloads` },
+      });
+      if (error) alert("Error iniciando sesión: " + error.message);
+    } catch {
+      alert("Error de conexión");
+    }
+  };
+
+  const handleUpgrade = async (cycle: "monthly" | "yearly" = "yearly") => {
+    setUpgrading(true);
+    try {
+      const priceId = cycle === "yearly"
+        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else alert("Error conectando con Stripe");
+    } catch {
+      alert("Error de conexión");
+    } finally {
+      setUpgrading(false);
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", color: "var(--foreground)" }}>
@@ -147,9 +207,93 @@ export default function DownloadsPage() {
           />
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
-          {APPS.map((app) => <AppCard key={app.id} app={app} detectedOs={os} />)}
-        </div>
+        {/* PAYWALL: solo Pro puede descargar */}
+        {authChecking ? (
+          <div style={{ padding: "60px", textAlign: "center" }}>
+            <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid var(--accent)", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          </div>
+        ) : !isPro ? (
+          <div style={{
+            position: "relative",
+            overflow: "hidden",
+            border: "2px solid #007ABF",
+            borderRadius: 20,
+            padding: "48px 32px",
+            background: "linear-gradient(160deg, #001830 0%, #000810 100%)",
+            textAlign: "center",
+            marginBottom: 48,
+          }}>
+            <div style={{ position: "absolute", top: -80, right: -80, width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,180,216,0.25), transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ display: "inline-flex", padding: 14, borderRadius: 16, background: "rgba(0, 180, 216, 0.12)", border: "1px solid rgba(0, 180, 216, 0.35)", marginBottom: 20 }}>
+                <Lock size={28} color="#7dd3fc" />
+              </div>
+              <h2 style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, color: "white", marginBottom: 12, letterSpacing: "-0.02em" }}>
+                Descargas exclusivas para usuarios <span style={{ color: "#7dd3fc" }}>TRUST MIND Pro</span>
+              </h2>
+              <p style={{ fontSize: 15, color: "#94a3b8", maxWidth: 540, margin: "0 auto 28px", lineHeight: 1.6 }}>
+                TrustInsta y TrustFace Desktop están incluidos en tu suscripción Pro. Suscríbete una vez y desbloquea ambos para Mac y Windows.
+              </p>
+
+              {!isLogged ? (
+                <button onClick={handleGoogleLogin}
+                  style={{ padding: "16px 28px", borderRadius: 14, border: "none", background: "white", color: "#111", fontSize: 15, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 10, boxShadow: "0 4px 20px rgba(0, 180, 216, 0.2)" }}>
+                  <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.836.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+                  Inicia sesión con Google
+                </button>
+              ) : (
+                <>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", marginBottom: 16 }}>
+                    <button onClick={() => handleUpgrade("yearly")} disabled={upgrading}
+                      style={{ padding: "18px 36px", borderRadius: 14, border: "none",
+                        background: upgrading ? "#1a1a2e" : "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                        color: upgrading ? "#64748b" : "#1a1a00",
+                        fontSize: 16, fontWeight: 900, cursor: upgrading ? "not-allowed" : "pointer",
+                        boxShadow: upgrading ? "none" : "0 8px 32px rgba(251, 191, 36, 0.4)",
+                        display: "inline-flex", alignItems: "center", gap: 10, minWidth: 280, justifyContent: "center" }}>
+                      <Sparkles size={16} /> {upgrading ? "Procesando..." : "Activar Anual — $20/mes ($240/año)"}
+                    </button>
+                    <button onClick={() => handleUpgrade("monthly")} disabled={upgrading}
+                      style={{ padding: "14px 28px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)",
+                        background: "transparent", color: "#94a3b8", fontSize: 13, fontWeight: 600,
+                        cursor: upgrading ? "not-allowed" : "pointer" }}>
+                      O Mensual — $50/mes
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 12, color: "#64748b" }}>
+                    Cancela cuando quieras · 30 días de garantía · Pago seguro con Stripe
+                  </p>
+                </>
+              )}
+
+              {/* Beneficios incluidos */}
+              <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.06)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, textAlign: "left" }}>
+                {[
+                  "TrustInsta Desktop (Instagram)",
+                  "TrustFace Desktop (Facebook)",
+                  "Panel SMM con +5,000 servicios",
+                  "Soporte directo y prioritario",
+                ].map((b) => (
+                  <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <CheckCircle size={14} color="#34d399" style={{ flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "#e2e8f0" }}>{b}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ marginBottom: 24, padding: "12px 18px", borderRadius: 12, background: "rgba(52, 211, 153, 0.08)", border: "1px solid rgba(52, 211, 153, 0.25)", display: "inline-flex", alignItems: "center", gap: 10 }}>
+              <Crown size={16} color="#34d399" />
+              <span style={{ fontSize: 13, color: "#34d399", fontWeight: 600 }}>Pro activo · Descargas desbloqueadas</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
+              {APPS.map((app) => <AppCard key={app.id} app={app} detectedOs={os} />)}
+            </div>
+          </>
+        )}
 
         <div style={{ marginTop: 80, textAlign: "center", padding: "40px 24px", border: "1px solid var(--border)", borderRadius: 16, background: "var(--surface)" }}>
           <Shield size={32} style={{ color: "var(--accent)", margin: "0 auto 16px" }} />
