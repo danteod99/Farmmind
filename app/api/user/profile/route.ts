@@ -76,7 +76,7 @@ export async function GET() {
       .eq("role", "user")
       .gte("created_at", startOfMonth.toISOString());
 
-    const FREE_LIMIT = 30;
+    const FREE_LIMIT = 5;
     const isPro =
       profile?.subscription_plan === "pro" &&
       (profile?.subscription_status === "active" ||

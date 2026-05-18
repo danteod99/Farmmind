@@ -13,7 +13,7 @@ export default function LandingRD() {
       headlineBottom="desde RD"
       subheadline="La herramienta de Social Media Marketing preferida por emprendedores dominicanos. Crece en Instagram, TikTok, YouTube y más — todo automatizado con IA."
       ctaText="Empezar gratis — Es de gratis"
-      ctaSubtext="30 mensajes gratis · Sin tarjeta · Pago en USD"
+      ctaSubtext="5 mensajes demo · Sin tarjeta · Pago en USD"
       chatPreview={{
         user: "Quiero crecer mi página de dembow en Instagram desde Santo Domingo, ¿qué me recomiendas?",
         ai: "Para crecer tu página de dembow en IG desde RD, te recomiendo: **seguidores dominicanos reales** con engagement alto, **likes automáticos** en cada post, y **views para Reels**. Con nuestro panel puedes pedir todo junto. Los precios arrancan desde **$0.50 por 1K seguidores**. ¿Empezamos?",

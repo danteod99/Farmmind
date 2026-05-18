@@ -13,7 +13,7 @@ export default function LandingArgentina() {
       headlineBottom="tus redes, pa"
       subheadline="La herramienta de Social Media Marketing que usan los creadores argentinos. Crecé en Instagram, TikTok, YouTube y Spotify — todo automatizado con IA."
       ctaText="Empezar gratis — Es gratis, posta"
-      ctaSubtext="30 mensajes gratis · Sin tarjeta · Sin humo"
+      ctaSubtext="5 mensajes demo · Sin tarjeta · Sin humo"
       chatPreview={{
         user: "Quiero meter más views a mis Reels de trap argentino, ¿cómo hago?",
         ai: "Para boostear tus Reels de trap, te recomiendo: **views argentinos con retención alta** para que el algoritmo te empuje, **likes automáticos** en cada publicación, y **saves** que son lo que más pesa en IG. Podés pedir todo junto desde el panel. Los precios arrancan desde **$0.40 por 1K views**. ¿Le damos?",

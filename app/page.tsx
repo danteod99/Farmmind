@@ -103,8 +103,8 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
 
         <h2 className="text-xl font-bold text-white mb-2">Límite alcanzado</h2>
         <p className="text-sm text-gray-400 mb-6">
-          Usaste tus <strong className="text-white">30 mensajes gratuitos</strong> de este mes.<br />
-          Pasa a Pro para continuar sin límites.
+          Usaste tus <strong className="text-white">5 mensajes de demo</strong> de este mes.<br />
+          Pasa a Pro para desbloquear todo.
         </p>
 
         {/* Plan free vs pro */}
@@ -113,10 +113,10 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
             <p className="text-xs font-semibold text-gray-400 mb-2">FREE</p>
             <p className="text-2xl font-bold text-white mb-3">$0</p>
             <div className="space-y-1.5 text-xs text-gray-400">
-              <p>✓ 30 mensajes/mes</p>
-              <p>✓ Historial básico</p>
-              <p className="text-gray-600">✗ Mensajes ilimitados</p>
-              <p className="text-gray-600">✗ Acceso prioritario</p>
+              <p>✓ 5 mensajes demo</p>
+              <p className="text-gray-600">✗ Historial</p>
+              <p className="text-gray-600">✗ Growth Dashboard</p>
+              <p className="text-gray-600">✗ Soporte</p>
             </div>
           </div>
           <div className="rounded-xl p-4 text-left" style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", border: "1px solid #007ABF" }}>
@@ -662,7 +662,7 @@ function LoginScreen() {
                 <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
               </div>
               <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
-                {["30 mensajes / mes", "Historial basico", "Growth Dashboard", "Soporte comunidad"].map((f) => (
+                {["5 mensajes demo", "Solo lectura", "Sin historial", "Sin soporte"].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
                     <div style={{ width: "20px", height: "20px", borderRadius: "6px", background: "rgba(52,211,153,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Check size={12} color="#34d399" />
@@ -689,7 +689,7 @@ function LoginScreen() {
                 <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
               </div>
               <div style={{ borderTop: "1px solid rgba(0, 122, 191, 0.2)", paddingTop: "24px" }}>
-                {["Mensajes ilimitados", "Historial completo", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
+                {["Mensajes ilimitados", "Historial completo", "Growth Dashboard", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
                     <div style={{ width: "20px", height: "20px", borderRadius: "6px", background: "rgba(0, 180, 216, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Check size={12} color="#7dd3fc" />

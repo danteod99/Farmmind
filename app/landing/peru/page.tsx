@@ -13,7 +13,7 @@ export default function LandingPeru() {
       headlineBottom="desde Perú"
       subheadline="La plataforma de Social Media Marketing creada por peruanos, para toda Latinoamérica. Crece en Instagram, TikTok, YouTube y Spotify con IA."
       ctaText="Empezar gratis — Es gratuito"
-      ctaSubtext="30 mensajes gratis · Sin tarjeta · Soporte local"
+      ctaSubtext="5 mensajes demo · Sin tarjeta · Soporte local"
       chatPreview={{
         user: "Tengo un negocio en Miraflores y quiero más seguidores en Instagram, ¿qué me recomiendas?",
         ai: "Para tu negocio en Miraflores te recomiendo: **seguidores peruanos reales** con engagement alto, **likes automáticos** en cada post para impulsar el algoritmo, y **comentarios en español** para generar confianza. Desde el panel podés pedir todo junto. Precios desde **$0.45 por 1K seguidores**. ¿Empezamos pe?",

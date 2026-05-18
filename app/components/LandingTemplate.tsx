@@ -73,7 +73,7 @@ export default function LandingTemplate({
   headlineBottom,
   subheadline,
   ctaText = "Empezar gratis con Google",
-  ctaSubtext = "30 mensajes gratis · Sin tarjeta",
+  ctaSubtext = "5 mensajes demo · Sin tarjeta",
   chatPreview,
   featuresTitle,
   featuresSubtitle,
@@ -318,7 +318,7 @@ export default function LandingTemplate({
                 <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
               </div>
               <div style={{ borderTop: "1px solid #1e1e30", paddingTop: "20px" }}>
-                {["30 mensajes / mes", "Historial básico", "Growth Dashboard", "Soporte comunidad"].map((f) => (
+                {["5 mensajes demo", "Solo lectura", "Sin historial", "Sin soporte"].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                     <span style={{ color: "#34d399", fontSize: "14px" }}>✓</span>
                     <span style={{ fontSize: "13px", color: "#94a3b8" }}>{f}</span>
@@ -339,7 +339,7 @@ export default function LandingTemplate({
                 <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
               </div>
               <div style={{ borderTop: `1px solid ${accentColor}20`, paddingTop: "20px" }}>
-                {["Mensajes ilimitados", "Historial completo", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
+                {["Mensajes ilimitados", "Historial completo", "Growth Dashboard", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                     <span style={{ color: secondaryColor, fontSize: "14px" }}>✓</span>
                     <span style={{ fontSize: "13px", color: `${secondaryColor}cc` }}>{f}</span>
