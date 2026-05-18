@@ -366,6 +366,7 @@ function LoginScreen() {
 
           /* Navbar más compacto */
           .home-nav { height: 60px !important; padding: 0 16px !important; }
+          .nav-google-desktop { display: none !important; }
 
           /* Hero más compacto */
           .home-hero { padding: 32px 16px 48px !important; }
@@ -434,7 +435,7 @@ function LoginScreen() {
             <a href="#pricing" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Precios</a>
             <a href="https://www.skool.com/artificial-humans-7653/about" target="_blank" rel="noreferrer" style={{ fontSize: "13px", color: "#94a3b8", textDecoration: "none", fontWeight: 500, transition: "color 0.2s" }} onMouseEnter={e => e.currentTarget.style.color = "#fff"} onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}>Comunidad ↗</a>
           </div>
-          <GoogleButton />
+          <div className="nav-google-desktop"><GoogleButton /></div>
           {/* Hamburger — mobile only */}
           <button
             className="nav-hamburger"
