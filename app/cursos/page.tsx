@@ -57,7 +57,7 @@ export default function CursosPage() {
             { href: "/smm/funds", label: "Recargar" },
             { href: "/cursos", label: "Cursos", active: true },
             { href: "/smm/ai", label: "🤖 Asistente IA" },
-            { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+            { href: "https://www.scalinglatam.site", label: "🤖 Granja de bots", external: true },
           ]}
         />
 

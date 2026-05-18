@@ -625,7 +625,7 @@ export default function ServicesPage() {
             { href: "/smm/funds", label: "Recargar" },
             { href: "/cursos", label: "Cursos" },
             { href: "/smm/ai", label: "🤖 Asistente IA" },
-            { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+            { href: "https://www.scalinglatam.site", label: "🤖 Granja de bots", external: true },
           ]}
         />
 
