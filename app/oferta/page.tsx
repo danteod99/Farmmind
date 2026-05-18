@@ -18,6 +18,7 @@ export default function OfertaPage() {
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_HOURS * 3600);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [videoPlaying, setVideoPlaying] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"yearly" | "monthly">("yearly");
   const ctaRef = useRef<HTMLDivElement>(null);
 
   // Countdown timer
@@ -47,8 +48,10 @@ export default function OfertaPage() {
         if (error) alert("Error iniciando sesión: " + error.message);
         return;
       }
-      // Con login, abrir Stripe Checkout anual
-      const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID;
+      // Con login, abrir Stripe Checkout según plan seleccionado
+      const priceId = selectedPlan === "yearly"
+        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -364,22 +367,68 @@ export default function OfertaPage() {
                   </span>
                 </div>
 
+                {/* Plan toggle */}
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+                  <div style={{ display: "inline-flex", padding: "4px", borderRadius: "12px", background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.08)", gap: "3px" }}>
+                    <button onClick={() => setSelectedPlan("yearly")}
+                      style={{
+                        padding: "9px 20px", borderRadius: "9px", border: "none",
+                        background: selectedPlan === "yearly" ? "linear-gradient(135deg, #fbbf24, #f59e0b)" : "transparent",
+                        color: selectedPlan === "yearly" ? "#1a1a00" : "#94a3b8",
+                        fontSize: "12px", fontWeight: 800, cursor: "pointer",
+                        position: "relative", letterSpacing: "0.3px",
+                      }}>
+                      ANUAL
+                      <span style={{ position: "absolute", top: "-9px", right: "-12px", padding: "2px 7px", borderRadius: "20px", background: "#ef4444", color: "white", fontSize: "9px", fontWeight: 800 }}>-60%</span>
+                    </button>
+                    <button onClick={() => setSelectedPlan("monthly")}
+                      style={{
+                        padding: "9px 20px", borderRadius: "9px", border: "none",
+                        background: selectedPlan === "monthly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
+                        color: selectedPlan === "monthly" ? "white" : "#94a3b8",
+                        fontSize: "12px", fontWeight: 800, cursor: "pointer",
+                        letterSpacing: "0.3px",
+                      }}>
+                      MENSUAL
+                    </button>
+                  </div>
+                </div>
+
                 {/* Producto */}
-                <p style={{ textAlign: "center", fontSize: "13px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "8px" }}>TRUST MIND Pro · Plan Anual</p>
+                <p style={{ textAlign: "center", fontSize: "13px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "8px" }}>
+                  TRUST MIND Pro · {selectedPlan === "yearly" ? "Plan Anual" : "Plan Mensual"}
+                </p>
 
                 {/* Precio */}
                 <div style={{ textAlign: "center", marginBottom: "24px" }}>
-                  <div style={{ display: "inline-flex", alignItems: "baseline", gap: "12px", marginBottom: "8px" }}>
-                    <span style={{ fontSize: "20px", color: "#64748b", textDecoration: "line-through" }}>$50/mes</span>
-                    <span style={{ padding: "2px 8px", borderRadius: "6px", background: "rgba(239, 68, 68, 0.15)", color: "#fca5a5", fontSize: "11px", fontWeight: 700 }}>-60%</span>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: "72px", fontWeight: 900, color: "white", letterSpacing: "-0.04em", lineHeight: 1 }}>$20</span>
-                    <span style={{ fontSize: "20px", color: "#7dd3fc", marginLeft: "4px", fontWeight: 600 }}>/mes</span>
-                  </div>
-                  <p style={{ fontSize: "14px", color: "#94a3b8", marginTop: "8px" }}>
-                    Pago único de <strong style={{ color: "white" }}>$240/año</strong> · Ahorras $360
-                  </p>
+                  {selectedPlan === "yearly" ? (
+                    <>
+                      <div style={{ display: "inline-flex", alignItems: "baseline", gap: "12px", marginBottom: "8px" }}>
+                        <span style={{ fontSize: "20px", color: "#64748b", textDecoration: "line-through" }}>$50/mes</span>
+                        <span style={{ padding: "2px 8px", borderRadius: "6px", background: "rgba(239, 68, 68, 0.15)", color: "#fca5a5", fontSize: "11px", fontWeight: 700 }}>-60%</span>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: "72px", fontWeight: 900, color: "white", letterSpacing: "-0.04em", lineHeight: 1 }}>$20</span>
+                        <span style={{ fontSize: "20px", color: "#7dd3fc", marginLeft: "4px", fontWeight: 600 }}>/mes</span>
+                      </div>
+                      <p style={{ fontSize: "14px", color: "#94a3b8", marginTop: "8px" }}>
+                        Pago único de <strong style={{ color: "white" }}>$240/año</strong> · Ahorras $360
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <span style={{ fontSize: "72px", fontWeight: 900, color: "white", letterSpacing: "-0.04em", lineHeight: 1 }}>$50</span>
+                        <span style={{ fontSize: "20px", color: "#7dd3fc", marginLeft: "4px", fontWeight: 600 }}>/mes</span>
+                      </div>
+                      <p style={{ fontSize: "14px", color: "#94a3b8", marginTop: "8px" }}>
+                        Sin compromiso · Cancela cuando quieras · Sin descuento por pago único
+                      </p>
+                      <p style={{ fontSize: "12px", color: "#fbbf24", marginTop: "8px", fontWeight: 600 }}>
+                        💡 ¿Lo quieres por $20/mes? Cambia a <span onClick={() => setSelectedPlan("yearly")} style={{ textDecoration: "underline", cursor: "pointer" }}>plan anual</span>
+                      </p>
+                    </>
+                  )}
                 </div>
 
                 {/* Lo que incluye */}
@@ -429,8 +478,10 @@ export default function OfertaPage() {
                   }}>
                   {loading ? (
                     <><div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid #64748b", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Procesando...</>
+                  ) : selectedPlan === "yearly" ? (
+                    <>🚀 ACTIVAR ANUAL — $240/AÑO</>
                   ) : (
-                    <>🚀 ACTIVAR MI ACCESO AHORA</>
+                    <>🚀 ACTIVAR MENSUAL — $50/MES</>
                   )}
                 </button>
 
@@ -535,18 +586,31 @@ export default function OfertaPage() {
                   padding: "20px 44px",
                   borderRadius: "14px",
                   border: "none",
-                  background: loading ? "#1a1a2e" : "linear-gradient(135deg, #fbbf24, #f59e0b)",
-                  color: loading ? "#64748b" : "#1a1a00",
+                  background: loading ? "#1a1a2e" : selectedPlan === "yearly"
+                    ? "linear-gradient(135deg, #fbbf24, #f59e0b)"
+                    : "linear-gradient(135deg, #007ABF, #00B4D8)",
+                  color: loading ? "#64748b" : selectedPlan === "yearly" ? "#1a1a00" : "white",
                   fontSize: "18px",
                   fontWeight: 900,
                   cursor: loading ? "not-allowed" : "pointer",
                   letterSpacing: "0.3px",
-                  boxShadow: loading ? "none" : "0 8px 32px rgba(251, 191, 36, 0.4)",
+                  boxShadow: loading ? "none" : selectedPlan === "yearly"
+                    ? "0 8px 32px rgba(251, 191, 36, 0.4)"
+                    : "0 8px 32px rgba(0, 180, 216, 0.4)",
                   animation: loading ? "none" : "pulse-cta 2.5s ease-out infinite",
                   display: "inline-flex", alignItems: "center", gap: "10px",
                 }}>
-                {loading ? "Procesando..." : "🚀 SÍ, QUIERO MI ACCESO PRO →"}
+                {loading
+                  ? "Procesando..."
+                  : selectedPlan === "yearly"
+                  ? "🚀 SÍ, QUIERO ANUAL — $240/AÑO →"
+                  : "🚀 SÍ, QUIERO MENSUAL — $50/MES →"}
               </button>
+              <p style={{ fontSize: "12px", color: "#94a3b8", marginTop: "12px" }}>
+                {selectedPlan === "yearly"
+                  ? "60% de descuento · Ahorra $360"
+                  : <>¿Prefieres ahorrar 60%? <span onClick={() => setSelectedPlan("yearly")} style={{ color: "#fbbf24", cursor: "pointer", textDecoration: "underline", fontWeight: 700 }}>Cambiar a anual ($20/mes)</span></>}
+              </p>
             </div>
 
             <p style={{ fontSize: "12px", color: "#475569", marginTop: "20px" }}>
