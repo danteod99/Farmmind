@@ -59,10 +59,10 @@ const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }>
 };
 
 const NAV = [
-  { href: "/smm/reseller",       label: "🔗 API & Docs" },
-  { href: "/smm/reseller/admin", label: "📊 Mi Admin", active: true },
+  { href: "/smm/reseller",       label: "API & Docs" },
+  { href: "/smm/reseller/admin", label: "Mi Admin", active: true },
   { href: "/smm/orders",         label: "Mis pedidos" },
-  { href: "/profile",            label: "⚙️ Perfil" },
+  { href: "/profile",            label: "Perfil" },
 ];
 
 // ── Component ──────────────────────────────────────────────────────────────
