@@ -108,7 +108,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
               style={{
                 padding: "6px 13px", borderRadius: "10px", fontSize: "13px",
                 fontWeight: active ? 700 : 500,
-                color: active ? "#56B4E0" : "#5a6480",
+                color: active ? "#56B4E0" : "#ffffff",
                 background: active ? "#007ABF15" : "transparent",
                 border: `1px solid ${active ? "#007ABF30" : "transparent"}`,
                 textDecoration: "none", transition: "all 0.15s", whiteSpace: "nowrap",
@@ -193,7 +193,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
               style={{
                 padding: "13px 16px", borderRadius: "12px", fontSize: "15px",
                 fontWeight: active ? 700 : 500,
-                color: active ? "#56B4E0" : "#94a3b8",
+                color: active ? "#56B4E0" : "#ffffff",
                 background: active ? "#007ABF18" : "#0d0d18",
                 border: `1px solid ${active ? "#007ABF40" : "#1e1e30"}`,
                 textDecoration: "none", display: "block", transition: "all 0.15s",

@@ -146,6 +146,7 @@ export default function OrdersPage() {
             { href: "/smm/services", label: "Servicios" },
             { href: "/smm/orders", label: "Pedidos", active: true },
             { href: "/smm/funds", label: "Recargar" },
+            { href: "/cursos", label: "Cursos" },
             { href: "/smm/ai", label: "🤖 Asistente IA" },
             { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
           ]}

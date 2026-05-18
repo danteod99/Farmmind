@@ -623,6 +623,7 @@ export default function ServicesPage() {
             { href: "/smm/services", label: "Servicios", active: true },
             { href: "/smm/orders", label: "Pedidos" },
             { href: "/smm/funds", label: "Recargar" },
+            { href: "/cursos", label: "Cursos" },
             { href: "/smm/ai", label: "🤖 Asistente IA" },
             { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
           ]}
