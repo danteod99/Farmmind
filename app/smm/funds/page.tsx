@@ -8,7 +8,8 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import {
   LogOut, ArrowLeft, DollarSign, Zap,
-  Clock, ExternalLink, Copy, Check, ShoppingCart, TrendingUp, AlertCircle, Tag, Gift
+  Clock, ExternalLink, Copy, Check, ShoppingCart, TrendingUp, AlertCircle, Tag, Gift,
+  CreditCard, RefreshCw, X as XIcon
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import ChatPopup from "@/app/components/ChatPopup";
@@ -17,6 +18,8 @@ import { SmmNav } from "@/app/components/SmmNav";
 
 const PRESET_AMOUNTS = [11, 20, 25, 50, 100, 200];
 const MIN_AMOUNT = 11;
+const AUTORECHARGE_AMOUNTS = [20, 50, 100, 250];
+const AUTORECHARGE_MIN = 20;
 
 const CRYPTO_OPTIONS = [
   { id: "usdttrc20", label: "USDT", network: "TRC20", icon: "₮", color: "#26a17b", recommended: true },
@@ -43,6 +46,16 @@ interface PaymentResult {
   amount_usd: number;
 }
 
+interface AutorechargeState {
+  active: boolean;
+  status?: string;
+  amount_usd?: number;
+  interval?: string;
+  next_charge_at?: string | null;
+  last_charged_at?: string | null;
+  created_at?: string;
+}
+
 export default function FundsPage() {
   const router = useRouter();
   const [balance, setBalance] = useState(0);
@@ -65,8 +78,29 @@ export default function FundsPage() {
   const [promoCode, setPromoCode] = useState("");
   const [promoValidating, setPromoValidating] = useState(false);
   const [promoResult, setPromoResult] = useState<{ valid: boolean; bonus_usd?: number; message: string } | null>(null);
+  // Autorecharge state
+  const [autorecharge, setAutorecharge] = useState<AutorechargeState>({ active: false });
+  const [autorechargeAmount, setAutorechargeAmount] = useState(20);
+  const [autorechargeLoading, setAutorechargeLoading] = useState(false);
+  const [autorechargeError, setAutorechargeError] = useState<string | null>(null);
+  const [autorechargeBanner, setAutorechargeBanner] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line
+
+  // Banner de redirect post-Stripe
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const ar = params.get("autorecharge");
+    if (ar === "success") {
+      setAutorechargeBanner({ text: "¡Auto-recarga activada! La primera carga se acreditará en unos segundos.", ok: true });
+      // Limpiar query string
+      window.history.replaceState({}, "", "/smm/funds");
+    } else if (ar === "cancel") {
+      setAutorechargeBanner({ text: "Cancelaste el proceso. Tu auto-recarga no fue activada.", ok: false });
+      window.history.replaceState({}, "", "/smm/funds");
+    }
+  }, []);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -79,13 +113,61 @@ export default function FundsPage() {
 
   const fetchData = async () => {
     try {
-      const [ordRes, txRes] = await Promise.all([
+      const [ordRes, txRes, arRes] = await Promise.all([
         fetch("/api/smm/orders"),
         fetch("/api/smm/transactions"),
+        fetch("/api/smm/autorecharge"),
       ]);
       if (ordRes.ok) { const d = await ordRes.json(); setBalance(d.balance || 0); }
       if (txRes.ok) { const d = await txRes.json(); setTransactions(d.transactions || []); }
+      if (arRes.ok) { const d = await arRes.json(); setAutorecharge(d); }
     } finally { setLoading(false); }
+  };
+
+  const activateAutorecharge = async () => {
+    if (autorechargeAmount < AUTORECHARGE_MIN) {
+      setAutorechargeError(`El monto mínimo es $${AUTORECHARGE_MIN} USD`);
+      return;
+    }
+    setAutorechargeLoading(true);
+    setAutorechargeError(null);
+    try {
+      const res = await fetch("/api/smm/create-stripe-autorecharge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: autorechargeAmount }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setAutorechargeError(data.error || "Error creando la auto-recarga");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      setAutorechargeError("Error de conexión. Intenta de nuevo.");
+    } finally {
+      setAutorechargeLoading(false);
+    }
+  };
+
+  const cancelAutorecharge = async () => {
+    if (!confirm("¿Cancelar la auto-recarga mensual? Tu tarjeta no se cobrará más.")) return;
+    setAutorechargeLoading(true);
+    setAutorechargeError(null);
+    try {
+      const res = await fetch("/api/smm/autorecharge", { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) {
+        setAutorechargeError(data.error || "Error cancelando");
+        return;
+      }
+      setAutorecharge({ active: false });
+      setAutorechargeBanner({ text: "Auto-recarga cancelada. No se harán más cobros.", ok: true });
+    } catch {
+      setAutorechargeError("Error de conexión");
+    } finally {
+      setAutorechargeLoading(false);
+    }
   };
 
   const finalAmount = useCustom ? parseFloat(customAmount) || 0 : amount;
@@ -243,7 +325,7 @@ export default function FundsPage() {
               Recargar saldo
             </h1>
             <p style={{ fontSize: "16px", color: "#94a3b8", maxWidth: "480px", lineHeight: 1.6 }}>
-              Agrega fondos a tu cuenta con crypto — acreditación automática en minutos.
+              Recarga con tarjeta (auto-recarga mensual) o cripto (pago único) — acreditación automática.
             </p>
           </div>
         </div>
@@ -254,6 +336,123 @@ export default function FundsPage() {
 
             {/* Left: Form or Payment */}
             <div>
+              {/* ── Banner post-Stripe ── */}
+              {autorechargeBanner && (
+                <div style={{
+                  marginBottom: "16px", padding: "12px 16px", borderRadius: "12px",
+                  background: autorechargeBanner.ok ? "#34d39912" : "#fbbf2412",
+                  border: `1px solid ${autorechargeBanner.ok ? "#34d39935" : "#fbbf2435"}`,
+                  color: autorechargeBanner.ok ? "#34d399" : "#fbbf24",
+                  fontSize: "13px", fontWeight: 600,
+                  display: "flex", alignItems: "center", gap: "8px",
+                }}>
+                  {autorechargeBanner.ok ? <Check size={14} /> : <AlertCircle size={14} />}
+                  {autorechargeBanner.text}
+                  <button onClick={() => setAutorechargeBanner(null)}
+                    style={{ marginLeft: "auto", background: "transparent", border: "none", color: "inherit", cursor: "pointer", padding: 4 }}>
+                    <XIcon size={14} />
+                  </button>
+                </div>
+              )}
+
+              {/* ── Auto-recarga con tarjeta ── */}
+              <div style={{
+                background: autorecharge.active
+                  ? "linear-gradient(135deg, #0f2027, #1a1040)"
+                  : "#0d0d18",
+                border: `1px solid ${autorecharge.active ? "#34d39935" : "#1e1e30"}`,
+                borderRadius: "20px", padding: "24px", marginBottom: "20px",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                  <div style={{ width: "44px", height: "44px", borderRadius: "12px",
+                    background: autorecharge.active ? "#34d39920" : "#007ABF20",
+                    display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {autorecharge.active ? <RefreshCw size={20} color="#34d399" /> : <CreditCard size={20} color="#56B4E0" />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ fontSize: "15px", fontWeight: 700, color: "white" }}>
+                      {autorecharge.active ? "Auto-recarga activa" : "Auto-recarga mensual con tarjeta"}
+                    </p>
+                    <p style={{ fontSize: "12px", color: "#94a3b8" }}>
+                      {autorecharge.active
+                        ? `$${autorecharge.amount_usd?.toFixed(2)} cada mes · próximo cobro: ${autorecharge.next_charge_at ? new Date(autorecharge.next_charge_at).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" }) : "—"}`
+                        : "Configura una vez con tu tarjeta y olvídate de recargar"}
+                    </p>
+                  </div>
+                </div>
+
+                {autorecharge.active ? (
+                  <button onClick={cancelAutorecharge} disabled={autorechargeLoading}
+                    style={{
+                      width: "100%", padding: "12px", borderRadius: "12px",
+                      background: "transparent", border: "1px solid #f8717140",
+                      color: "#f87171", fontSize: "13px", fontWeight: 600,
+                      cursor: autorechargeLoading ? "not-allowed" : "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
+                    }}>
+                    {autorechargeLoading ? "Cancelando..." : (<><XIcon size={14} /> Cancelar auto-recarga</>)}
+                  </button>
+                ) : (
+                  <>
+                    <p style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", marginBottom: "10px" }}>
+                      Monto a recargar cada mes
+                    </p>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "14px" }}>
+                      {AUTORECHARGE_AMOUNTS.map((a) => {
+                        const active = autorechargeAmount === a;
+                        return (
+                          <button key={a} onClick={() => setAutorechargeAmount(a)}
+                            style={{
+                              padding: "10px", borderRadius: "10px",
+                              border: "1px solid", borderColor: active ? "#007ABF" : "#2d2d44",
+                              background: active ? "#007ABF20" : "#0a0a0f",
+                              color: active ? "white" : "#94a3b8",
+                              fontWeight: active ? 700 : 500, fontSize: "14px", cursor: "pointer",
+                            }}>
+                            ${a}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {autorechargeError && (
+                      <div style={{ background: "#f8717115", border: "1px solid #f8717140", borderRadius: "10px", padding: "8px 12px", marginBottom: "12px", fontSize: "12px", color: "#f87171", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <AlertCircle size={12} /> {autorechargeError}
+                      </div>
+                    )}
+
+                    <button onClick={activateAutorecharge} disabled={autorechargeLoading}
+                      style={{
+                        width: "100%", padding: "13px", borderRadius: "12px", border: "none",
+                        background: autorechargeLoading ? "#3b2068" : "linear-gradient(135deg, #635bff, #007ABF)",
+                        color: "white", fontSize: "14px", fontWeight: 700,
+                        cursor: autorechargeLoading ? "not-allowed" : "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                      }}>
+                      {autorechargeLoading ? (
+                        <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid white", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Redirigiendo a Stripe...</>
+                      ) : (
+                        <><CreditCard size={15} /> Activar auto-recarga ${autorechargeAmount}/mes</>
+                      )}
+                    </button>
+                    <p style={{ fontSize: "11px", color: "#64748b", textAlign: "center", marginTop: "8px" }}>
+                      Pago seguro con Stripe · Cancela cuando quieras
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {/* ── Separador con "o pago único cripto" ── */}
+              {!autorecharge.active && (
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "20px 0" }}>
+                  <div style={{ flex: 1, height: "1px", background: "#1e1e30" }} />
+                  <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                    o pago único con cripto
+                  </span>
+                  <div style={{ flex: 1, height: "1px", background: "#1e1e30" }} />
+                </div>
+              )}
+
               {!payment ? (
                 <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "20px", padding: "28px" }}>
 
