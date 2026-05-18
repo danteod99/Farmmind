@@ -59,10 +59,9 @@ export default function OfertaPage() {
         body: JSON.stringify({ priceId }),
       });
       if (res.status === 401) {
-        // Sin sesión: redirect a Google OAuth con plan preservado
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo: `${window.location.origin}/oferta?signin=1&plan=${plan}` },
+          options: { redirectTo: `${window.location.origin}/auth/callback?subscribe=${plan}` },
         });
         if (error) alert("Error iniciando sesión: " + error.message);
         return;

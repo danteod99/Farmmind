@@ -30,7 +30,7 @@ export default function GranjaPage() {
       if (res.status === 401) {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo: `${window.location.origin}/granja?signin=1&plan=${plan}` },
+          options: { redirectTo: `${window.location.origin}/auth/callback?subscribe=${plan}` },
         });
         if (error) alert("Error iniciando sesión: " + error.message);
         return;

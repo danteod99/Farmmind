@@ -30,9 +30,10 @@ export default function PanelSmmPage() {
         body: JSON.stringify({ priceId }),
       });
       if (res.status === 401) {
+        // Tras OAuth → /auth/callback redirige a /?subscribe=plan que dispara Stripe
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo: `${window.location.origin}/panel-smm?signin=1&plan=${plan}` },
+          options: { redirectTo: `${window.location.origin}/auth/callback?subscribe=${plan}` },
         });
         if (error) alert("Error iniciando sesión: " + error.message);
         return;

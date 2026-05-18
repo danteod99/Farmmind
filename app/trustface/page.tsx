@@ -49,7 +49,7 @@ export default function TrustFacePage() {
       if (res.status === 401) {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
-          options: { redirectTo: `${window.location.origin}/trustface?signin=1&plan=${plan}` },
+          options: { redirectTo: `${window.location.origin}/auth/callback?subscribe=${plan}` },
         });
         if (error) alert("Error iniciando sesión: " + error.message);
         return;
