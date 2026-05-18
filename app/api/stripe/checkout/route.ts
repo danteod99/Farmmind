@@ -51,15 +51,22 @@ export async function POST(req: Request) {
     }
 
     const { priceId } = await req.json();
+    if (!priceId || typeof priceId !== "string" || !priceId.startsWith("price_")) {
+      return Response.json(
+        { error: "Price ID inválido. Contacta a soporte (config de Stripe falta)." },
+        { status: 400 }
+      );
+    }
+
     const origin = req.headers.get("origin") || "https://www.trustmind.online";
     const stripe = getStripe();
 
-    // Buscar o crear customer en Stripe
+    // Buscar o crear customer en Stripe (maybeSingle para no fallar si no hay row)
     const { data: profile } = await supabase
       .from("profiles")
       .select("stripe_customer_id")
       .eq("id", user.id)
-      .single();
+      .maybeSingle();
 
     let customerId = profile?.stripe_customer_id;
 
@@ -91,6 +98,7 @@ export async function POST(req: Request) {
     return Response.json({ url: session.url });
   } catch (error) {
     console.error("Stripe checkout error:", error);
-    return Response.json({ error: "Error creando sesión de pago" }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Error creando sesión de pago";
+    return Response.json({ error: message }, { status: 500 });
   }
 }

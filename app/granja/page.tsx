@@ -19,7 +19,8 @@ export default function GranjaPage() {
     const plan = planOverride || selectedPlan;
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
@@ -35,10 +36,9 @@ export default function GranjaPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert("Error conectando con Stripe");
+      });      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+      alert(data.error || "Error conectando con Stripe");
     } catch {
       alert("Error de conexión");
     } finally {

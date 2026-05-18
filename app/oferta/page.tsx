@@ -49,7 +49,8 @@ export default function OfertaPage() {
     const plan = planOverride || selectedPlan;
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user) {
         const { error } = await supabase.auth.signInWithOAuth({
           provider: "google",
@@ -67,8 +68,8 @@ export default function OfertaPage() {
         body: JSON.stringify({ priceId }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert("Error conectando con Stripe. Intenta más tarde.");
+      if (data.url) { window.location.href = data.url; return; }
+      alert(data.error || "Error conectando con Stripe. Intenta más tarde.");
     } catch {
       alert("Error. Intenta de nuevo.");
     } finally {
