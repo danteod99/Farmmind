@@ -124,7 +124,7 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
               <p className="text-xs font-semibold" style={{ color: "#56B4E0" }}>PRO</p>
               <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#007ABF20", color: "#56B4E0" }}>Popular</span>
             </div>
-            <p className="text-2xl font-bold text-white mb-3">$19<span className="text-sm font-normal text-gray-400">/mes</span></p>
+            <p className="text-2xl font-bold text-white mb-3">$50<span className="text-sm font-normal text-gray-400">/mes</span></p>
             <div className="space-y-1.5 text-xs text-gray-300">
               <p>✓ Mensajes ilimitados</p>
               <p>✓ Historial completo</p>
@@ -140,7 +140,7 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
           style={{ background: "linear-gradient(135deg, #007ABF, #005F96)" }}
         >
           <Sparkles size={15} />
-          Obtener TRUST MIND Pro — $19/mes
+          Obtener TRUST MIND Pro — $50/mes
         </button>
         <p className="text-xs text-gray-600 mt-3">Cancela cuando quieras • Pago seguro con Stripe</p>
       </div>
@@ -386,30 +386,41 @@ function LoginScreen() {
 
         <div style={{ position: "relative", maxWidth: "900px", margin: "0 auto", animation: "fade-up 0.8s ease-out" }}>
           {/* Badge */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 18px", borderRadius: "100px", background: "rgba(0, 122, 191, 0.08)", border: "1px solid rgba(0, 122, 191, 0.25)", marginBottom: "32px", animation: "scale-in 0.5s ease-out" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 18px", borderRadius: "100px", background: "linear-gradient(135deg, rgba(0, 122, 191, 0.18), rgba(0, 180, 216, 0.15))", border: "1px solid rgba(0, 180, 216, 0.4)", marginBottom: "32px", animation: "scale-in 0.5s ease-out" }}>
             <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399", animation: "glow-pulse 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 600, letterSpacing: "0.3px" }}>Agente activo 24/7</span>
+            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 700, letterSpacing: "0.3px" }}>TRUST MIND Pro — $50/mes · acceso completo</span>
           </div>
 
           {/* Headline */}
           <h1 style={{ fontSize: "clamp(40px, 7vw, 76px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.045em", marginBottom: "28px" }}>
-            <span style={{ color: "#ffffff" }}>Automatiza tu</span>
+            <span style={{ color: "#ffffff" }}>Escala tu</span>
             <br />
             <span style={{ background: "linear-gradient(135deg, #00B4D8 0%, #007ABF 40%, #0050A0 100%)", backgroundSize: "200% 200%", animation: "gradient-shift 4s ease infinite", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>granja de bots</span>
             <br />
-            <span style={{ color: "#ffffff" }}>con IA</span>
+            <span style={{ color: "#ffffff" }}>en piloto automático</span>
           </h1>
 
           <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#94a3b8", lineHeight: 1.7, maxWidth: "580px", margin: "0 auto 44px", fontWeight: 400 }}>
-            GenFarmer, proxies, anti-deteccion y Growth Dashboard. Todo controlado desde un chat inteligente que entiende tu negocio.
+            +5,000 servicios SMM, GenFarmer, proxies premium, anti-detección y Growth Dashboard. Todo controlado desde un agente IA que entiende tu negocio. <strong style={{ color: "#7dd3fc" }}>Por $50/mes.</strong>
           </p>
 
           {/* CTA */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
             <GoogleButton large />
+            <a href="#pricing" style={{
+              padding: "14px 24px", borderRadius: "14px",
+              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+              color: "#94a3b8", fontSize: "14px", fontWeight: 600,
+              textDecoration: "none", transition: "all 0.2s",
+              display: "inline-flex", alignItems: "center", gap: "6px",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}>
+              Ver Pro $50/mes →
+            </a>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "16px", flexWrap: "wrap" }}>
-            {["Gratis para empezar", "Sin tarjeta", "Setup en 30 seg"].map((t, i) => (
+            {["Cancela cuando quieras", "Pago seguro con Stripe", "Setup en 30 seg"].map((t, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <Zap size={12} color="#34d399" />
                 <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>{t}</span>
@@ -439,6 +450,62 @@ function LoginScreen() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* === PRO OFFER BANNER === */}
+      <section style={{ padding: "20px 32px 40px", position: "relative" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{
+            position: "relative", overflow: "hidden",
+            background: "linear-gradient(135deg, #001830 0%, #000d1f 60%, #002040 100%)",
+            border: "1px solid rgba(0, 180, 216, 0.4)",
+            borderRadius: "24px",
+            padding: "36px 32px",
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            gap: "24px",
+            alignItems: "center",
+          }} className="pro-banner">
+            <div style={{ position: "absolute", top: "-80px", right: "-80px", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF25, transparent 70%)", pointerEvents: "none", filter: "blur(40px)" }} />
+            <div style={{ position: "relative", zIndex: 1 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 10px", borderRadius: "6px", background: "rgba(0, 180, 216, 0.15)", border: "1px solid rgba(0, 180, 216, 0.35)", marginBottom: "12px" }}>
+                <Crown size={11} color="#7dd3fc" />
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1px" }}>TRUST MIND Pro</span>
+              </div>
+              <h3 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 800, color: "white", marginBottom: "8px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
+                Todo lo que necesitas para escalar — por $50/mes
+              </h3>
+              <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.6, marginBottom: 0 }}>
+                Mensajes ilimitados, historial completo, acceso prioritario y nuevas funciones primero. Cancela cuando quieras.
+              </p>
+            </div>
+            <div style={{ position: "relative", zIndex: 1, textAlign: "right" }} className="pro-banner-cta">
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ fontSize: "clamp(36px, 5vw, 48px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em", lineHeight: 1 }}>$50</span>
+                <span style={{ fontSize: "14px", color: "#7dd3fc", marginLeft: "4px", fontWeight: 600 }}>/mes</span>
+              </div>
+              <a href="#pricing" style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "12px 22px", borderRadius: "12px",
+                background: "linear-gradient(135deg, #007ABF, #00B4D8)",
+                color: "white", fontSize: "14px", fontWeight: 700,
+                textDecoration: "none",
+                boxShadow: "0 4px 20px rgba(0, 122, 191, 0.4)",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(0, 122, 191, 0.5)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 122, 191, 0.4)"; }}>
+                <Sparkles size={14} /> Empezar con Pro
+              </a>
+            </div>
+          </div>
+        </div>
+        <style>{`
+          @media (max-width: 640px) {
+            .pro-banner { grid-template-columns: 1fr !important; text-align: center !important; }
+            .pro-banner-cta { text-align: center !important; }
+          }
+        `}</style>
       </section>
 
       {/* === FEATURES === */}
@@ -618,7 +685,7 @@ function LoginScreen() {
               <div style={{ position: "absolute", top: "-60px", right: "-60px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF15, transparent 70%)", pointerEvents: "none" }} />
               <p style={{ fontSize: "13px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>Pro</p>
               <div style={{ marginBottom: "28px" }}>
-                <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$19</span>
+                <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$50</span>
                 <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
               </div>
               <div style={{ borderTop: "1px solid rgba(0, 122, 191, 0.2)", paddingTop: "24px" }}>
