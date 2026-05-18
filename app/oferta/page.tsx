@@ -373,42 +373,117 @@ export default function OfertaPage() {
           </div>
         </section>
 
-        {/* ── TESTIMONIALS ── */}
+        {/* ── RESULTADOS REALES (screenshots) ── */}
         <section className="vsl-section" style={{ padding: "80px 20px", background: "#08080f" }}>
-          <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-            <p style={{ textAlign: "center", fontSize: "12px", fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "16px" }}>Resultados reales</p>
-            <h2 style={{ textAlign: "center", fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 800, color: "white", marginBottom: "48px", letterSpacing: "-0.02em" }}>
-              Mira lo que dicen los que ya están dentro
+          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+            <p style={{ textAlign: "center", fontSize: "12px", fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "16px" }}>Resultados reales · no actores</p>
+            <h2 style={{ textAlign: "center", fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 800, color: "white", marginBottom: "16px", letterSpacing: "-0.02em" }}>
+              Mira lo que están generando los que ya están dentro
             </h2>
+            <p style={{ textAlign: "center", fontSize: "15px", color: "#94a3b8", maxWidth: "640px", margin: "0 auto 48px", lineHeight: 1.6 }}>
+              Screenshots reales de la comunidad <strong style={{ color: "white" }}>Aportes Artificiales</strong> y dashboards de YouTube. Sin filtros, sin edición.
+            </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+            {/* TESTIMONIOS DE LA COMUNIDAD */}
+            <p style={{ fontSize: "11px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", textAlign: "center" }}>💬 Testimonios de la comunidad</p>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "16px",
+              marginBottom: "48px",
+            }}>
               {[
-                { name: "Carlos M.", city: "Lima, Perú", result: "+12,400 seguidores en 3 meses", text: "Pasé de 3K a 15K en mi IG de gastronomía. El agente me sugirió hashtags y campañas que jamás se me hubieran ocurrido. Insano." },
-                { name: "Valentina R.", city: "Bogotá, CO", result: "$8,200 vendidos con TikTok", text: "Yo solo subo videos. El sistema se encarga del resto. Mis vídeos pasan de 200 views a 50K en horas." },
-                { name: "Diego A.", city: "Buenos Aires, AR", result: "+85K seguidores totales", text: "Manejo 4 cuentas para clientes. Antes me tomaba 6 horas al día. Ahora dejo TRUST corriendo y reviso resultados al final del día." },
+                {
+                  src: "/resultados/testimonio-braulio.png",
+                  name: "Braulio Espíritu",
+                  result: "$7,275.80 procesados",
+                  quote: "Ahora yo también soy granjero. Estos son los resultados de mis últimos meses, gracias Dante por la asesoría.",
+                },
+                {
+                  src: "/resultados/testimonio-ricardo.png",
+                  name: "Ricardo Sayas",
+                  result: "$3,466.05 en 1 mes",
+                  quote: "¡Qué locura! No puedo creer lo que estoy logrando con mi granja de bots. De verdad que vale la pena la inversión.",
+                },
+                {
+                  src: "/resultados/testimonio-isaac.png",
+                  name: "Isaac Zaak",
+                  result: "Primera granja recibida",
+                  quote: "Hoy recibí mi primera granja, el lunes empiezo el montaje y configuración. ¡A todo gas!",
+                },
               ].map((t, i) => (
                 <div key={i} style={{
-                  padding: "28px",
                   borderRadius: "20px",
                   background: "linear-gradient(160deg, #0d0d18, #07070e)",
                   border: "1px solid rgba(255,255,255,0.06)",
+                  overflow: "hidden",
+                  display: "flex",
+                  flexDirection: "column",
                 }}>
-                  <div style={{ display: "flex", gap: "2px", marginBottom: "14px" }}>
-                    {[1,2,3,4,5].map(s => <span key={s} style={{ color: "#fbbf24", fontSize: "16px" }}>★</span>)}
+                  <div style={{ position: "relative", aspectRatio: "1/1", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0a0a14" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={t.src} alt={`Testimonio de ${t.name}`}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
                   </div>
-                  <p style={{ fontSize: "14px", color: "#e2e8f0", fontStyle: "italic", lineHeight: 1.6, marginBottom: "20px" }}>
-                    "{t.text}"
-                  </p>
-                  <div style={{ paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                    <p style={{ fontSize: "14px", fontWeight: 700, color: "white" }}>{t.name}</p>
-                    <p style={{ fontSize: "12px", color: "#64748b", marginBottom: "8px" }}>{t.city}</p>
-                    <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "20px", background: "rgba(52, 211, 153, 0.1)", border: "1px solid rgba(52, 211, 153, 0.25)", color: "#34d399", fontSize: "11px", fontWeight: 700 }}>
-                      ✓ {t.result}
-                    </span>
+                  <div style={{ padding: "20px" }}>
+                    <div style={{ display: "flex", gap: "2px", marginBottom: "10px" }}>
+                      {[1,2,3,4,5].map(s => <span key={s} style={{ color: "#fbbf24", fontSize: "14px" }}>★</span>)}
+                    </div>
+                    <p style={{ fontSize: "13px", color: "#e2e8f0", fontStyle: "italic", lineHeight: 1.5, marginBottom: "14px" }}>
+                      &ldquo;{t.quote}&rdquo;
+                    </p>
+                    <div style={{ paddingTop: "12px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                      <p style={{ fontSize: "13px", fontWeight: 700, color: "white", marginBottom: "6px" }}>{t.name}</p>
+                      <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "20px", background: "rgba(52, 211, 153, 0.1)", border: "1px solid rgba(52, 211, 153, 0.25)", color: "#34d399", fontSize: "11px", fontWeight: 700 }}>
+                        ✓ {t.result}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* YOUTUBE ANALYTICS */}
+            <p style={{ fontSize: "11px", fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", textAlign: "center" }}>📺 Resultados YouTube de la comunidad</p>
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+              gap: "16px",
+            }}>
+              {[
+                {
+                  src: "/resultados/youtube-6m.png",
+                  title: "6.3M views · $1,407 revenue",
+                  desc: "Crecimiento orgánico de un canal que usa nuestro sistema. 5.4M horas de visualización.",
+                },
+                {
+                  src: "/resultados/youtube-revenue.jpg",
+                  title: "+707 subs y $630 en 28 días",
+                  desc: "57.4K views nuevas, 14.2K horas, ingresos reales por monetización YouTube.",
+                },
+              ].map((y, i) => (
+                <div key={i} style={{
+                  borderRadius: "20px",
+                  background: "linear-gradient(160deg, #0d0d18, #07070e)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  overflow: "hidden",
+                }}>
+                  <div style={{ position: "relative", aspectRatio: "16/10", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0a0a14" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={y.src} alt={y.title}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
+                  </div>
+                  <div style={{ padding: "18px 20px" }}>
+                    <p style={{ fontSize: "15px", fontWeight: 700, color: "white", marginBottom: "6px" }}>{y.title}</p>
+                    <p style={{ fontSize: "13px", color: "#94a3b8", lineHeight: 1.5 }}>{y.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <p style={{ textAlign: "center", marginTop: "32px", fontSize: "13px", color: "#64748b" }}>
+              🔥 Y muchos más resultados que iremos publicando cada semana
+            </p>
           </div>
         </section>
 
