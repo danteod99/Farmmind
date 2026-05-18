@@ -71,6 +71,11 @@ export async function GET(request: Request) {
       .from("smm_transactions")
       .select("user_id, amount, status, credited, created_at");
 
+    // 7. Get attribution (traffic source) per user
+    const { data: attributions } = await admin
+      .from("user_attribution")
+      .select("user_id, utm_source, utm_medium, utm_campaign, utm_content, fbclid, gclid, ttclid, referrer, landing_page");
+
     // Build lookup maps
     const balanceMap: Record<string, number> = {};
     (balances || []).forEach((b) => { balanceMap[b.user_id] = Number(b.balance); });
@@ -88,6 +93,15 @@ export async function GET(request: Request) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (txByUser[t.user_id] as any[]).push(t);
     });
+
+    // Attribution map: user_id -> attribution data
+    type Attr = {
+      utm_source: string | null; utm_medium: string | null; utm_campaign: string | null;
+      utm_content: string | null; fbclid: string | null; gclid: string | null;
+      ttclid: string | null; referrer: string | null; landing_page: string | null;
+    };
+    const attrMap: Record<string, Attr> = {};
+    (attributions || []).forEach((a) => { attrMap[a.user_id] = a; });
 
     // Software device map: user_id -> device info
     const deviceUsers = new Set<string>();
@@ -138,12 +152,14 @@ export async function GET(request: Request) {
         })),
         has_software: deviceUsers.has(u.id),
         software_sub: subMap[u.id] || null,
+        attribution: attrMap[u.id] || null,
       };
     });
 
     // Global stats (computed on full dataset before filtering/pagination)
+    // Un usuario cuenta como "comprador" si tiene órdenes SMM o ha recargado saldo (ya pagó dinero real).
     const totalUsers = users.length;
-    const buyers = users.filter((u) => u.total_orders > 0).length;
+    const buyers = users.filter((u) => u.total_orders > 0 || u.total_recharged > 0).length;
     const nonBuyers = totalUsers - buyers;
     const totalRevenue = users.reduce((sum, u) => sum + u.total_spent, 0);
     const totalRecharged = users.reduce((sum, u) => sum + u.total_recharged, 0);
@@ -173,8 +189,8 @@ export async function GET(request: Request) {
         (u) => u.email.toLowerCase().includes(q) || u.name.toLowerCase().includes(q)
       );
     }
-    if (filterType === "buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders > 0);
-    if (filterType === "non-buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders === 0);
+    if (filterType === "buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders > 0 || u.total_recharged > 0);
+    if (filterType === "non-buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders === 0 && u.total_recharged === 0);
     if (filterType === "software") filteredUsers = filteredUsers.filter((u) => u.has_software);
     if (filterType === "new") {
       filteredUsers = filteredUsers.filter((u) => new Date(u.created_at) > weekAgo);

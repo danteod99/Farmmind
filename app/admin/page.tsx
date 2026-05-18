@@ -17,6 +17,11 @@ interface Stats {
   newThisWeek: number; softwareUsers: number;
 }
 interface RecentOrder { service_name: string; charge: number; status: string; created_at: string; }
+interface Attribution {
+  utm_source: string | null; utm_medium: string | null; utm_campaign: string | null;
+  utm_content: string | null; fbclid: string | null; gclid: string | null;
+  ttclid: string | null; referrer: string | null; landing_page: string | null;
+}
 interface UserRow {
   id: string; email: string; name: string; avatar: string;
   created_at: string; last_sign_in: string | null;
@@ -25,6 +30,22 @@ interface UserRow {
   last_order_name: string | null; recent_orders: RecentOrder[];
   has_software: boolean;
   software_sub: { product: string; active: boolean } | null;
+  attribution: Attribution | null;
+}
+
+function sourceBadge(attr: Attribution | null): { label: string; color: string; bg: string } {
+  if (!attr) return { label: "—", color: "#64748b", bg: "#1a1a2e" };
+  const s = (attr.utm_source || "").toLowerCase();
+  if (attr.fbclid || s.includes("facebook") || s === "fb") return { label: "Facebook Ads", color: "#1877F2", bg: "#1877F215" };
+  if (attr.gclid || s.includes("google")) return { label: "Google Ads", color: "#34d399", bg: "#34d39915" };
+  if (attr.ttclid || s.includes("tiktok")) return { label: "TikTok Ads", color: "#ff0050", bg: "#ff005015" };
+  if (s.includes("instagram")) return { label: "Instagram", color: "#E4405F", bg: "#E4405F15" };
+  if (s.includes("youtube")) return { label: "YouTube", color: "#FF0000", bg: "#FF000015" };
+  if (s === "direct") return { label: "Directo", color: "#94a3b8", bg: "#94a3b815" };
+  if (s === "search") return { label: "Búsqueda orgánica", color: "#fbbf24", bg: "#fbbf2415" };
+  if (s === "referral") return { label: "Referencia", color: "#a78bfa", bg: "#a78bfa15" };
+  if (s) return { label: s, color: "#7dd3fc", bg: "#7dd3fc15" };
+  return { label: "Desconocido", color: "#64748b", bg: "#1a1a2e" };
 }
 
 function fmt(d: string | null) {
@@ -414,8 +435,8 @@ export default function AdminPage() {
         {/* TABLE */}
         <div style={{ background:"#0a0a14", border:"1px solid #1a1a2e", borderRadius:"14px", overflow:"hidden" }}>
           {/* Header */}
-          <div style={{ display:"grid", gridTemplateColumns:"2.2fr 0.9fr 0.8fr 0.7fr 0.9fr 0.8fr", gap:"10px", padding:"11px 18px", borderBottom:"1px solid #1a1a2e", background:"#07070e" }}>
-            {([["Usuario",null],["Registro","created_at"],["Balance","balance"],["Pedidos","total_orders"],["Gastado","total_spent"],["Último acceso",null]] as [string, SortCol|null][]).map(([lbl,col])=>(
+          <div style={{ display:"grid", gridTemplateColumns:"2fr 0.9fr 1fr 0.7fr 0.6fr 0.8fr 0.7fr", gap:"10px", padding:"11px 18px", borderBottom:"1px solid #1a1a2e", background:"#07070e" }}>
+            {([["Usuario",null],["Registro","created_at"],["Fuente",null],["Balance","balance"],["Pedidos","total_orders"],["Gastado","total_spent"],["Último acceso",null]] as [string, SortCol|null][]).map(([lbl,col])=>(
               <button key={lbl} onClick={()=>col&&toggleSort(col)}
                 style={{ background:"none", border:"none", color:col&&sortBy===col?"#88D0F0":"#3a3a5c", fontSize:"10px", fontWeight:700, cursor:col?"pointer":"default", fontFamily:"inherit", textTransform:"uppercase", letterSpacing:"0.5px", display:"flex", alignItems:"center", gap:"3px", padding:0 }}>
                 {lbl} {col&&sortBy===col&&(sortDir==="desc"?<ChevronDown size={11}/>:<ChevronUp size={11}/>)}
@@ -427,12 +448,12 @@ export default function AdminPage() {
           {filtered.length===0 ? (
             <div style={{ padding:"36px", textAlign:"center", color:"#3a3a5c", fontSize:"13px" }}>No se encontraron usuarios</div>
           ) : filtered.map((u)=>{
-            const buyer = u.total_orders>0;
+            const buyer = u.total_orders>0 || u.total_recharged>0;
             const exp = expanded===u.id;
             return (
               <div key={u.id}>
                 <div className="ur" onClick={()=>setExpanded(exp?null:u.id)}
-                  style={{ display:"grid", gridTemplateColumns:"2.2fr 0.9fr 0.8fr 0.7fr 0.9fr 0.8fr", gap:"10px", padding:"13px 18px", borderBottom:"1px solid #0d0d1a", cursor:"pointer", transition:"background 0.15s", alignItems:"center" }}>
+                  style={{ display:"grid", gridTemplateColumns:"2fr 0.9fr 1fr 0.7fr 0.6fr 0.8fr 0.7fr", gap:"10px", padding:"13px 18px", borderBottom:"1px solid #0d0d1a", cursor:"pointer", transition:"background 0.15s", alignItems:"center" }}>
                   {/* User */}
                   <div style={{ display:"flex", alignItems:"center", gap:"9px", minWidth:0 }}>
                     {u.avatar
@@ -448,6 +469,16 @@ export default function AdminPage() {
                     {u.software_sub?.active && <span style={{ padding:"2px 7px", borderRadius:"5px", background:"#a78bfa15", border:"1px solid #a78bfa30", fontSize:"9px", fontWeight:700, color:"#a78bfa", whiteSpace:"nowrap", flexShrink:0 }}>Pro</span>}
                   </div>
                   <p style={{ fontSize:"12px", color:"#8892a4" }}>{fmt(u.created_at)}</p>
+                  {/* Fuente */}
+                  {(() => {
+                    const b = sourceBadge(u.attribution);
+                    return (
+                      <span title={u.attribution?.utm_campaign ? `Campaña: ${u.attribution.utm_campaign}` : (u.attribution?.referrer || "Sin attribution")}
+                        style={{ display:"inline-flex", alignItems:"center", padding:"3px 8px", borderRadius:"6px", background:b.bg, border:`1px solid ${b.color}30`, color:b.color, fontSize:"10px", fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:"100%" }}>
+                        {b.label}
+                      </span>
+                    );
+                  })()}
                   <p style={{ fontSize:"13px", fontWeight:700, color:u.balance>0?"#34d399":"#3a3a5c" }}>${u.balance.toFixed(2)}</p>
                   <p style={{ fontSize:"13px", fontWeight:700, color:u.total_orders>0?"#56B4E0":"#3a3a5c" }}>{u.total_orders}</p>
                   <p style={{ fontSize:"13px", fontWeight:700, color:u.total_spent>0?"#a78bfa":"#3a3a5c" }}>${u.total_spent.toFixed(2)}</p>
@@ -470,6 +501,39 @@ export default function AdminPage() {
                             <span style={{ fontSize:"11px", color:"#8892a4", fontFamily:k==="ID"?"monospace":"inherit" }}>{v}</span>
                           </div>
                         ))}
+                      </div>
+                      {/* Attribution */}
+                      <div style={{ background:"#0a0a14", border:"1px solid #1a1a2e", borderRadius:"11px", padding:"13px" }}>
+                        <p style={{ fontSize:"10px", fontWeight:700, color:"#3a3a5c", marginBottom:"9px", textTransform:"uppercase", letterSpacing:"0.5px" }}>Fuente de tráfico</p>
+                        {!u.attribution ? (
+                          <p style={{ fontSize:"12px", color:"#3a3a5c" }}>Sin data de attribution (registrado antes del tracking)</p>
+                        ) : (
+                          <>
+                            {(() => {
+                              const b = sourceBadge(u.attribution);
+                              return (
+                                <div style={{ marginBottom:"9px" }}>
+                                  <span style={{ display:"inline-block", padding:"3px 9px", borderRadius:"6px", background:b.bg, border:`1px solid ${b.color}30`, color:b.color, fontSize:"10px", fontWeight:700 }}>{b.label}</span>
+                                </div>
+                              );
+                            })()}
+                            {([
+                              ["utm_source", u.attribution.utm_source],
+                              ["utm_medium", u.attribution.utm_medium],
+                              ["utm_campaign", u.attribution.utm_campaign],
+                              ["utm_content", u.attribution.utm_content],
+                              ["fbclid", u.attribution.fbclid ? u.attribution.fbclid.slice(0,18)+"…" : null],
+                              ["gclid", u.attribution.gclid ? u.attribution.gclid.slice(0,18)+"…" : null],
+                              ["landing", u.attribution.landing_page],
+                              ["referrer", u.attribution.referrer ? (u.attribution.referrer.replace(/^https?:\/\//,"").slice(0,28)) : null],
+                            ] as [string, string|null][]).filter(([,v])=>v).map(([k,v])=>(
+                              <div key={k} style={{ display:"flex", justifyContent:"space-between", marginBottom:"4px", gap:"8px" }}>
+                                <span style={{ fontSize:"11px", color:"#5a6480" }}>{k}</span>
+                                <span style={{ fontSize:"11px", color:"#8892a4", fontFamily:"monospace", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth:"60%" }} title={v ?? ""}>{v}</span>
+                              </div>
+                            ))}
+                          </>
+                        )}
                       </div>
                       {/* Orders */}
                       <div style={{ background:"#0a0a14", border:"1px solid #1a1a2e", borderRadius:"11px", padding:"13px" }}>

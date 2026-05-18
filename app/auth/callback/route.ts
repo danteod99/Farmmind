@@ -174,6 +174,39 @@ export async function GET(request: Request) {
           .eq("user_id", session.user.id)
           .single();
 
+        // Persistir attribution si viene cookie tm_attr (first-touch, solo si no existe ya)
+        try {
+          const cookieHeader = request.headers.get("cookie") || "";
+          const attrMatch = cookieHeader.match(/tm_attr=([^;]+)/);
+          if (attrMatch) {
+            const attr = JSON.parse(decodeURIComponent(attrMatch[1]));
+            const { data: existingAttr } = await admin
+              .from("user_attribution")
+              .select("user_id")
+              .eq("user_id", session.user.id)
+              .maybeSingle();
+            if (!existingAttr) {
+              await admin.from("user_attribution").insert({
+                user_id: session.user.id,
+                utm_source: attr.utm_source || null,
+                utm_medium: attr.utm_medium || null,
+                utm_campaign: attr.utm_campaign || null,
+                utm_content: attr.utm_content || null,
+                utm_term: attr.utm_term || null,
+                fbclid: attr.fbclid || null,
+                gclid: attr.gclid || null,
+                ttclid: attr.ttclid || null,
+                msclkid: attr.msclkid || null,
+                referrer: attr.referrer || null,
+                landing_page: attr.landing_page || null,
+                user_agent: attr.user_agent || null,
+              });
+            }
+          }
+        } catch (attrErr) {
+          console.error("[Auth Callback] Error persisting attribution:", attrErr);
+        }
+
         if (!bal) {
           // New user — create balance and redirect with registration flag
           await admin.from("smm_balances").insert({ user_id: session.user.id, balance: 0 });
