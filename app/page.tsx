@@ -646,8 +646,8 @@ function LoginScreen() {
               gradient: "linear-gradient(135deg, #E1306C, #F77737)",
               badge: "Instagram",
               badgeColor: "#E1306C",
-              version: "v1.4.9",
-              price: "$99/mes",
+              version: "v1.5.0",
+              price: "Incluido en Pro",
             },
             {
               name: "TrustFace Desktop",
@@ -656,8 +656,8 @@ function LoginScreen() {
               gradient: "linear-gradient(135deg, #1877F2, #0d5bc4)",
               badge: "Facebook",
               badgeColor: "#1877F2",
-              version: "v1.4.7",
-              price: "$99/mes",
+              version: "v1.5.2",
+              price: "Incluido en Pro",
             },
             {
               name: "TrustFarm Desktop",
@@ -666,8 +666,8 @@ function LoginScreen() {
               gradient: "linear-gradient(135deg, #7b9bff, #4f46e5)",
               badge: "Phone Farming",
               badgeColor: "#7b9bff",
-              version: "v1.1.1",
-              price: "Pronto",
+              version: "v2.14.0",
+              price: "Incluido en Pro",
             },
           ].map((app) => (
             <div key={app.name} className="feature-card" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "20px", padding: "32px", position: "relative", overflow: "hidden", cursor: "default" }}>
