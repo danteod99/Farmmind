@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import {
-  Play, Check, X as XIcon, Crown, Shield, Zap, Clock,
+  Check, X as XIcon, Crown, Shield, Zap, Clock,
   TrendingUp, Users, Award, ChevronDown, Sparkles
 } from "lucide-react";
 
@@ -29,7 +29,6 @@ export default function OfertaPage() {
   const [loading, setLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_HOURS * 3600);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [videoPlaying, setVideoPlaying] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"yearly" | "monthly">("yearly");
   const ctaRef = useRef<HTMLDivElement>(null);
 
@@ -169,68 +168,40 @@ export default function OfertaPage() {
               margin: "0 auto 32px",
               lineHeight: 1.6,
             }}>
-              Mira este video corto y descubre el sistema que más de <strong style={{ color: "white" }}>4,200 emprendedores en Latam</strong> usan para escalar redes sociales sin contratar agencia.
+              Mira la infraestructura real que más de <strong style={{ color: "white" }}>4,200 emprendedores en Latam</strong> usan para escalar redes sociales sin contratar agencia.
             </p>
 
-            {/* VIDEO PLAYER */}
+            {/* HERO IMAGE — Ejército de bots */}
             <div style={{
               position: "relative",
-              maxWidth: "720px",
+              maxWidth: "820px",
               margin: "0 auto 32px",
               borderRadius: "20px",
               overflow: "hidden",
-              boxShadow: "0 24px 80px rgba(0, 122, 191, 0.25), 0 0 0 1px rgba(255,255,255,0.08)",
+              boxShadow: "0 24px 80px rgba(0, 122, 191, 0.35), 0 0 0 1px rgba(255,255,255,0.08)",
               aspectRatio: "16/9",
               background: "linear-gradient(135deg, #001830, #000810)",
-              cursor: videoPlaying ? "default" : "pointer",
-            }}
-              onClick={() => !videoPlaying && setVideoPlaying(true)}>
-
-              {/* Placeholder con grid pattern */}
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/oferta/ejercito-bots.png"
+                alt="Ejército de bots — Granja de teléfonos TrustMind"
+                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              />
+              {/* Bottom gradient + caption */}
               <div style={{
-                position: "absolute", inset: 0,
-                backgroundImage: "linear-gradient(rgba(0,122,191,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,122,191,0.06) 1px, transparent 1px)",
-                backgroundSize: "40px 40px",
-              }} />
-              <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.4) 70%)" }} />
-
-              {!videoPlaying ? (
-                <>
-                  {/* Play button */}
-                  <div style={{
-                    position: "absolute", top: "50%", left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    display: "flex", flexDirection: "column", alignItems: "center", gap: "16px",
-                  }}>
-                    <div style={{
-                      width: "92px", height: "92px", borderRadius: "50%",
-                      background: "linear-gradient(135deg, #007ABF, #00B4D8)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      boxShadow: "0 8px 32px rgba(0, 180, 216, 0.5)",
-                      animation: "pulse-cta 2s ease-out infinite",
-                    }}>
-                      <Play size={42} color="white" fill="white" style={{ marginLeft: "6px" }} />
-                    </div>
-                    <p style={{ fontSize: "14px", color: "#94a3b8", fontWeight: 600 }}>
-                      ▶ Reproducir video · 8 min
-                    </p>
-                  </div>
-
-                  {/* Bottom overlay */}
-                  <div style={{
-                    position: "absolute", bottom: 0, left: 0, right: 0,
-                    background: "linear-gradient(to top, rgba(0,0,0,0.7), transparent)",
-                    padding: "16px 20px",
-                    textAlign: "left",
-                  }}>
-                    <p style={{ fontSize: "13px", color: "#e2e8f0", fontWeight: 600 }}>📺 Caso de estudio: De 0 a 50K seguidores en 6 meses</p>
-                  </div>
-                </>
-              ) : (
-                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: "14px" }}>
-                  Video VSL pronto disponible · Mientras tanto, mira la oferta abajo ↓
-                </div>
-              )}
+                position: "absolute", bottom: 0, left: 0, right: 0,
+                background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)",
+                padding: "24px 22px 18px",
+                textAlign: "left",
+              }}>
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "4px" }}>
+                  📱 +200 dispositivos activos 24/7
+                </p>
+                <p style={{ fontSize: "14px", color: "#e2e8f0", fontWeight: 500 }}>
+                  Nuestra infraestructura real generando seguidores para clientes en LATAM
+                </p>
+              </div>
             </div>
 
             {/* CTA principal */}
