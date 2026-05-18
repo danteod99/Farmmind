@@ -325,8 +325,8 @@ export default function AIPage() {
 
         {/* Header */}
         <div style={{ padding: "28px 0 20px", textAlign: "center" }}>
-          <div style={{ width: "56px", height: "56px", borderRadius: "18px", background: "linear-gradient(135deg, #007ABF, #005FA4)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", boxShadow: "0 0 32px #007ABF40" }}>
-            <FarmMindLogo size={30} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+            <FarmMindLogo size={36} />
           </div>
           <h1 style={{ fontSize: "22px", fontWeight: 800, color: "white", letterSpacing: "-0.5px" }}>Asistente IA</h1>
           <p style={{ fontSize: "13px", color: "#5a6480", marginTop: "4px" }}>Servicios · Pedidos · Saldo · 📸 Análisis de perfiles</p>
