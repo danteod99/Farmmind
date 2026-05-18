@@ -769,6 +769,17 @@ export default function TrustMindChat() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "success") {
+      // Facebook Pixel: Purchase event — suscripción Pro $50/mes
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).fbq("track", "Purchase", {
+          value: 50,
+          currency: "USD",
+          content_name: "TRUST MIND Pro",
+          content_type: "subscription",
+        });
+      }
       window.history.replaceState({}, "", "/");
       fetchUserProfile();
     }
