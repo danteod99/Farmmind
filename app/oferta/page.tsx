@@ -296,6 +296,21 @@ export default function OfertaPage() {
           </div>
         </section>
 
+        {/* ── DEMO VIDEO ── */}
+        <section className="vsl-section" style={{ padding: "32px 20px 48px", background: "#08080f" }}>
+          <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+            <div style={{ textAlign: "center", marginBottom: "20px" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, color: "#00B4D8", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "8px" }}>Demo · 3 min</p>
+              <h2 style={{ fontSize: "clamp(22px, 4vw, 30px)", fontWeight: 800, color: "white", letterSpacing: "-0.02em" }}>
+                Mira cómo funciona en <span style={{ color: "#7dd3fc" }}>3 minutos</span>
+              </h2>
+            </div>
+            <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "20px", overflow: "hidden", boxShadow: "0 24px 80px rgba(0, 180, 216, 0.25)" }}>
+              <iframe src="https://www.loom.com/embed/bf8ccb2d678342bcb7a0ed06f4316605" allowFullScreen style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }} />
+            </div>
+          </div>
+        </section>
+
         {/* ── PLATAFORMAS SOPORTADAS ── */}
         <section className="vsl-section" style={{
           padding: "32px 20px 48px",
