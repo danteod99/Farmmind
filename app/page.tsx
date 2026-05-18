@@ -185,6 +185,36 @@ function LoginScreen() {
     });
   };
 
+  const handleSubscribe = async (cycle: "monthly" | "yearly" = "monthly") => {
+    setLoading(true);
+    try {
+      const priceId = cycle === "yearly"
+        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+      if (res.status === 401) {
+        // Sin sesión: redirect a Google OAuth con plan preservado
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: `${window.location.origin}/auth/callback?subscribe=${cycle}` },
+        });
+        if (error) alert("Error iniciando sesión: " + error.message);
+        return;
+      }
+      const data = await res.json();
+      if (data.url) { window.location.href = data.url; return; }
+      alert(data.error || "Error conectando con Stripe");
+    } catch (err) {
+      alert("Error: " + (err instanceof Error ? err.message : "desconocido"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const GoogleButton = ({ large = false }: { large?: boolean }) => (
     <button
       onClick={handleGoogleLogin}
@@ -495,17 +525,18 @@ function LoginScreen() {
           {/* CTA */}
           <div className="home-hero-cta" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
             <GoogleButton large />
-            <a href="#pricing" style={{
-              padding: "14px 24px", borderRadius: "14px",
-              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-              color: "#94a3b8", fontSize: "14px", fontWeight: 600,
-              textDecoration: "none", transition: "all 0.2s",
-              display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}>
-              Ver Pro $50/mes →
-            </a>
+            <button onClick={() => handleSubscribe("monthly")} disabled={loading}
+              style={{
+                padding: "14px 24px", borderRadius: "14px",
+                background: loading ? "rgba(255,255,255,0.02)" : "linear-gradient(135deg, #007ABF, #00B4D8)",
+                border: "none",
+                color: "white", fontSize: "14px", fontWeight: 700,
+                cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s",
+                display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px",
+                boxShadow: loading ? "none" : "0 4px 20px rgba(0, 180, 216, 0.3)",
+              }}>
+              {loading ? "Procesando..." : "Pagar Pro $50/mes →"}
+            </button>
           </div>
           <div className="home-hero-trust" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "16px", flexWrap: "wrap" }}>
             {["Cancela cuando quieras", "Pago seguro con Stripe", "Setup en 30 seg"].map((t, i) => (
@@ -858,10 +889,10 @@ function LoginScreen() {
                   </div>
                 ))}
               </div>
-              <button onClick={handleGoogleLogin} disabled={loading} style={{ marginTop: "24px", width: "100%", padding: "14px", borderRadius: "14px", border: "none", background: "linear-gradient(135deg, #007ABF, #00B4D8)", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(0, 122, 191, 0.3)" }}
+              <button onClick={() => handleSubscribe(billingCycle)} disabled={loading} style={{ marginTop: "24px", width: "100%", padding: "14px", borderRadius: "14px", border: "none", background: "linear-gradient(135deg, #007ABF, #00B4D8)", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(0, 122, 191, 0.3)" }}
                 onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(0, 122, 191, 0.4)"; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 122, 191, 0.3)"; }}>
-                <Crown size={15} /> Comenzar con Pro
+                <Crown size={15} /> {loading ? "Procesando..." : (billingCycle === "yearly" ? "Pagar Pro Anual — $240" : "Pagar Pro — $50/mes")}
               </button>
             </div>
           </div>
@@ -924,6 +955,17 @@ export default function TrustMindChat() {
       setUser(session?.user ?? null);
     });
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Auto-trigger Stripe checkout if ?subscribe=monthly|yearly llega
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sub = params.get("subscribe");
+    if (sub === "monthly" || sub === "yearly") {
+      window.history.replaceState({}, "", "/");
+      handleUpgrade(sub);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Check URL params for payment result
@@ -1019,10 +1061,11 @@ export default function TrustMindChat() {
     setUserProfile(null);
   };
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (cycleOverride?: "monthly" | "yearly") => {
+    const cycle = cycleOverride || upgradeCycle;
     setUpgradingToStripe(true);
     try {
-      const priceId = upgradeCycle === "yearly"
+      const priceId = cycle === "yearly"
         ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
         : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
       const res = await fetch("/api/stripe/checkout", {
@@ -1031,9 +1074,10 @@ export default function TrustMindChat() {
         body: JSON.stringify({ priceId }),
       });
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
-    } catch {
-      alert("Error conectando con Stripe. Intenta más tarde.");
+      if (data.url) { window.location.href = data.url; return; }
+      alert(data.error || "Error conectando con Stripe. Intenta más tarde.");
+    } catch (err) {
+      alert("Error: " + (err instanceof Error ? err.message : "desconocido"));
     } finally {
       setUpgradingToStripe(false);
     }

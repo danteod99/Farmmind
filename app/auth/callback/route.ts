@@ -208,13 +208,18 @@ export async function GET(request: Request) {
         }
 
         if (!bal) {
-          // New user — create balance and redirect with registration flag
+          // New user — create balance
           await admin.from("smm_balances").insert({ user_id: session.user.id, balance: 0 });
-          return NextResponse.redirect(`${origin}/smm/services?registered=1`);
         }
       } catch (e) {
         console.error("[Auth Callback] Error checking new user:", e);
       }
+    }
+
+    // ?subscribe=monthly|yearly → ir a /?subscribe=... que dispara Stripe checkout
+    const subscribePlan = searchParams.get("subscribe");
+    if (subscribePlan === "monthly" || subscribePlan === "yearly") {
+      return NextResponse.redirect(`${origin}/?subscribe=${subscribePlan}`);
     }
 
     return NextResponse.redirect(`${origin}/smm/services`);
