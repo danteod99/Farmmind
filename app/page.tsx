@@ -88,7 +88,8 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("es-CO", { day: "numeric", month: "short" });
 }
 
-function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: () => void }) {
+function UpgradeModal({ onClose, onUpgrade, cycle, onCycleChange }: { onClose: () => void; onUpgrade: () => void; cycle: "monthly" | "yearly"; onCycleChange: (c: "monthly" | "yearly") => void }) {
+  const price = cycle === "monthly" ? 50 : 20;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.7)" }}>
       <div className="relative rounded-2xl p-8 max-w-md w-full mx-4 text-center" style={{ background: "var(--surface)", border: "1px solid #007ABF" }}>
@@ -102,10 +103,33 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
         </div>
 
         <h2 className="text-xl font-bold text-white mb-2">Límite alcanzado</h2>
-        <p className="text-sm text-gray-400 mb-6">
+        <p className="text-sm text-gray-400 mb-5">
           Usaste tus <strong className="text-white">5 mensajes de demo</strong> de este mes.<br />
           Pasa a Pro para desbloquear todo.
         </p>
+
+        {/* Billing toggle */}
+        <div className="flex justify-center mb-5">
+          <div className="inline-flex p-1 rounded-xl" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+            <button onClick={() => onCycleChange("monthly")}
+              className="px-4 py-2 rounded-lg text-xs font-bold transition-all"
+              style={{
+                background: cycle === "monthly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
+                color: cycle === "monthly" ? "white" : "#94a3b8",
+              }}>
+              Mensual
+            </button>
+            <button onClick={() => onCycleChange("yearly")}
+              className="px-4 py-2 rounded-lg text-xs font-bold transition-all relative"
+              style={{
+                background: cycle === "yearly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
+                color: cycle === "yearly" ? "white" : "#94a3b8",
+              }}>
+              Anual
+              <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "#34d399", color: "#003020" }}>-60%</span>
+            </button>
+          </div>
+        </div>
 
         {/* Plan free vs pro */}
         <div className="grid grid-cols-2 gap-3 mb-6">
@@ -124,8 +148,9 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
               <p className="text-xs font-semibold" style={{ color: "#56B4E0" }}>PRO</p>
               <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#007ABF20", color: "#56B4E0" }}>Popular</span>
             </div>
-            <p className="text-2xl font-bold text-white mb-3">$50<span className="text-sm font-normal text-gray-400">/mes</span></p>
-            <div className="space-y-1.5 text-xs text-gray-300">
+            <p className="text-2xl font-bold text-white mb-1">${price}<span className="text-sm font-normal text-gray-400">/mes</span></p>
+            {cycle === "yearly" && <p className="text-[10px] text-gray-400 mb-2">Facturado anual · $240/año</p>}
+            <div className="space-y-1.5 text-xs text-gray-300 mt-2">
               <p>✓ Mensajes ilimitados</p>
               <p>✓ Historial completo</p>
               <p>✓ Acceso prioritario</p>
@@ -140,7 +165,7 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
           style={{ background: "linear-gradient(135deg, #007ABF, #005F96)" }}
         >
           <Sparkles size={15} />
-          Obtener TRUST MIND Pro — $50/mes
+          {cycle === "monthly" ? "Obtener Pro — $50/mes" : "Obtener Pro Anual — $240/año"}
         </button>
         <p className="text-xs text-gray-600 mt-3">Cancela cuando quieras • Pago seguro con Stripe</p>
       </div>
@@ -151,6 +176,7 @@ function UpgradeModal({ onClose, onUpgrade }: { onClose: () => void; onUpgrade: 
 function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const handleGoogleLogin = async () => {
     setLoading(true);
     await supabase.auth.signInWithOAuth({
@@ -473,10 +499,10 @@ function LoginScreen() {
                 <span style={{ fontSize: "11px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1px" }}>TRUST MIND Pro</span>
               </div>
               <h3 style={{ fontSize: "clamp(22px, 3vw, 28px)", fontWeight: 800, color: "white", marginBottom: "8px", letterSpacing: "-0.02em", lineHeight: 1.2 }}>
-                Todo lo que necesitas para escalar — por $50/mes
+                Todo lo que necesitas para escalar — desde $20/mes
               </h3>
               <p style={{ fontSize: "14px", color: "#94a3b8", lineHeight: 1.6, marginBottom: 0 }}>
-                Mensajes ilimitados, historial completo, acceso prioritario y nuevas funciones primero. Cancela cuando quieras.
+                Mensajes ilimitados, historial completo, acceso prioritario y nuevas funciones primero. Paga anual y ahorra 60%.
               </p>
             </div>
             <div style={{ position: "relative", zIndex: 1, textAlign: "right" }} className="pro-banner-cta">
@@ -648,11 +674,45 @@ function LoginScreen() {
       {/* === PRICING === */}
       <section id="pricing" style={{ padding: "60px 32px 80px" }}>
         <div style={{ maxWidth: "780px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+          <div style={{ textAlign: "center", marginBottom: "32px" }}>
             <div style={{ display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", padding: "6px 14px", background: "rgba(0,122,191,0.08)", borderRadius: "6px" }}>Pricing</div>
             <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", color: "white", marginBottom: "10px" }}>Simple y transparente</h2>
             <p style={{ color: "#64748b", fontSize: "15px" }}>Empieza gratis. Escala cuando quieras.</p>
           </div>
+
+          {/* Billing cycle toggle */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "32px" }}>
+            <div style={{ display: "inline-flex", padding: "4px", borderRadius: "12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", gap: "2px" }}>
+              <button onClick={() => setBillingCycle("monthly")}
+                style={{
+                  padding: "10px 22px", borderRadius: "10px", border: "none",
+                  background: billingCycle === "monthly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
+                  color: billingCycle === "monthly" ? "white" : "#94a3b8",
+                  fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                  transition: "all 0.2s",
+                }}>
+                Mensual
+              </button>
+              <button onClick={() => setBillingCycle("yearly")}
+                style={{
+                  padding: "10px 22px", borderRadius: "10px", border: "none",
+                  background: billingCycle === "yearly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
+                  color: billingCycle === "yearly" ? "white" : "#94a3b8",
+                  fontSize: "13px", fontWeight: 700, cursor: "pointer",
+                  transition: "all 0.2s",
+                  position: "relative",
+                }}>
+                Anual
+                <span style={{
+                  position: "absolute", top: "-8px", right: "-12px",
+                  padding: "2px 8px", borderRadius: "20px",
+                  background: "#34d399", color: "#003020",
+                  fontSize: "10px", fontWeight: 800, letterSpacing: "0.3px",
+                }}>-60%</span>
+              </button>
+            </div>
+          </div>
+
           <div className="pricing-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
             {/* Free */}
             <div className="pricing-card" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "24px", padding: "36px" }}>
@@ -685,8 +745,20 @@ function LoginScreen() {
               <div style={{ position: "absolute", top: "-60px", right: "-60px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF15, transparent 70%)", pointerEvents: "none" }} />
               <p style={{ fontSize: "13px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>Pro</p>
               <div style={{ marginBottom: "28px" }}>
-                <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$50</span>
-                <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
+                {billingCycle === "monthly" ? (
+                  <>
+                    <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$50</span>
+                    <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$20</span>
+                    <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
+                    <div style={{ fontSize: "12px", color: "#7dd3fc", marginTop: "4px", fontWeight: 600 }}>
+                      Facturado anualmente · $240/año
+                    </div>
+                  </>
+                )}
               </div>
               <div style={{ borderTop: "1px solid rgba(0, 122, 191, 0.2)", paddingTop: "24px" }}>
                 {["Mensajes ilimitados", "Historial completo", "Growth Dashboard", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
@@ -752,6 +824,7 @@ export default function TrustMindChat() {
   const [profileName, setProfileName] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSaved, setProfileSaved] = useState(false);
+  const [upgradeCycle, setUpgradeCycle] = useState<"monthly" | "yearly">("monthly");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -861,7 +934,9 @@ export default function TrustMindChat() {
   const handleUpgrade = async () => {
     setUpgradingToStripe(true);
     try {
-      const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+      const priceId = upgradeCycle === "yearly"
+        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
+        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

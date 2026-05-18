@@ -43,14 +43,25 @@ export async function POST(req: Request) {
       return Response.json({ error: "No autenticado" }, { status: 401 });
     }
 
-    const { amount } = await req.json();
+    const { amount, interval } = await req.json();
     const amountNum = parseFloat(amount);
+    const intervalSafe: "month" | "year" = interval === "year" ? "year" : "month";
 
-    if (!amountNum || amountNum < 20 || amountNum > 500) {
-      return Response.json(
-        { error: "Monto inválido (mínimo $20, máximo $500)" },
-        { status: 400 }
-      );
+    // Mensual: $50–$500. Anual: pago fijo $240.
+    if (intervalSafe === "month") {
+      if (!amountNum || amountNum < 50 || amountNum > 500) {
+        return Response.json(
+          { error: "Monto mensual inválido (mínimo $50, máximo $500)" },
+          { status: 400 }
+        );
+      }
+    } else {
+      if (amountNum !== 240) {
+        return Response.json(
+          { error: "El plan anual es de $240/año fijo" },
+          { status: 400 }
+        );
+      }
     }
 
     const admin = getSupabaseAdmin();
@@ -104,10 +115,12 @@ export async function POST(req: Request) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: `Auto-recarga TrustMind SMM — $${amountNum}/mes`,
+              name: intervalSafe === "year"
+                ? `Auto-recarga anual TrustMind SMM — $240/año ($20/mes)`
+                : `Auto-recarga TrustMind SMM — $${amountNum}/mes`,
             },
             unit_amount: Math.round(amountNum * 100),
-            recurring: { interval: "month" },
+            recurring: { interval: intervalSafe },
           },
           quantity: 1,
         },
@@ -119,12 +132,14 @@ export async function POST(req: Request) {
           purpose: "smm_autorecharge",
           supabase_user_id: user.id,
           amount_usd: amountNum.toString(),
+          interval: intervalSafe,
         },
       },
       metadata: {
         purpose: "smm_autorecharge",
         supabase_user_id: user.id,
         amount_usd: amountNum.toString(),
+        interval: intervalSafe,
       },
     });
 

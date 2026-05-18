@@ -18,8 +18,11 @@ import { SmmNav } from "@/app/components/SmmNav";
 
 const PRESET_AMOUNTS = [11, 20, 25, 50, 100, 200];
 const MIN_AMOUNT = 11;
-const AUTORECHARGE_AMOUNTS = [20, 50, 100, 250];
-const AUTORECHARGE_MIN = 20;
+const AUTORECHARGE_AMOUNTS_MONTHLY = [50, 100, 250, 500];
+const AUTORECHARGE_MIN_MONTHLY = 50;
+// Anual: pago único $240 = $20/mes facturado anualmente
+const AUTORECHARGE_YEARLY_PRICE = 240;
+const AUTORECHARGE_YEARLY_EQUIVALENT = 20;
 
 const CRYPTO_OPTIONS = [
   { id: "usdttrc20", label: "USDT", network: "TRC20", icon: "₮", color: "#26a17b", recommended: true },
@@ -80,7 +83,8 @@ export default function FundsPage() {
   const [promoResult, setPromoResult] = useState<{ valid: boolean; bonus_usd?: number; message: string } | null>(null);
   // Autorecharge state
   const [autorecharge, setAutorecharge] = useState<AutorechargeState>({ active: false });
-  const [autorechargeAmount, setAutorechargeAmount] = useState(20);
+  const [autorechargeAmount, setAutorechargeAmount] = useState(50);
+  const [autorechargeCycle, setAutorechargeCycle] = useState<"monthly" | "yearly">("monthly");
   const [autorechargeLoading, setAutorechargeLoading] = useState(false);
   const [autorechargeError, setAutorechargeError] = useState<string | null>(null);
   const [autorechargeBanner, setAutorechargeBanner] = useState<{ text: string; ok: boolean } | null>(null);
@@ -125,8 +129,11 @@ export default function FundsPage() {
   };
 
   const activateAutorecharge = async () => {
-    if (autorechargeAmount < AUTORECHARGE_MIN) {
-      setAutorechargeError(`El monto mínimo es $${AUTORECHARGE_MIN} USD`);
+    const finalAmount = autorechargeCycle === "yearly"
+      ? AUTORECHARGE_YEARLY_PRICE
+      : autorechargeAmount;
+    if (autorechargeCycle === "monthly" && autorechargeAmount < AUTORECHARGE_MIN_MONTHLY) {
+      setAutorechargeError(`El monto mínimo mensual es $${AUTORECHARGE_MIN_MONTHLY} USD`);
       return;
     }
     setAutorechargeLoading(true);
@@ -135,7 +142,7 @@ export default function FundsPage() {
       const res = await fetch("/api/smm/create-stripe-autorecharge", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: autorechargeAmount }),
+        body: JSON.stringify({ amount: finalAmount, interval: autorechargeCycle === "yearly" ? "year" : "month" }),
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
@@ -395,26 +402,74 @@ export default function FundsPage() {
                   </button>
                 ) : (
                   <>
-                    <p style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", marginBottom: "10px" }}>
-                      Monto a recargar cada mes
-                    </p>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "14px" }}>
-                      {AUTORECHARGE_AMOUNTS.map((a) => {
-                        const active = autorechargeAmount === a;
-                        return (
-                          <button key={a} onClick={() => setAutorechargeAmount(a)}
-                            style={{
-                              padding: "10px", borderRadius: "10px",
-                              border: "1px solid", borderColor: active ? "#007ABF" : "#2d2d44",
-                              background: active ? "#007ABF20" : "#0a0a0f",
-                              color: active ? "white" : "#94a3b8",
-                              fontWeight: active ? 700 : 500, fontSize: "14px", cursor: "pointer",
-                            }}>
-                            ${a}
-                          </button>
-                        );
-                      })}
+                    {/* Cycle toggle */}
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: "14px" }}>
+                      <div style={{ display: "inline-flex", padding: "3px", borderRadius: "10px", background: "#0a0a0f", border: "1px solid #2d2d44", gap: "2px" }}>
+                        <button onClick={() => setAutorechargeCycle("monthly")}
+                          style={{
+                            padding: "7px 14px", borderRadius: "8px", border: "none",
+                            background: autorechargeCycle === "monthly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
+                            color: autorechargeCycle === "monthly" ? "white" : "#94a3b8",
+                            fontSize: "12px", fontWeight: 700, cursor: "pointer",
+                          }}>
+                          Mensual
+                        </button>
+                        <button onClick={() => setAutorechargeCycle("yearly")}
+                          style={{
+                            padding: "7px 14px", borderRadius: "8px", border: "none",
+                            background: autorechargeCycle === "yearly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
+                            color: autorechargeCycle === "yearly" ? "white" : "#94a3b8",
+                            fontSize: "12px", fontWeight: 700, cursor: "pointer",
+                            position: "relative",
+                          }}>
+                          Anual
+                          <span style={{ position: "absolute", top: "-7px", right: "-10px", padding: "1px 6px", borderRadius: "20px", background: "#34d399", color: "#003020", fontSize: "9px", fontWeight: 800 }}>-60%</span>
+                        </button>
+                      </div>
                     </div>
+
+                    {autorechargeCycle === "monthly" ? (
+                      <>
+                        <p style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", marginBottom: "10px" }}>
+                          Monto a recargar cada mes (mínimo $50)
+                        </p>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "14px" }}>
+                          {AUTORECHARGE_AMOUNTS_MONTHLY.map((a) => {
+                            const active = autorechargeAmount === a;
+                            return (
+                              <button key={a} onClick={() => setAutorechargeAmount(a)}
+                                style={{
+                                  padding: "10px", borderRadius: "10px",
+                                  border: "1px solid", borderColor: active ? "#007ABF" : "#2d2d44",
+                                  background: active ? "#007ABF20" : "#0a0a0f",
+                                  color: active ? "white" : "#94a3b8",
+                                  fontWeight: active ? 700 : 500, fontSize: "14px", cursor: "pointer",
+                                }}>
+                                ${a}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{
+                        padding: "16px", borderRadius: "14px",
+                        background: "linear-gradient(135deg, #001d3d, #002040)",
+                        border: "1px solid #007ABF40",
+                        marginBottom: "14px",
+                      }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "6px", justifyContent: "center", marginBottom: "6px" }}>
+                          <span style={{ fontSize: "32px", fontWeight: 900, color: "white", letterSpacing: "-0.02em" }}>${AUTORECHARGE_YEARLY_EQUIVALENT}</span>
+                          <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 600 }}>/mes</span>
+                        </div>
+                        <p style={{ fontSize: "12px", color: "#94a3b8", textAlign: "center", marginBottom: "4px" }}>
+                          Pago único anual de <strong style={{ color: "white" }}>${AUTORECHARGE_YEARLY_PRICE}</strong>
+                        </p>
+                        <p style={{ fontSize: "11px", color: "#34d399", textAlign: "center", fontWeight: 600 }}>
+                          Ahorra $360 vs plan mensual
+                        </p>
+                      </div>
+                    )}
 
                     {autorechargeError && (
                       <div style={{ background: "#f8717115", border: "1px solid #f8717140", borderRadius: "10px", padding: "8px 12px", marginBottom: "12px", fontSize: "12px", color: "#f87171", display: "flex", alignItems: "center", gap: "6px" }}>
@@ -432,6 +487,8 @@ export default function FundsPage() {
                       }}>
                       {autorechargeLoading ? (
                         <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid white", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Redirigiendo a Stripe...</>
+                      ) : autorechargeCycle === "yearly" ? (
+                        <><CreditCard size={15} /> Activar plan anual — ${AUTORECHARGE_YEARLY_PRICE}/año</>
                       ) : (
                         <><CreditCard size={15} /> Activar auto-recarga ${autorechargeAmount}/mes</>
                       )}
