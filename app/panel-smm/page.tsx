@@ -106,8 +106,8 @@ export default function PanelSmmPage() {
           <div style={{ maxWidth: "880px", margin: "0 auto" }}>
 
             <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "5px 14px", borderRadius: "100px", background: `${ACCENT}15`, border: `1px solid ${ACCENT}40`, marginBottom: "24px", fontSize: "11px", color: "#7dd3fc", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1.5px" }}>
-              <ShoppingCart size={11} />
-              Panel SMM Premium
+              <Bot size={11} />
+              IA + Granjas de bots · desde $50
             </div>
 
             <h1 style={{
@@ -117,8 +117,10 @@ export default function PanelSmmPage() {
               letterSpacing: "-0.04em",
               marginBottom: "20px",
             }}>
-              <span style={{ color: "white" }}>El panel SMM más completo de </span>
-              <span style={{ background: `linear-gradient(135deg, ${ACCENT_LIGHT}, ${ACCENT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Latinoamérica</span>
+              <span style={{ color: "white" }}>Haz que la </span>
+              <span style={{ background: `linear-gradient(135deg, ${ACCENT_LIGHT}, ${ACCENT})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>IA controle</span>
+              <span style={{ color: "white" }}> granjas de bots por ti </span>
+              <span style={{ color: "#fbbf24" }}>desde $50</span>
             </h1>
 
             <p style={{
@@ -128,7 +130,7 @@ export default function PanelSmmPage() {
               margin: "0 auto 32px",
               lineHeight: 1.6,
             }}>
-              <strong style={{ color: "white" }}>+5,000 servicios</strong> para crecer en Instagram, TikTok, YouTube, Facebook, Spotify y +10 plataformas más. Saldo recargable, agente IA y entrega automática.
+              Un agente IA que <strong style={{ color: "white" }}>gestiona miles de cuentas en automático</strong> en Instagram, TikTok, YouTube, Facebook, Spotify y +10 plataformas. Tú duermes, ella vende y crece tus redes.
             </p>
 
             {/* VIDEO DEMO HERO */}
@@ -159,7 +161,7 @@ export default function PanelSmmPage() {
                 display: "inline-flex", alignItems: "center", gap: "10px",
                 letterSpacing: "0.2px",
               }}>
-              <Sparkles size={18} /> ACCEDER AL PANEL →
+              <Sparkles size={18} /> ACTIVAR MI IA →
             </button>
             <p style={{ fontSize: "12px", color: "#64748b", marginTop: "14px" }}>
               Activación inmediata · 30 días de garantía · Cancela cuando quieras
@@ -170,12 +172,12 @@ export default function PanelSmmPage() {
         {/* QUÉ HACE EL PANEL */}
         <section className="ps-section" style={{ padding: "72px 24px", background: "linear-gradient(180deg, #08080f, #07070e)" }}>
           <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-            <p style={{ textAlign: "center", fontSize: "12px", fontWeight: 700, color: ACCENT_LIGHT, textTransform: "uppercase", letterSpacing: "2px", marginBottom: "12px" }}>Qué hace</p>
+            <p style={{ textAlign: "center", fontSize: "12px", fontWeight: 700, color: ACCENT_LIGHT, textTransform: "uppercase", letterSpacing: "2px", marginBottom: "12px" }}>Qué hace tu IA</p>
             <h2 style={{ textAlign: "center", fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 800, color: "white", marginBottom: "16px", lineHeight: 1.2, letterSpacing: "-0.02em" }}>
-              Todo lo que necesitas <span style={{ color: ACCENT_LIGHT }}>en un solo panel</span>
+              Tu granja de bots <span style={{ color: ACCENT_LIGHT }}>en piloto automático</span>
             </h2>
             <p style={{ textAlign: "center", fontSize: "15px", color: "#94a3b8", maxWidth: "600px", margin: "0 auto 40px" }}>
-              No más switching entre 10 herramientas distintas. Todo desde una sola interfaz.
+              Le hablas a la IA en español. Ella ejecuta. Tú ves resultados al día siguiente.
             </p>
 
             <div className="ps-features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
@@ -231,10 +233,10 @@ export default function PanelSmmPage() {
           <div style={{ maxWidth: "640px", margin: "0 auto" }}>
             <p style={{ textAlign: "center", fontSize: "12px", fontWeight: 700, color: "#fbbf24", textTransform: "uppercase", letterSpacing: "2px", marginBottom: "16px" }}>Precio</p>
             <h2 style={{ textAlign: "center", fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 900, color: "white", marginBottom: "16px", letterSpacing: "-0.02em" }}>
-              Accede al panel por <span style={{ color: ACCENT_LIGHT }}>$50/mes</span>
+              Tu granja con IA desde <span style={{ color: ACCENT_LIGHT }}>$50/mes</span>
             </h2>
             <p style={{ textAlign: "center", fontSize: "15px", color: "#94a3b8", marginBottom: "32px" }}>
-              Incluye todo el ecosistema TRUST MIND: Panel SMM + TrustInsta + TrustFace Desktop.
+              Acceso al agente IA + TrustInsta + TrustFace Desktop + +5,000 servicios SMM.
             </p>
 
             <div className="ps-pricing-card" style={{
@@ -385,7 +387,7 @@ export default function PanelSmmPage() {
               boxShadow: `0 8px 32px ${ACCENT_LIGHT}60`,
               display: "inline-flex", alignItems: "center", gap: 10,
             }}>
-            <Sparkles size={18} /> {loading ? "..." : "ACCEDER AL PANEL →"}
+            <Sparkles size={18} /> {loading ? "..." : "ACTIVAR MI IA →"}
           </button>
         </section>
 

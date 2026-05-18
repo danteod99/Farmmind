@@ -546,7 +546,7 @@ function LoginScreen() {
           <div style={{ textAlign: "center", marginBottom: "24px" }}>
             <p style={{ fontSize: "11px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "10px" }}>Demo · 3 min</p>
             <h2 style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, color: "white", letterSpacing: "-0.02em" }}>
-              Mira <span style={{ color: "#7dd3fc" }}>TRUST MIND</span> en acción
+              Haz que la <span style={{ color: "#7dd3fc" }}>IA controle</span> granjas de bots por ti <span style={{ color: "#fbbf24" }}>desde $50</span>
             </h2>
           </div>
           <div style={{
