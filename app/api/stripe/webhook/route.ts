@@ -69,15 +69,37 @@ export async function POST(req: Request) {
         // Branch: suscripción Pro (comportamiento existente)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sub = subscription as any;
+        const periodEndIso = sub.current_period_end
+          ? new Date(sub.current_period_end * 1000).toISOString()
+          : null;
+
         await supabaseAdmin.from("profiles").upsert({
           id: userId,
           subscription_status: subscription.status,
           stripe_subscription_id: subscription.id,
           subscription_plan: "pro",
-          subscription_period_end: sub.current_period_end
-            ? new Date(sub.current_period_end * 1000).toISOString()
-            : null,
+          subscription_period_end: periodEndIso,
         });
+
+        // Al activar Pro, también dar acceso bundle a TrustInsta + TrustFace.
+        // Estado activo se infiere de expires_at > now en license.js de los desktop apps.
+        const isActiveStatus =
+          subscription.status === "active" ||
+          subscription.status === "trialing" ||
+          subscription.status === "past_due";
+
+        if (isActiveStatus && periodEndIso) {
+          await supabaseAdmin.from("tm_subscriptions").upsert(
+            {
+              user_id: userId,
+              product: "bundle",
+              tier: "pro",
+              expires_at: periodEndIso,
+              stripe_subscription_id: subscription.id,
+            },
+            { onConflict: "user_id,product" }
+          );
+        }
         break;
       }
 
@@ -104,6 +126,12 @@ export async function POST(req: Request) {
           subscription_plan: "free",
           stripe_subscription_id: null,
         });
+
+        // Expirar acceso bundle a TrustInsta + TrustFace
+        await supabaseAdmin
+          .from("tm_subscriptions")
+          .update({ expires_at: new Date().toISOString(), tier: "free" })
+          .eq("stripe_subscription_id", subscription.id);
         break;
       }
 
