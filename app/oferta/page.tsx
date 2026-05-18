@@ -30,6 +30,7 @@ export default function OfertaPage() {
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_HOURS * 3600);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<"yearly" | "monthly">("yearly");
+  const [showGateBanner, setShowGateBanner] = useState(false);
   const ctaRef = useRef<HTMLDivElement>(null);
 
   // Countdown timer
@@ -77,6 +78,16 @@ export default function OfertaPage() {
   };
 
   const scrollToCta = () => ctaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  // Mostrar banner si llegó porque requiere Pro
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("gate") === "1") {
+      setShowGateBanner(true);
+      window.history.replaceState({}, "", "/oferta");
+    }
+  }, []);
 
   // Si vuelve del signin, recuperar plan y disparar checkout con plan correcto
   useEffect(() => {
@@ -183,6 +194,20 @@ export default function OfertaPage() {
       `}</style>
 
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
+
+        {showGateBanner && (
+          <div style={{
+            padding: "14px 20px",
+            background: "linear-gradient(90deg, #fbbf24, #f59e0b)",
+            color: "#1a1a00",
+            textAlign: "center",
+            fontWeight: 800,
+            fontSize: "14px",
+            letterSpacing: "0.3px",
+          }}>
+            🔒 Necesitas suscribirte a Pro para acceder al panel · Activa abajo y entras al instante
+          </div>
+        )}
 
         {/* ── URGENCY BAR (sticky top) ── */}
         <div className="vsl-urgency" style={{

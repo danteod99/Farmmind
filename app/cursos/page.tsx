@@ -25,7 +25,16 @@ export default function CursosPage() {
       setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
       setUserEmail(user.email || "");
       setUserAvatar(user.user_metadata?.avatar_url || "");
+      // GATE Pro
       try {
+        const profileRes = await fetch("/api/user/profile");
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          if (!profile.isPro) {
+            window.location.href = "/oferta?gate=1";
+            return;
+          }
+        }
         const res = await fetch("/api/smm/orders");
         if (res.ok) { const d = await res.json(); setBalance(d.balance || 0); }
       } finally { setLoading(false); }

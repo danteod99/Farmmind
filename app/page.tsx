@@ -994,6 +994,14 @@ export default function TrustMindChat() {
       if (res.ok) {
         const data = await res.json();
         setUserProfile(data);
+        // GATE: solo Pro accede al chat. Si no Pro y no viene de un flow de checkout en curso, redirigir.
+        if (!data.isPro && typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          const inCheckoutFlow = params.has("subscribe") || params.has("payment");
+          if (!inCheckoutFlow) {
+            window.location.href = "/oferta?gate=1";
+          }
+        }
       }
     } catch { /* silencioso */ }
   };

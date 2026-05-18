@@ -222,6 +222,31 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/?subscribe=${subscribePlan}`);
     }
 
+    // GATE: solo usuarios Pro pueden acceder a /smm/*. Free → forzar paywall.
+    if (session?.user) {
+      try {
+        const admin = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+        const { data: profile } = await admin
+          .from("profiles")
+          .select("subscription_plan, subscription_status")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        const isPro =
+          profile?.subscription_plan === "pro" &&
+          (profile?.subscription_status === "active" ||
+            profile?.subscription_status === "trialing");
+        if (!isPro) {
+          return NextResponse.redirect(`${origin}/oferta?gate=1`);
+        }
+      } catch (e) {
+        console.error("[Auth Callback] Pro gate check failed:", e);
+        return NextResponse.redirect(`${origin}/oferta?gate=1`);
+      }
+    }
+
     return NextResponse.redirect(`${origin}/smm/services`);
   }
 
