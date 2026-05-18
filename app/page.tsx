@@ -37,7 +37,7 @@ interface UserProfile {
 const WELCOME_MESSAGE: Message = {
   id: "welcome",
   role: "assistant",
-  content: "¡Hola! Soy **TRUST MIND**, tu agente AI para granjas de bots. 🤖\n\nPuedo ayudarte con GenFarmer, Xiaowei, proxies y anti-detección. También puedo ejecutar acciones directamente en tus herramientas.\n\n¿Qué necesitas hoy?",
+  content: "¡Hola! Soy **TRUST MIND**, tu agente AI de crecimiento en redes sociales. 🚀\n\nPuedo ayudarte a **aumentar seguidores reales en Instagram**, gestionar proxies, anti-detección y ejecutar acciones directamente en tus herramientas.\n\n¿Qué necesitas hoy?",
   timestamp: new Date(),
 };
 
@@ -401,7 +401,7 @@ function LoginScreen() {
           </h1>
 
           <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#94a3b8", lineHeight: 1.7, maxWidth: "580px", margin: "0 auto 44px", fontWeight: 400 }}>
-            +5,000 servicios SMM, GenFarmer, proxies premium, anti-detección y Growth Dashboard. Todo controlado desde un agente IA que entiende tu negocio. <strong style={{ color: "#7dd3fc" }}>Por $50/mes.</strong>
+            <strong style={{ color: "#7dd3fc" }}>Aumenta seguidores reales en Instagram</strong>, +5,000 servicios SMM, proxies premium, anti-detección y Growth Dashboard. Todo controlado desde un agente IA que entiende tu negocio. <strong style={{ color: "#7dd3fc" }}>Por $50/mes.</strong>
           </p>
 
           {/* CTA */}
@@ -520,7 +520,7 @@ function LoginScreen() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px" }}>
           {[
-            { icon: <Cpu size={22} />, title: "Agente GenFarmer", desc: "Delays, rotacion de cuentas y estrategias anti-deteccion para cada plataforma. Configuracion asistida por IA.", color: "#007ABF" },
+            { icon: <Cpu size={22} />, title: "Seguidores reales en Instagram", desc: "Aumenta tu audiencia con seguidores reales y engagement orgánico. Configuración asistida por IA para máxima retención.", color: "#007ABF" },
             { icon: <Shield size={22} />, title: "Gestion de proxies", desc: "Analisis de proveedores, rotacion optima, deteccion de IPs quemadas. Residenciales, moviles y datacenter.", color: "#00B4D8" },
             { icon: <ShoppingCart size={22} />, title: "Growth Dashboard", desc: "Seguidores, likes, views en +15 plataformas. Pide directo desde el chat. Pagos con crypto.", color: "#0891b2" },
             { icon: <Shield size={22} />, title: "Anti-deteccion", desc: "Fingerprinting, user-agent rotation, comportamiento humano simulado. Maxima supervivencia de cuentas.", color: "#059669" },

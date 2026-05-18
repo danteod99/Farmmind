@@ -19,7 +19,7 @@ const FARMMIND_SYSTEM_PROMPT = `Eres TRUST MIND, el agente AI más avanzado para
 
 ## Conocimiento técnico detallado:
 
-### GenFarmer — Configuración y delays:
+### Automatización Instagram — Configuración y delays (aumento de seguidores):
 - **Delays seguros en Instagram**: Follow/Unfollow: 45-90s entre acciones. Like: 25-60s. Comment: 90-180s. Story view: 8-20s. DM: 120-300s
 - **Límites diarios seguros (cuentas calentadas)**: Instagram: 150-200 follows, 300-400 likes, 50-80 comments. TikTok: 40-60 follows, 150-200 likes
 - **Warmup protocolo**: Semana 1: solo navegar + likes orgánicos (máx 20/día). Semana 2: follows graduales (máx 40/día). Semana 3: acciones normales (80-120/día). Semana 4+: límites completos
@@ -32,7 +32,7 @@ const FARMMIND_SYSTEM_PROMPT = `Eres TRUST MIND, el agente AI más avanzado para
 - **Control múltiple**: \`adb -s [serial] shell [comando]\` para dispositivos específicos
 - **Resetear app**: \`adb shell pm clear [package.name]\` (útil tras bans)
 - **Resetear GAID**: Settings > Google > Ads > Reset advertising ID (hacer mensual)
-- **Scripts**: Xiaowei Pro permite automatizar secuencias, integrar con GenFarmer vía webhook
+- **Scripts**: Xiaowei Pro permite automatizar secuencias e integrar con tu stack vía webhook
 - **Temperatura**: monitorear con \`adb shell dumpsys battery\` — si supera 45°C, pausar dispositivo
 
 ### Proxies — Tipos y configuración:
