@@ -354,12 +354,73 @@ function LoginScreen() {
         .pricing-card:hover { transform: translateY(-2px); }
         .stat-item { transition: all 0.3s ease; }
         .stat-item:hover { transform: scale(1.05); }
-        @media (max-width: 768px) { .hero-grid { grid-template-columns: 1fr !important; } .pricing-grid { grid-template-columns: 1fr !important; } .stats-grid { grid-template-columns: repeat(2, 1fr) !important; } .nav-links { display: none !important; } .nav-hamburger { display: flex !important; } }
         @media (min-width: 769px) { .nav-hamburger { display: none !important; } .nav-mobile-menu { display: none !important; } }
+
+        /* ───── MOBILE OPTIMIZATIONS ───── */
+        @media (max-width: 768px) {
+          .hero-grid { grid-template-columns: 1fr !important; }
+          .pricing-grid { grid-template-columns: 1fr !important; }
+          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .nav-links { display: none !important; }
+          .nav-hamburger { display: flex !important; }
+
+          /* Navbar más compacto */
+          .home-nav { height: 60px !important; padding: 0 16px !important; }
+
+          /* Hero más compacto */
+          .home-hero { padding: 32px 16px 48px !important; }
+          .home-hero h1 { font-size: clamp(32px, 9vw, 48px) !important; line-height: 1.05 !important; }
+          .home-hero > div > p { font-size: 15px !important; }
+          .home-hero-cta { flex-direction: column !important; gap: 10px !important; width: 100% !important; }
+          .home-hero-cta > * { width: 100% !important; max-width: 320px !important; }
+          .home-hero-trust { flex-direction: column !important; gap: 8px !important; }
+
+          /* Pro Offer Banner */
+          .home-pro-banner { grid-template-columns: 1fr !important; padding: 24px 18px !important; gap: 16px !important; text-align: center !important; }
+          .home-pro-banner h3 { font-size: 20px !important; }
+          .home-pro-banner .home-pro-cta-row { text-align: center !important; }
+
+          /* Stats */
+          .home-stats { padding: 24px 16px 40px !important; }
+          .stat-item { padding: 18px 10px !important; }
+
+          /* Features section */
+          .home-features { padding: 48px 16px !important; }
+          .home-features h2 { font-size: clamp(24px, 6vw, 32px) !important; }
+          .feature-card { padding: 22px !important; }
+          .feature-card h3 { font-size: 15px !important; }
+          .feature-card p { font-size: 13px !important; }
+
+          /* Software section */
+          .home-software { padding: 48px 16px !important; }
+          .home-software h2 { font-size: clamp(24px, 6vw, 32px) !important; }
+          .home-software-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+          .home-software-card { padding: 22px !important; }
+
+          /* Testimonials */
+          .home-testimonials { padding: 48px 16px !important; }
+          .home-testimonials h2 { font-size: clamp(22px, 6vw, 30px) !important; }
+          .home-testimonials-grid { grid-template-columns: 1fr !important; }
+
+          /* Pricing */
+          .home-pricing { padding: 48px 16px 64px !important; }
+          .home-pricing h2 { font-size: clamp(24px, 6vw, 32px) !important; }
+          .pricing-card { padding: 28px 20px !important; }
+          .pricing-card span[style*="52px"] { font-size: 44px !important; }
+
+          /* Footer CTA */
+          .home-footer-cta { padding: 48px 16px !important; }
+          .home-footer-cta h2 { font-size: clamp(24px, 6vw, 34px) !important; }
+        }
+
+        @media (max-width: 420px) {
+          .home-hero h1 { font-size: 30px !important; }
+          .stats-grid { grid-template-columns: 1fr 1fr !important; }
+        }
       `}</style>
 
       {/* === NAVBAR === */}
-      <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(5,5,8,0.8)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 clamp(16px, 4vw, 48px)", height: "72px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <nav className="home-nav" style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(5,5,8,0.8)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 clamp(16px, 4vw, 48px)", height: "72px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
           <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ position: "absolute", inset: "-4px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF40, transparent 70%)", filter: "blur(6px)" }} />
@@ -402,7 +463,7 @@ function LoginScreen() {
       )}
 
       {/* === HERO === */}
-      <section style={{ position: "relative", overflow: "hidden", padding: "clamp(60px, 10vw, 120px) 32px clamp(60px, 8vw, 100px)", textAlign: "center" }}>
+      <section className="home-hero" style={{ position: "relative", overflow: "hidden", padding: "clamp(60px, 10vw, 120px) 32px clamp(60px, 8vw, 100px)", textAlign: "center" }}>
         {/* Animated background */}
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 80% 60% at 50% -20%, #001d3d 0%, transparent 70%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", top: "20%", left: "10%", width: "500px", height: "500px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF12, transparent 60%)", filter: "blur(80px)", pointerEvents: "none", animation: "subtle-rotate 30s linear infinite" }} />
@@ -431,21 +492,21 @@ function LoginScreen() {
           </p>
 
           {/* CTA */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
+          <div className="home-hero-cta" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
             <GoogleButton large />
             <a href="#pricing" style={{
               padding: "14px 24px", borderRadius: "14px",
               background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
               color: "#94a3b8", fontSize: "14px", fontWeight: 600,
               textDecoration: "none", transition: "all 0.2s",
-              display: "inline-flex", alignItems: "center", gap: "6px",
+              display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "6px",
             }}
             onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}>
               Ver Pro $50/mes →
             </a>
           </div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "16px", flexWrap: "wrap" }}>
+          <div className="home-hero-trust" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "16px", flexWrap: "wrap" }}>
             {["Cancela cuando quieras", "Pago seguro con Stripe", "Setup en 30 seg"].map((t, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <Zap size={12} color="#34d399" />
@@ -460,7 +521,7 @@ function LoginScreen() {
       </section>
 
       {/* === STATS / SOCIAL PROOF === */}
-      <section style={{ padding: "40px 32px 60px", position: "relative" }}>
+      <section className="home-stats" style={{ padding: "40px 32px 60px", position: "relative" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
           <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "2px", background: "rgba(255,255,255,0.04)", borderRadius: "20px", overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
             {[
@@ -491,7 +552,7 @@ function LoginScreen() {
             gridTemplateColumns: "1fr auto",
             gap: "24px",
             alignItems: "center",
-          }} className="pro-banner">
+          }} className="pro-banner home-pro-banner">
             <div style={{ position: "absolute", top: "-80px", right: "-80px", width: "300px", height: "300px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF25, transparent 70%)", pointerEvents: "none", filter: "blur(40px)" }} />
             <div style={{ position: "relative", zIndex: 1 }}>
               <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "4px 10px", borderRadius: "6px", background: "rgba(0, 180, 216, 0.15)", border: "1px solid rgba(0, 180, 216, 0.35)", marginBottom: "12px" }}>
@@ -535,7 +596,7 @@ function LoginScreen() {
       </section>
 
       {/* === FEATURES === */}
-      <section id="features" style={{ padding: "60px 32px 80px", maxWidth: "1100px", margin: "0 auto" }}>
+      <section id="features" className="home-features" style={{ padding: "60px 32px 80px", maxWidth: "1100px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "60px" }}>
           <div style={{ display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", padding: "6px 14px", background: "rgba(0,122,191,0.08)", borderRadius: "6px" }}>Features</div>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-0.035em", color: "white", marginBottom: "14px" }}>
@@ -566,7 +627,7 @@ function LoginScreen() {
       </section>
 
       {/* === SOFTWARE DESKTOP === */}
-      <section id="software" style={{ padding: "60px 32px 80px", maxWidth: "1100px", margin: "0 auto" }}>
+      <section id="software" className="home-software" style={{ padding: "60px 32px 80px", maxWidth: "1100px", margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: "60px" }}>
           <div style={{ display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", padding: "6px 14px", background: "rgba(0,122,191,0.08)", borderRadius: "6px" }}>Software Desktop</div>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 800, letterSpacing: "-0.035em", color: "white", marginBottom: "14px" }}>
@@ -575,7 +636,7 @@ function LoginScreen() {
           <p style={{ color: "#64748b", fontSize: "16px", maxWidth: "550px", margin: "0 auto", lineHeight: 1.7 }}>Apps de escritorio profesionales para gestionar cuentas, automatizar y crecer en cada plataforma.</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
+        <div className="home-software-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "20px" }}>
           {[
             {
               name: "TrustInsta Desktop",
@@ -641,14 +702,14 @@ function LoginScreen() {
       </section>
 
       {/* === TESTIMONIALS === */}
-      <section style={{ padding: "60px 32px 80px", position: "relative", overflow: "hidden" }}>
+      <section className="home-testimonials" style={{ padding: "60px 32px 80px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 60% 40% at 50% 50%, rgba(0,122,191,0.04), transparent)", pointerEvents: "none" }} />
         <div style={{ maxWidth: "900px", margin: "0 auto", position: "relative" }}>
           <div style={{ textAlign: "center", marginBottom: "48px" }}>
             <h2 style={{ fontSize: "clamp(24px, 3.5vw, 36px)", fontWeight: 800, color: "white", letterSpacing: "-0.03em", marginBottom: "10px" }}>Lo que dicen nuestros usuarios</h2>
             <p style={{ color: "#64748b", fontSize: "15px" }}>Operadores de granjas reales usando TRUST MIND.</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
+          <div className="home-testimonials-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
             {[
               { name: "Carlos M.", role: "Operador de granja, Mexico", text: "Antes configuraba los delays a mano en cada dispositivo. Ahora TRUST MIND me da la config exacta en segundos. Mis baneos bajaron un 70%.", stars: 5 },
               { name: "Diego R.", role: "Growth Manager, Colombia", text: "El Growth Dashboard me ahorra horas. Pido followers y likes desde el chat, pago con crypto y en minutos ya esta activo.", stars: 5 },
@@ -672,7 +733,7 @@ function LoginScreen() {
       </section>
 
       {/* === PRICING === */}
-      <section id="pricing" style={{ padding: "60px 32px 80px" }}>
+      <section id="pricing" className="home-pricing" style={{ padding: "60px 32px 80px" }}>
         <div style={{ maxWidth: "780px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "32px" }}>
             <div style={{ display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", padding: "6px 14px", background: "rgba(0,122,191,0.08)", borderRadius: "6px" }}>Pricing</div>
@@ -781,7 +842,7 @@ function LoginScreen() {
       </section>
 
       {/* === FOOTER CTA === */}
-      <section style={{ padding: "80px 32px 100px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <section className="home-footer-cta" style={{ padding: "80px 32px 100px", textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse 50% 60% at 50% 80%, rgba(0, 122, 191, 0.08), transparent)", pointerEvents: "none" }} />
         <div style={{ position: "relative", maxWidth: "600px", margin: "0 auto" }}>
           <h2 style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 900, letterSpacing: "-0.045em", color: "white", marginBottom: "18px", lineHeight: 1.1 }}>
