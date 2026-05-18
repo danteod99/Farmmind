@@ -44,33 +44,68 @@ export async function POST(req: Request) {
 
         if (!userId) break;
 
-        // Branch: auto-recarga SMM
+        // Branch: auto-recarga SMM (también da Pro + bundle)
         if (purpose === "smm_autorecharge") {
           const amountUsd = parseFloat(subscription.metadata?.amount_usd || "0");
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const sub = subscription as any;
+          // current_period_end puede venir en sub o en items.data[0] según versión API
+          const periodEndUnix = sub.current_period_end
+            || sub.items?.data?.[0]?.current_period_end
+            || null;
+          const periodEndIso = periodEndUnix
+            ? new Date(periodEndUnix * 1000).toISOString()
+            : null;
+
           await supabaseAdmin.from("smm_autorecharge").upsert(
             {
               user_id: userId,
               stripe_subscription_id: subscription.id,
               stripe_customer_id: subscription.customer as string,
               amount_usd: amountUsd,
-              interval: "month",
+              interval: sub.items?.data?.[0]?.price?.recurring?.interval || "month",
               status: subscription.status === "active" ? "active" : subscription.status,
-              next_charge_at: sub.current_period_end
-                ? new Date(sub.current_period_end * 1000).toISOString()
-                : null,
+              next_charge_at: periodEndIso,
             },
             { onConflict: "user_id" }
           );
+
+          // Auto-recarga activa → también activar Pro tier + bundle desktop apps
+          const isActiveStatus =
+            subscription.status === "active" ||
+            subscription.status === "trialing" ||
+            subscription.status === "past_due";
+
+          if (isActiveStatus && periodEndIso) {
+            await supabaseAdmin.from("profiles").upsert({
+              id: userId,
+              subscription_status: subscription.status,
+              stripe_subscription_id: subscription.id,
+              subscription_plan: "pro",
+              subscription_period_end: periodEndIso,
+            });
+            await supabaseAdmin.from("tm_subscriptions").upsert(
+              {
+                user_id: userId,
+                product: "bundle",
+                tier: "pro",
+                expires_at: periodEndIso,
+                stripe_subscription_id: subscription.id,
+              },
+              { onConflict: "user_id,product" }
+            );
+          }
           break;
         }
 
         // Branch: suscripción Pro (comportamiento existente)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const sub = subscription as any;
-        const periodEndIso = sub.current_period_end
-          ? new Date(sub.current_period_end * 1000).toISOString()
+        const periodEndUnixPro = sub.current_period_end
+          || sub.items?.data?.[0]?.current_period_end
+          || null;
+        const periodEndIso = periodEndUnixPro
+          ? new Date(periodEndUnixPro * 1000).toISOString()
           : null;
 
         await supabaseAdmin.from("profiles").upsert({
@@ -110,11 +145,21 @@ export async function POST(req: Request) {
 
         if (!userId) break;
 
-        // Branch: auto-recarga SMM cancelada
+        // Branch: auto-recarga SMM cancelada → también revocar Pro + bundle
         if (purpose === "smm_autorecharge") {
           await supabaseAdmin
             .from("smm_autorecharge")
             .update({ status: "canceled" })
+            .eq("stripe_subscription_id", subscription.id);
+          await supabaseAdmin.from("profiles").upsert({
+            id: userId,
+            subscription_status: "canceled",
+            subscription_plan: "free",
+            stripe_subscription_id: null,
+          });
+          await supabaseAdmin
+            .from("tm_subscriptions")
+            .update({ expires_at: new Date().toISOString(), tier: "free" })
             .eq("stripe_subscription_id", subscription.id);
           break;
         }
