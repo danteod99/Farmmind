@@ -540,6 +540,32 @@ function LoginScreen() {
         </div>
       </section>
 
+      {/* === DEMO VIDEO === */}
+      <section className="home-demo-video" style={{ padding: "40px 32px 60px", position: "relative" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "24px" }}>
+            <p style={{ fontSize: "11px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "10px" }}>Demo · 3 min</p>
+            <h2 style={{ fontSize: "clamp(22px, 4vw, 32px)", fontWeight: 800, color: "white", letterSpacing: "-0.02em" }}>
+              Mira <span style={{ color: "#7dd3fc" }}>TRUST MIND</span> en acción
+            </h2>
+          </div>
+          <div style={{
+            position: "relative",
+            paddingBottom: "56.25%",
+            height: 0,
+            borderRadius: "20px",
+            overflow: "hidden",
+            boxShadow: "0 24px 80px rgba(0, 122, 191, 0.25), 0 0 0 1px rgba(255,255,255,0.08)",
+          }}>
+            <iframe
+              src="https://www.loom.com/embed/bf8ccb2d678342bcb7a0ed06f4316605"
+              allowFullScreen
+              style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
+            />
+          </div>
+        </div>
+      </section>
+
       {/* === PRO OFFER BANNER === */}
       <section style={{ padding: "20px 32px 40px", position: "relative" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
