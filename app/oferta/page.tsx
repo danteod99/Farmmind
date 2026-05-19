@@ -59,14 +59,6 @@ export default function OfertaPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId }),
       });
-      if (res.status === 401) {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: `${window.location.origin}/auth/callback?subscribe=${plan}` },
-        });
-        if (error) alert("Error iniciando sesión: " + error.message);
-        return;
-      }
       const data = await res.json();
       if (data.url) { window.location.href = data.url; return; }
       alert(data.error || "Error conectando con Stripe. Intenta más tarde.");

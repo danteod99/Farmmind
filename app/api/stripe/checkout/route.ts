@@ -46,10 +46,6 @@ export async function POST(req: Request) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    if (!user) {
-      return Response.json({ error: "No autenticado" }, { status: 401 });
-    }
-
     const { priceId } = await req.json();
     if (!priceId || typeof priceId !== "string" || !priceId.startsWith("price_")) {
       return Response.json(
@@ -61,7 +57,25 @@ export async function POST(req: Request) {
     const origin = req.headers.get("origin") || "https://www.trustmind.online";
     const stripe = getStripe();
 
-    // Buscar o crear customer en Stripe (maybeSingle para no fallar si no hay row)
+    // ─── Modo GUEST: sin sesión, Stripe Checkout recolecta email
+    if (!user) {
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        payment_method_types: ["card"],
+        line_items: [{ price: priceId, quantity: 1 }],
+        success_url: `${origin}/welcome?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/?payment=cancel`,
+        // Sin customer pre-existente: Stripe lo crea automático con el email recolectado
+        customer_creation: "always",
+        subscription_data: {
+          metadata: { pending_account: "true" },
+        },
+        metadata: { pending_account: "true" },
+      });
+      return Response.json({ url: session.url });
+    }
+
+    // ─── Modo LOGUEADO: customer atado a supabase user
     const { data: profile } = await supabase
       .from("profiles")
       .select("stripe_customer_id")

@@ -39,8 +39,52 @@ export async function POST(req: Request) {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.supabase_user_id;
+        let userId = subscription.metadata?.supabase_user_id;
         const purpose = subscription.metadata?.purpose;
+        const pendingAccount = subscription.metadata?.pending_account === "true";
+
+        // Si es un guest pago (sin supabase_user_id), crear cuenta Supabase con email del customer
+        if (!userId && pendingAccount) {
+          try {
+            const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
+            const email = customer.email;
+            if (!email) {
+              console.error("Guest checkout sin email del customer:", subscription.customer);
+              break;
+            }
+            // Buscar si ya existe el user
+            const { data: existingList } = await supabaseAdmin.auth.admin.listUsers();
+            const existing = existingList.users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+            if (existing) {
+              userId = existing.id;
+            } else {
+              const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+                email,
+                email_confirm: true,  // skip email verification para evitar fricción
+                user_metadata: { full_name: customer.name || email.split("@")[0] },
+              });
+              if (createErr) {
+                console.error("Error creando user post-pago:", createErr);
+                break;
+              }
+              userId = created.user.id;
+              console.log(`✅ Cuenta creada post-pago para ${email} (user_id: ${userId})`);
+            }
+            // Asociar customer y user para futura referencia
+            await supabaseAdmin.from("profiles").upsert({ id: userId, stripe_customer_id: customer.id });
+            // Actualizar metadata del sub para futuras webhooks
+            await stripe.subscriptions.update(subscription.id, {
+              metadata: {
+                ...subscription.metadata,
+                supabase_user_id: userId,
+                pending_account: "false",
+              },
+            });
+          } catch (createErr) {
+            console.error("Guest account creation failed:", createErr);
+            break;
+          }
+        }
 
         if (!userId) break;
 
