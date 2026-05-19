@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { isAdmin } from "@/app/lib/admin";
 
 export async function GET() {
   try {
@@ -77,10 +78,13 @@ export async function GET() {
       .gte("created_at", startOfMonth.toISOString());
 
     const FREE_LIMIT = 0;  // Acceso solo para usuarios Pro
+    // Admin = acceso completo sin restricciones
+    const userIsAdmin = isAdmin(user.email);
     const isPro =
-      profile?.subscription_plan === "pro" &&
-      (profile?.subscription_status === "active" ||
-        profile?.subscription_status === "trialing");
+      userIsAdmin ||
+      (profile?.subscription_plan === "pro" &&
+        (profile?.subscription_status === "active" ||
+          profile?.subscription_status === "trialing"));
 
     return Response.json({
       plan: profile?.subscription_plan || "free",

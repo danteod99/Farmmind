@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { isAdmin } from "@/app/lib/admin";
 
 export default async function SmmLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -24,6 +25,11 @@ export default async function SmmLayout({ children }: { children: React.ReactNod
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
     redirect("/?required=1");
+  }
+
+  // Admins entran sin restricciones
+  if (isAdmin(user.email)) {
+    return <>{children}</>;
   }
 
   // Roles que no requieren Pro: panel_client (de child panels) y reseller

@@ -223,27 +223,40 @@ export async function GET(request: Request) {
     }
 
     // GATE: solo usuarios Pro pueden acceder a /smm/*. Free → forzar paywall.
+    // Admins entran sin restricción.
     if (session?.user) {
-      try {
-        const admin = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.SUPABASE_SERVICE_ROLE_KEY!
-        );
-        const { data: profile } = await admin
-          .from("profiles")
-          .select("subscription_plan, subscription_status")
-          .eq("id", session.user.id)
-          .maybeSingle();
-        const isPro =
-          profile?.subscription_plan === "pro" &&
-          (profile?.subscription_status === "active" ||
-            profile?.subscription_status === "trialing");
-        if (!isPro) {
+      const adminEmails = (process.env.ADMIN_EMAILS || "danteod99@gmail.com").split(",").map(e => e.trim().toLowerCase());
+      const isAdminUser = adminEmails.includes((session.user.email || "").toLowerCase());
+      if (!isAdminUser) {
+        try {
+          const admin = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+          );
+          const { data: profile } = await admin
+            .from("profiles")
+            .select("subscription_plan, subscription_status")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          const { data: subs } = await admin
+            .from("tm_subscriptions")
+            .select("tier, expires_at")
+            .eq("user_id", session.user.id)
+            .eq("tier", "pro");
+          const now = new Date();
+          const hasActiveSub = (subs || []).some(s => s.expires_at && new Date(s.expires_at) > now);
+          const isPro =
+            hasActiveSub ||
+            (profile?.subscription_plan === "pro" &&
+              (profile?.subscription_status === "active" ||
+                profile?.subscription_status === "trialing"));
+          if (!isPro) {
+            return NextResponse.redirect(`${origin}/oferta?gate=1`);
+          }
+        } catch (e) {
+          console.error("[Auth Callback] Pro gate check failed:", e);
           return NextResponse.redirect(`${origin}/oferta?gate=1`);
         }
-      } catch (e) {
-        console.error("[Auth Callback] Pro gate check failed:", e);
-        return NextResponse.redirect(`${origin}/oferta?gate=1`);
       }
     }
 
