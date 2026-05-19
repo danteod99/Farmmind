@@ -36,6 +36,75 @@ export async function POST(req: Request) {
 
   try {
     switch (event.type) {
+      // ─── Checkout iniciado (guest llenó email pero aún no completó) ───
+      case "checkout.session.expired": {
+        const sess = event.data.object as Stripe.Checkout.Session;
+        const email = sess.customer_details?.email || sess.customer_email || null;
+        await supabaseAdmin.from("payment_attempts").insert({
+          email,
+          status: "abandoned",
+          amount: sess.amount_total ? sess.amount_total / 100 : null,
+          currency: sess.currency || "usd",
+          stripe_session_id: sess.id,
+          stripe_customer_id: (sess.customer as string) || null,
+          failure_message: "Checkout expirado / abandonado",
+          metadata: { mode: sess.mode },
+        });
+        break;
+      }
+
+      // ─── Pago rechazado durante checkout (tarjeta declinada) ───
+      case "payment_intent.payment_failed": {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        const email = pi.receipt_email || pi.metadata?.email || null;
+        await supabaseAdmin.from("payment_attempts").insert({
+          email,
+          status: "failed",
+          amount: pi.amount ? pi.amount / 100 : null,
+          currency: pi.currency || "usd",
+          stripe_payment_intent_id: pi.id,
+          stripe_customer_id: (pi.customer as string) || null,
+          failure_code: pi.last_payment_error?.code || pi.last_payment_error?.decline_code || "unknown",
+          failure_message: pi.last_payment_error?.message || "Pago rechazado",
+          metadata: pi.metadata || {},
+        });
+        break;
+      }
+
+      // ─── Checkout completado pero pago sin confirmar (raro pero existe) ───
+      case "checkout.session.async_payment_failed": {
+        const sess = event.data.object as Stripe.Checkout.Session;
+        const email = sess.customer_details?.email || sess.customer_email || null;
+        await supabaseAdmin.from("payment_attempts").insert({
+          email,
+          status: "failed",
+          amount: sess.amount_total ? sess.amount_total / 100 : null,
+          currency: sess.currency || "usd",
+          stripe_session_id: sess.id,
+          stripe_customer_id: (sess.customer as string) || null,
+          failure_message: "Pago asíncrono falló (transferencia bancaria, etc.)",
+        });
+        break;
+      }
+
+      // ─── Pago exitoso → marcar como succeeded ───
+      case "checkout.session.completed": {
+        const sess = event.data.object as Stripe.Checkout.Session;
+        if (sess.payment_status === "paid") {
+          const email = sess.customer_details?.email || sess.customer_email || null;
+          await supabaseAdmin.from("payment_attempts").insert({
+            email,
+            status: "succeeded",
+            amount: sess.amount_total ? sess.amount_total / 100 : null,
+            currency: sess.currency || "usd",
+            stripe_session_id: sess.id,
+            stripe_customer_id: (sess.customer as string) || null,
+            metadata: { mode: sess.mode },
+          });
+        }
+        break;
+      }
+
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;

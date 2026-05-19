@@ -96,7 +96,12 @@ export default function AdminPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalFiltered, setTotalFiltered] = useState(0);
   // Tabs
-  const [activeTab, setActiveTab] = useState<"users" | "promos" | "downloads">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "promos" | "downloads" | "payments">("users");
+  // Payment attempts
+  const [paymentAttempts, setPaymentAttempts] = useState<Array<{ id: string; email: string | null; status: string; amount: number | null; currency: string; failure_message: string | null; failure_code: string | null; stripe_session_id: string | null; created_at: string }>>([]);
+  const [paymentStats, setPaymentStats] = useState<{ total: number; abandoned: number; failed: number; succeeded: number; lostRevenue: number } | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentFilter, setPaymentFilter] = useState<"all" | "abandoned" | "failed" | "succeeded">("all");
   // Downloads
   const [dlStats, setDlStats] = useState<{ apps: { name: string; total: number; mac: number; windows: number; latest: string | null; paidActive: number; releases: { version: string; date: string; mac: number; windows: number; total: number }[] }[]; grandTotal: number; subscriptions: { totalActive: number; totalEver: number; conversionRate: string } } | null>(null);
   const [dlLoading, setDlLoading] = useState(false);
@@ -108,7 +113,24 @@ export default function AdminPage() {
   const [promoMsg, setPromoMsg] = useState<{ text: string; ok: boolean } | null>(null);
 
   useEffect(() => { checkAuth(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => { if (activeTab === "promos") loadPromoCodes(); if (activeTab === "downloads") loadDownloadStats(); }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (activeTab === "promos") loadPromoCodes();
+    if (activeTab === "downloads") loadDownloadStats();
+    if (activeTab === "payments") loadPaymentAttempts();
+  }, [activeTab, paymentFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadPaymentAttempts = async () => {
+    setPaymentLoading(true);
+    try {
+      const q = paymentFilter === "all" ? "" : `?status=${paymentFilter}`;
+      const res = await fetch(`/api/admin/payment-attempts${q}`);
+      if (res.ok) {
+        const d = await res.json();
+        setPaymentAttempts(d.attempts || []);
+        setPaymentStats(d.stats || null);
+      }
+    } finally { setPaymentLoading(false); }
+  };
   useEffect(() => { const t = setTimeout(() => setDebouncedSearch(search), 350); return () => clearTimeout(t); }, [search]);
 
   const checkAuth = async () => {
@@ -296,7 +318,7 @@ export default function AdminPage() {
 
         {/* TABS */}
         <div style={{ display:"flex", gap:"8px", marginBottom:"24px", borderBottom:"1px solid #1a1a2e", paddingBottom:"0" }}>
-          {([["users","👥 Usuarios"],["promos","🎟️ Códigos Promo"],["downloads","📥 Descargas"]] as const).map(([tab, label]) => (
+          {([["users","👥 Usuarios"],["promos","🎟️ Códigos Promo"],["downloads","📥 Descargas"],["payments","💳 Intentos de pago"]] as const).map(([tab, label]) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               style={{ padding:"10px 18px", borderRadius:"10px 10px 0 0", border:"1px solid", borderBottom:"none", borderColor: activeTab===tab ? "#007ABF" : "transparent", background: activeTab===tab ? "#007ABF18" : "transparent", color: activeTab===tab ? "#56B4E0" : "#5a6480", fontSize:"13px", fontWeight: activeTab===tab ? 700 : 500, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" }}>
               {label}
@@ -719,6 +741,76 @@ export default function AdminPage() {
             ) : (
               <div style={{ textAlign:"center", padding:"40px", color:"#5a6480" }}>No se pudieron cargar las estadisticas</div>
             )}
+          </div>
+        )}
+
+        {/* ── PAYMENT ATTEMPTS TAB ── */}
+        {activeTab === "payments" && (
+          <div style={{ animation:"fi 0.3s ease-out" }}>
+            {/* Stats cards */}
+            {paymentStats && (
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(160px, 1fr))", gap:"12px", marginBottom:"20px" }}>
+                {[
+                  { label: "Total intentos", value: paymentStats.total, color: "#94a3b8" },
+                  { label: "Abandonados", value: paymentStats.abandoned, color: "#fbbf24" },
+                  { label: "Rechazados", value: paymentStats.failed, color: "#f87171" },
+                  { label: "Exitosos", value: paymentStats.succeeded, color: "#34d399" },
+                  { label: "Revenue perdido", value: `$${paymentStats.lostRevenue.toFixed(2)}`, color: "#a78bfa" },
+                ].map((s) => (
+                  <div key={s.label} style={{ padding:"16px", borderRadius:"12px", background:"#0d0d1a", border:"1px solid #1a1a2e" }}>
+                    <p style={{ fontSize:"11px", color:"#5a6480", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px", fontWeight:600 }}>{s.label}</p>
+                    <p style={{ fontSize:"22px", fontWeight:800, color:s.color, letterSpacing:"-0.02em" }}>{s.value}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Filter */}
+            <div style={{ display:"flex", gap:"6px", marginBottom:"16px" }}>
+              {([["all","Todos"],["abandoned","Abandonados"],["failed","Rechazados"],["succeeded","Exitosos"]] as const).map(([k, l]) => (
+                <button key={k} onClick={() => setPaymentFilter(k)}
+                  style={{ padding:"7px 14px", borderRadius:"8px", border:"1px solid", borderColor: paymentFilter===k ? "#007ABF" : "#1a1a2e", background: paymentFilter===k ? "#007ABF15" : "transparent", color: paymentFilter===k ? "#56B4E0" : "#5a6480", fontSize:"12px", fontWeight: paymentFilter===k ? 700 : 500, cursor:"pointer", fontFamily:"inherit" }}>
+                  {l}
+                </button>
+              ))}
+              <button onClick={loadPaymentAttempts} style={{ marginLeft:"auto", padding:"7px 14px", borderRadius:"8px", border:"1px solid #1a1a2e", background:"transparent", color:"#5a6480", fontSize:"12px", fontWeight:500, cursor:"pointer", fontFamily:"inherit" }}>
+                Actualizar
+              </button>
+            </div>
+
+            {/* Table */}
+            <div style={{ background:"#0d0d1a", border:"1px solid #1a1a2e", borderRadius:"14px", overflow:"hidden" }}>
+              {paymentLoading ? (
+                <div style={{ padding:"40px", textAlign:"center", color:"#5a6480" }}>Cargando…</div>
+              ) : paymentAttempts.length === 0 ? (
+                <div style={{ padding:"40px", textAlign:"center", color:"#5a6480", fontSize:"13px" }}>No hay intentos de pago en esta categoría todavía.</div>
+              ) : (
+                <>
+                  <div style={{ display:"grid", gridTemplateColumns:"1.8fr 0.8fr 0.7fr 1.5fr 0.9fr", gap:"10px", padding:"12px 18px", borderBottom:"1px solid #1a1a2e", background:"#07070e", fontSize:"10px", fontWeight:700, color:"#3a3a5c", textTransform:"uppercase", letterSpacing:"0.5px" }}>
+                    <span>Email</span><span>Estado</span><span>Monto</span><span>Motivo / Sesión</span><span>Fecha</span>
+                  </div>
+                  {paymentAttempts.map((a) => {
+                    const statusColor =
+                      a.status === "succeeded" ? "#34d399" :
+                      a.status === "failed" ? "#f87171" :
+                      a.status === "abandoned" ? "#fbbf24" : "#94a3b8";
+                    return (
+                      <div key={a.id} style={{ display:"grid", gridTemplateColumns:"1.8fr 0.8fr 0.7fr 1.5fr 0.9fr", gap:"10px", padding:"12px 18px", borderBottom:"1px solid #0d0d1a", alignItems:"center" }}>
+                        <span style={{ fontSize:"13px", color:"#e2e8f0", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }} title={a.email || ""}>{a.email || "—"}</span>
+                        <span style={{ padding:"3px 8px", borderRadius:"6px", background:`${statusColor}15`, border:`1px solid ${statusColor}30`, color:statusColor, fontSize:"10px", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.3px", width:"fit-content" }}>{a.status}</span>
+                        <span style={{ fontSize:"13px", fontWeight:700, color: a.status==="succeeded" ? "#34d399" : "#a78bfa" }}>${(a.amount || 0).toFixed(2)}</span>
+                        <span style={{ fontSize:"11px", color:"#5a6480", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }} title={a.failure_message || a.stripe_session_id || ""}>{a.failure_message || (a.stripe_session_id ? a.stripe_session_id.slice(0, 18)+"…" : "—")}</span>
+                        <span style={{ fontSize:"11px", color:"#5a6480" }}>{new Date(a.created_at).toLocaleString("es-MX", { day:"2-digit", month:"short", hour:"2-digit", minute:"2-digit" })}</span>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+
+            <p style={{ marginTop:"16px", fontSize:"12px", color:"#5a6480", textAlign:"center" }}>
+              💡 Los <strong style={{ color:"#fbbf24" }}>abandonados</strong> son leads calientes: dejaron email pero no completaron el pago. Considera retargetearlos.
+            </p>
           </div>
         )}
 
