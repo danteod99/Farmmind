@@ -304,10 +304,11 @@ export async function POST(req: Request) {
 
         // Recuperar la subscription para leer metadata (Stripe no incluye metadata de sub en invoice payload)
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        const purpose = subscription.metadata?.purpose;
+        // const purpose = subscription.metadata?.purpose;  // (mantener para posible uso futuro)
         const userId = subscription.metadata?.supabase_user_id;
 
-        if (purpose !== "smm_autorecharge" || !userId) break;
+        // Acreditar saldo SMM en CUALQUIER pago de subscripción (Pro o auto-recarga)
+        if (!userId) break;
 
         // Idempotencia: si ya acreditamos esta invoice, salir
         const { data: existing } = await supabaseAdmin
@@ -369,7 +370,7 @@ export async function POST(req: Request) {
           })
           .eq("stripe_subscription_id", subscriptionId);
 
-        console.log(`Auto-recarga acreditada: user=${userId}, +$${amountUsd}, invoice=${invoice.id}`);
+        console.log(`Saldo acreditado: user=${userId}, +$${amountUsd}, invoice=${invoice.id}`);
         break;
       }
 

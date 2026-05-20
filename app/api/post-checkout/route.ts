@@ -107,6 +107,42 @@ export async function GET(req: Request) {
       } catch (metaErr) {
         console.warn("[Post-checkout] no se pudo actualizar metadata del sub:", metaErr);
       }
+
+      // ─── Acreditar saldo SMM equivalente al monto pagado ───
+      // Idempotente vía stripe_invoice_id (no duplica si el webhook también acredita)
+      try {
+        const amountPaid = (session.amount_total || 0) / 100;
+        const invoiceId = (subscription.latest_invoice as string) || `cs_${session.id}`;
+        if (amountPaid > 0) {
+          const { data: existing } = await supabaseAdmin
+            .from("smm_transactions")
+            .select("id")
+            .eq("stripe_invoice_id", invoiceId)
+            .maybeSingle();
+          if (!existing) {
+            const { error: rpcErr } = await supabaseAdmin.rpc("increment_balance", {
+              p_user_id: userId,
+              p_amount: amountPaid,
+            });
+            if (!rpcErr) {
+              await supabaseAdmin.from("smm_transactions").insert({
+                user_id: userId,
+                payment_id: invoiceId,
+                amount: amountPaid,
+                currency: "usd_card",
+                status: "finished",
+                credited: true,
+                payment_provider: "stripe",
+                stripe_invoice_id: invoiceId,
+                stripe_subscription_id: subscription.id,
+              });
+              console.log(`[Post-checkout] +$${amountPaid} acreditados a ${email}`);
+            }
+          }
+        }
+      } catch (creditErr) {
+        console.error("[Post-checkout] Error acreditando saldo:", creditErr);
+      }
     }
 
     // ─── 3. Generar magic link (Supabase) para login automático ───
