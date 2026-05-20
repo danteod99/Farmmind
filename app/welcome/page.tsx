@@ -1,7 +1,8 @@
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
+import { sendFbPurchaseEvent } from "@/app/lib/fb-capi";
 
 export const dynamic = "force-dynamic";
 
@@ -167,12 +168,54 @@ export default async function WelcomePage({
       }
     }
 
-    // ─── 3. Generar magic link + redirect directo ───
+    // ─── 3. Enviar evento Purchase a Facebook Conversions API ───
+    try {
+      const amountPaid = (session.amount_total || 0) / 100;
+      if (amountPaid > 0) {
+        const cookieStore = await cookies();
+        const fbp = cookieStore.get("_fbp")?.value || null;
+        const fbc = cookieStore.get("_fbc")?.value || null;
+        // Recuperar fbclid del attribution si existe
+        let fbclid: string | null = null;
+        try {
+          const { data: attr } = await supabaseAdmin
+            .from("user_attribution")
+            .select("fbclid")
+            .eq("user_id", userId)
+            .maybeSingle();
+          fbclid = attr?.fbclid || null;
+        } catch { /* ignore */ }
+
+        const ip = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim()
+          || hdrs.get("x-real-ip")
+          || null;
+        const userAgent = hdrs.get("user-agent") || null;
+
+        // No await: dispara en background, no bloquear redirect
+        sendFbPurchaseEvent({
+          email,
+          amount: amountPaid,
+          eventId: session.id, // mismo que el Pixel client-side
+          fbp,
+          fbc,
+          fbclid,
+          ipAddress: ip,
+          userAgent,
+          eventSourceUrl: `${origin}/welcome`,
+        }).catch((e) => console.error("[/welcome] CAPI fail:", e));
+      }
+    } catch (capiErr) {
+      console.error("[/welcome] CAPI setup error:", capiErr);
+    }
+
+    // ─── 4. Generar magic link + redirect directo (params para Pixel client) ───
+    const amountForPixel = (session.amount_total || 0) / 100;
+    const callbackUrl = `${origin}/auth/callback?purchase=${session.id}&amount=${amountForPixel}`;
     const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",
       email,
       options: {
-        redirectTo: `${origin}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     });
 

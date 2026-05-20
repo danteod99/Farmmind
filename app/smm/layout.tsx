@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/app/lib/admin";
+import { PurchasePixelTracker } from "@/app/components/PurchasePixelTracker";
 
 export default async function SmmLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -69,5 +70,5 @@ export default async function SmmLayout({ children }: { children: React.ReactNod
     redirect("/oferta?gate=1");
   }
 
-  return <>{children}</>;
+  return <><PurchasePixelTracker />{children}</>;
 }

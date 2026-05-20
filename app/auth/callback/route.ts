@@ -222,6 +222,10 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${origin}/?subscribe=${subscribePlan}`);
     }
 
+    // ?purchase= y ?amount= vienen del flow post-pago para disparar Pixel client
+    const purchaseId = searchParams.get("purchase");
+    const purchaseAmount = searchParams.get("amount");
+
     // GATE: solo usuarios Pro pueden acceder a /smm/*. Free → forzar paywall.
     // Admins, panel_clients y resellers entran sin restricción.
     if (session?.user) {
@@ -303,7 +307,11 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.redirect(`${origin}/smm/services`);
+    // Si vino de un pago, propaga los params para que /smm/services dispare Pixel
+    const finalDestination = purchaseId && purchaseAmount
+      ? `${origin}/smm/services?purchase=${encodeURIComponent(purchaseId)}&amount=${encodeURIComponent(purchaseAmount)}`
+      : `${origin}/smm/services`;
+    return NextResponse.redirect(finalDestination);
   }
 
   return NextResponse.redirect(`${origin}/smm/services`);
