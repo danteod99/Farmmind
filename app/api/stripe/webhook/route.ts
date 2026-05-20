@@ -374,6 +374,71 @@ export async function POST(req: Request) {
         break;
       }
 
+      // ─── Refund: revertir saldo SMM + desactivar Pro si full refund ───
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const refundedAmount = (charge.amount_refunded || 0) / 100;
+        if (refundedAmount <= 0) break;
+
+        // Encontrar la invoice y la transaction asociada
+        const invoiceId = typeof charge.invoice === "string" ? charge.invoice : charge.invoice?.id;
+        if (!invoiceId) {
+          console.warn(`[Refund] Charge ${charge.id} sin invoice asociada, skip`);
+          break;
+        }
+        const { data: tx } = await supabaseAdmin
+          .from("smm_transactions")
+          .select("id, user_id, amount, status, credited, stripe_subscription_id")
+          .eq("stripe_invoice_id", invoiceId)
+          .maybeSingle();
+        if (!tx) {
+          console.warn(`[Refund] No se encontró tx para invoice ${invoiceId}`);
+          break;
+        }
+        if (tx.status === "refunded") {
+          console.log(`[Refund] tx ${tx.id} ya estaba refunded, skip`);
+          break;
+        }
+
+        // Restar del balance
+        const { error: rpcErr } = await supabaseAdmin.rpc("decrement_balance", {
+          p_user_id: tx.user_id,
+          p_amount: Number(tx.amount),
+        });
+        if (rpcErr) {
+          // Si saldo insuficiente, forzar a 0
+          console.warn(`[Refund] decrement_balance falló: ${rpcErr.message}. Forzando a 0.`);
+          await supabaseAdmin.from("smm_balances").update({ balance: 0 }).eq("user_id", tx.user_id);
+        }
+        await supabaseAdmin.from("smm_transactions")
+          .update({ status: "refunded", credited: false })
+          .eq("id", tx.id);
+
+        // Si el charge fue full refunded y NO hay otras subs activas, desactivar Pro
+        if (charge.refunded) {
+          const customerId = charge.customer as string;
+          if (customerId) {
+            const stripeSubs = await stripe.subscriptions.list({
+              customer: customerId, status: "active", limit: 5,
+            });
+            if (stripeSubs.data.length === 0) {
+              await supabaseAdmin.from("profiles").upsert({
+                id: tx.user_id,
+                subscription_status: "canceled",
+                subscription_plan: "free",
+                stripe_subscription_id: null,
+              });
+              await supabaseAdmin.from("tm_subscriptions")
+                .update({ expires_at: new Date().toISOString(), tier: "free" })
+                .eq("user_id", tx.user_id);
+              console.log(`[Refund] Pro desactivado para user ${tx.user_id} (no quedan subs activas)`);
+            }
+          }
+        }
+        console.log(`[Refund] Reversado: user=${tx.user_id}, -$${tx.amount}, invoice=${invoiceId}`);
+        break;
+      }
+
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = invoice.customer as string;
