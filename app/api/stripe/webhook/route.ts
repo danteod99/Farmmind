@@ -381,7 +381,10 @@ export async function POST(req: Request) {
         if (refundedAmount <= 0) break;
 
         // Encontrar la invoice y la transaction asociada
-        const invoiceId = typeof charge.invoice === "string" ? charge.invoice : charge.invoice?.id;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const chargeAny = charge as any;
+        const invoiceRef = chargeAny.invoice;
+        const invoiceId = typeof invoiceRef === "string" ? invoiceRef : invoiceRef?.id;
         if (!invoiceId) {
           console.warn(`[Refund] Charge ${charge.id} sin invoice asociada, skip`);
           break;
