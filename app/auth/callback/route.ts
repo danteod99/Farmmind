@@ -223,11 +223,14 @@ export async function GET(request: Request) {
     }
 
     // GATE: solo usuarios Pro pueden acceder a /smm/*. Free → forzar paywall.
-    // Admins entran sin restricción.
+    // Admins, panel_clients y resellers entran sin restricción.
     if (session?.user) {
       const adminEmails = (process.env.ADMIN_EMAILS || "danteod99@gmail.com").split(",").map(e => e.trim().toLowerCase());
       const isAdminUser = adminEmails.includes((session.user.email || "").toLowerCase());
-      if (!isAdminUser) {
+      const role = session.user.user_metadata?.role;
+      const isExemptRole = role === "panel_client" || role === "reseller";
+
+      if (!isAdminUser && !isExemptRole) {
         try {
           const admin = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -235,7 +238,7 @@ export async function GET(request: Request) {
           );
           const { data: profile } = await admin
             .from("profiles")
-            .select("subscription_plan, subscription_status")
+            .select("subscription_plan, subscription_status, stripe_customer_id")
             .eq("id", session.user.id)
             .maybeSingle();
           const { data: subs } = await admin
@@ -250,6 +253,46 @@ export async function GET(request: Request) {
             (profile?.subscription_plan === "pro" &&
               (profile?.subscription_status === "active" ||
                 profile?.subscription_status === "trialing"));
+
+          // Si NO es Pro pero tiene stripe_customer_id, intentar reconciliar contra Stripe
+          // (cubre race condition: pagó pero webhook aún no procesa)
+          if (!isPro && profile?.stripe_customer_id) {
+            try {
+              const Stripe = (await import("stripe")).default;
+              const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_placeholder", { apiVersion: "2026-02-25.clover" });
+              const stripeSubs = await stripe.subscriptions.list({
+                customer: profile.stripe_customer_id,
+                status: "active",
+                limit: 5,
+              });
+              if (stripeSubs.data.length > 0) {
+                // Hay sub activa en Stripe pero DB no la refleja — activar Pro y dejar entrar
+                const activeSub = stripeSubs.data[0];
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const subAny = activeSub as any;
+                const periodEndUnix = subAny.current_period_end
+                  || subAny.items?.data?.[0]?.current_period_end
+                  || Math.floor(Date.now() / 1000) + 30 * 24 * 3600;
+                const periodEndIso = new Date(periodEndUnix * 1000).toISOString();
+                await admin.from("profiles").upsert({
+                  id: session.user.id,
+                  subscription_status: "active",
+                  stripe_subscription_id: activeSub.id,
+                  subscription_plan: "pro",
+                  subscription_period_end: periodEndIso,
+                });
+                await admin.from("tm_subscriptions").upsert(
+                  { user_id: session.user.id, product: "bundle", tier: "pro", expires_at: periodEndIso, stripe_subscription_id: activeSub.id },
+                  { onConflict: "user_id,product" }
+                );
+                console.log(`[Auth Callback] Pro reconciliado via Stripe para ${session.user.email}`);
+                return NextResponse.redirect(`${origin}/smm/services?welcome=1`);
+              }
+            } catch (reconcileErr) {
+              console.error("[Auth Callback] Stripe reconcile failed:", reconcileErr);
+            }
+          }
+
           if (!isPro) {
             return NextResponse.redirect(`${origin}/oferta?gate=1`);
           }

@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
     const stripe = getStripe();
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["customer"],
+      expand: ["customer", "subscription"],
     });
 
     if (session.payment_status !== "paid") {
@@ -43,7 +43,73 @@ export async function GET(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // Generar magic link (Supabase) para login automático
+    // ─── 1. Crear o encontrar user Supabase (idempotente) ───
+    let userId: string;
+    const { data: existingList } = await supabaseAdmin.auth.admin.listUsers();
+    const existing = existingList.users.find((u) => u.email?.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      userId = existing.id;
+    } else {
+      const fullName = (customer?.name as string) || email.split("@")[0];
+      const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        user_metadata: { full_name: fullName },
+      });
+      if (createErr || !created?.user) {
+        console.error("[Post-checkout] createUser error:", createErr);
+        return Response.json({ error: createErr?.message || "No se pudo crear la cuenta" }, { status: 500 });
+      }
+      userId = created.user.id;
+      // Crear smm_balance row para nuevo user
+      await supabaseAdmin.from("smm_balances").insert({ user_id: userId, balance: 0 }).select().maybeSingle();
+    }
+
+    // ─── 2. Activar Pro tier + bundle (no esperar al webhook) ───
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const subscription = session.subscription as any;
+    if (subscription) {
+      const periodEndUnix = subscription.current_period_end
+        || subscription.items?.data?.[0]?.current_period_end
+        || Math.floor(Date.now() / 1000) + 30 * 24 * 3600; // fallback 30 días
+      const periodEndIso = new Date(periodEndUnix * 1000).toISOString();
+      const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
+
+      await supabaseAdmin.from("profiles").upsert({
+        id: userId,
+        stripe_customer_id: customerId,
+        subscription_status: subscription.status || "active",
+        stripe_subscription_id: subscription.id,
+        subscription_plan: "pro",
+        subscription_period_end: periodEndIso,
+      });
+
+      await supabaseAdmin.from("tm_subscriptions").upsert(
+        {
+          user_id: userId,
+          product: "bundle",
+          tier: "pro",
+          expires_at: periodEndIso,
+          stripe_subscription_id: subscription.id,
+        },
+        { onConflict: "user_id,product" }
+      );
+
+      // Actualizar metadata del sub para futuras webhooks
+      try {
+        await stripe.subscriptions.update(subscription.id, {
+          metadata: {
+            ...(subscription.metadata || {}),
+            supabase_user_id: userId,
+            pending_account: "false",
+          },
+        });
+      } catch (metaErr) {
+        console.warn("[Post-checkout] no se pudo actualizar metadata del sub:", metaErr);
+      }
+    }
+
+    // ─── 3. Generar magic link (Supabase) para login automático ───
     const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",
       email,
@@ -54,11 +120,9 @@ export async function GET(req: Request) {
 
     if (linkErr) {
       console.error("[Post-checkout] generateLink error:", linkErr);
-      // Si genera error porque ya está logueado u otro motivo, devolvemos solo el email
       return Response.json({ email, redirect_url: null });
     }
 
-    // Devolver el magic link directamente — el cliente redirige a él para login automático
     const magicLink = linkData?.properties?.action_link;
     return Response.json({
       email,
