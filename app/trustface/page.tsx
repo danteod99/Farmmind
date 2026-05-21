@@ -249,8 +249,8 @@ export default function TrustFacePage() {
                 TrustFace <span style={{ color: FB_BLUE }}>en acción</span>
               </h2>
             </div>
-            <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: "20px", overflow: "hidden", boxShadow: `0 24px 80px ${FB_BLUE}30` }}>
-              <iframe src="https://www.loom.com/embed/bf8ccb2d678342bcb7a0ed06f4316605" allowFullScreen style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }} />
+            <div style={{ position: "relative", paddingBottom: "65.06%", height: 0, borderRadius: "20px", overflow: "hidden", boxShadow: `0 24px 80px ${FB_BLUE}30` }}>
+              <iframe src="https://www.loom.com/embed/e0a161991f3f4be0abd1376df0270895" allowFullScreen style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }} />
             </div>
           </div>
         </section>
