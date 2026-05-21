@@ -58,6 +58,8 @@ export async function POST(req: Request) {
     const stripe = getStripe();
 
     // ─── Modo GUEST: sin sesión, Stripe Checkout recolecta email
+    // En mode='subscription' Stripe siempre crea customer automático con el email,
+    // no se necesita customer_creation (solo válido en mode='payment').
     if (!user) {
       const session = await stripe.checkout.sessions.create({
         mode: "subscription",
@@ -65,8 +67,6 @@ export async function POST(req: Request) {
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${origin}/welcome?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/?payment=cancel`,
-        // Sin customer pre-existente: Stripe lo crea automático con el email recolectado
-        customer_creation: "always",
         subscription_data: {
           metadata: { pending_account: "true" },
         },
