@@ -96,7 +96,11 @@ export default function AdminPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalFiltered, setTotalFiltered] = useState(0);
   // Tabs
-  const [activeTab, setActiveTab] = useState<"users" | "promos" | "downloads" | "payments">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "promos" | "downloads" | "payments" | "attribution">("users");
+  // Paid attribution
+  const [paidAttrUsers, setPaidAttrUsers] = useState<Array<{ id: string; email: string; name: string; balance: number; revenue: number; source: string; subscription_period_end: string | null; attribution: { utm_campaign: string | null; utm_source: string | null; landing_page: string | null; fbclid: string | null } | null }>>([]);
+  const [paidAttrStats, setPaidAttrStats] = useState<{ totalPaid: number; totalRevenue: number; bySource: Record<string, { count: number; revenue: number }> } | null>(null);
+  const [paidAttrLoading, setPaidAttrLoading] = useState(false);
   // Payment attempts
   const [paymentAttempts, setPaymentAttempts] = useState<Array<{ id: string; email: string | null; status: string; amount: number | null; currency: string; failure_message: string | null; failure_code: string | null; stripe_session_id: string | null; created_at: string }>>([]);
   const [paymentStats, setPaymentStats] = useState<{ total: number; abandoned: number; failed: number; succeeded: number; lostRevenue: number } | null>(null);
@@ -117,7 +121,20 @@ export default function AdminPage() {
     if (activeTab === "promos") loadPromoCodes();
     if (activeTab === "downloads") loadDownloadStats();
     if (activeTab === "payments") loadPaymentAttempts();
+    if (activeTab === "attribution") loadPaidAttribution();
   }, [activeTab, paymentFilter]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadPaidAttribution = async () => {
+    setPaidAttrLoading(true);
+    try {
+      const res = await fetch("/api/admin/paid-attribution");
+      if (res.ok) {
+        const d = await res.json();
+        setPaidAttrUsers(d.users || []);
+        setPaidAttrStats(d.stats || null);
+      }
+    } finally { setPaidAttrLoading(false); }
+  };
 
   const loadPaymentAttempts = async () => {
     setPaymentLoading(true);
@@ -318,7 +335,7 @@ export default function AdminPage() {
 
         {/* TABS */}
         <div style={{ display:"flex", gap:"8px", marginBottom:"24px", borderBottom:"1px solid #1a1a2e", paddingBottom:"0" }}>
-          {([["users","👥 Usuarios"],["promos","🎟️ Códigos Promo"],["downloads","📥 Descargas"],["payments","💳 Intentos de pago"]] as const).map(([tab, label]) => (
+          {([["users","👥 Usuarios"],["promos","🎟️ Códigos Promo"],["downloads","📥 Descargas"],["payments","💳 Intentos de pago"],["attribution","📊 De dónde vinieron"]] as const).map(([tab, label]) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               style={{ padding:"10px 18px", borderRadius:"10px 10px 0 0", border:"1px solid", borderBottom:"none", borderColor: activeTab===tab ? "#007ABF" : "transparent", background: activeTab===tab ? "#007ABF18" : "transparent", color: activeTab===tab ? "#56B4E0" : "#5a6480", fontSize:"13px", fontWeight: activeTab===tab ? 700 : 500, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" }}>
               {label}
@@ -811,6 +828,92 @@ export default function AdminPage() {
             <p style={{ marginTop:"16px", fontSize:"12px", color:"#5a6480", textAlign:"center" }}>
               💡 Los <strong style={{ color:"#fbbf24" }}>abandonados</strong> son leads calientes: dejaron email pero no completaron el pago. Considera retargetearlos.
             </p>
+          </div>
+        )}
+
+        {/* ── PAID ATTRIBUTION TAB ── */}
+        {activeTab === "attribution" && (
+          <div style={{ animation:"fi 0.3s ease-out" }}>
+            {paidAttrLoading ? (
+              <div style={{ padding:"60px", textAlign:"center", color:"#5a6480" }}>Cargando…</div>
+            ) : !paidAttrStats ? (
+              <div style={{ padding:"60px", textAlign:"center", color:"#5a6480" }}>Sin data disponible</div>
+            ) : (
+              <>
+                {/* Stats top */}
+                <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))", gap:"12px", marginBottom:"20px" }}>
+                  <div style={{ padding:"16px", borderRadius:"12px", background:"#0d0d1a", border:"1px solid #1a1a2e" }}>
+                    <p style={{ fontSize:"11px", color:"#5a6480", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px", fontWeight:600 }}>Pagadores activos</p>
+                    <p style={{ fontSize:"22px", fontWeight:800, color:"#34d399", letterSpacing:"-0.02em" }}>{paidAttrStats.totalPaid}</p>
+                  </div>
+                  <div style={{ padding:"16px", borderRadius:"12px", background:"#0d0d1a", border:"1px solid #1a1a2e" }}>
+                    <p style={{ fontSize:"11px", color:"#5a6480", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px", fontWeight:600 }}>Revenue total</p>
+                    <p style={{ fontSize:"22px", fontWeight:800, color:"#a78bfa", letterSpacing:"-0.02em" }}>${paidAttrStats.totalRevenue.toFixed(2)}</p>
+                  </div>
+                  <div style={{ padding:"16px", borderRadius:"12px", background:"#0d0d1a", border:"1px solid #1a1a2e" }}>
+                    <p style={{ fontSize:"11px", color:"#5a6480", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"6px", fontWeight:600 }}>Fuentes únicas</p>
+                    <p style={{ fontSize:"22px", fontWeight:800, color:"#56B4E0", letterSpacing:"-0.02em" }}>{Object.keys(paidAttrStats.bySource).length}</p>
+                  </div>
+                </div>
+
+                {/* Breakdown por fuente */}
+                <div style={{ background:"#0d0d1a", border:"1px solid #1a1a2e", borderRadius:"14px", padding:"18px", marginBottom:"20px" }}>
+                  <p style={{ fontSize:"11px", fontWeight:700, color:"#5a6480", textTransform:"uppercase", letterSpacing:"0.5px", marginBottom:"14px" }}>Distribución por fuente</p>
+                  <div style={{ display:"grid", gap:"8px" }}>
+                    {Object.entries(paidAttrStats.bySource).sort((a, b) => b[1].count - a[1].count).map(([source, info]) => {
+                      const sourceColor =
+                        source.includes("Facebook Ads") ? "#1877F2" :
+                        source.includes("Google Ads") ? "#34d399" :
+                        source.includes("TikTok") ? "#ff0050" :
+                        source.includes("Instagram") ? "#E4405F" :
+                        source === "Directo" ? "#94a3b8" :
+                        source.includes("Pre-tracking") ? "#64748b" :
+                        source.includes("Búsqueda") ? "#fbbf24" :
+                        "#7dd3fc";
+                      const pct = ((info.count / paidAttrStats.totalPaid) * 100).toFixed(0);
+                      return (
+                        <div key={source} style={{ display:"flex", alignItems:"center", gap:"12px", padding:"10px 14px", borderRadius:"10px", background:"#07070e" }}>
+                          <span style={{ minWidth:"180px", fontSize:"13px", fontWeight:600, color:sourceColor }}>{source}</span>
+                          <span style={{ fontSize:"12px", color:"#94a3b8" }}>{info.count} {info.count === 1 ? "usuario" : "usuarios"} ({pct}%)</span>
+                          <span style={{ marginLeft:"auto", fontSize:"13px", fontWeight:700, color:"#a78bfa" }}>${info.revenue.toFixed(2)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Lista detallada */}
+                <div style={{ background:"#0d0d1a", border:"1px solid #1a1a2e", borderRadius:"14px", overflow:"hidden" }}>
+                  <div style={{ display:"grid", gridTemplateColumns:"1.6fr 1fr 1.4fr 0.7fr 0.9fr", gap:"10px", padding:"12px 18px", borderBottom:"1px solid #1a1a2e", background:"#07070e", fontSize:"10px", fontWeight:700, color:"#3a3a5c", textTransform:"uppercase", letterSpacing:"0.5px" }}>
+                    <span>Email</span><span>Fuente</span><span>Campaña / Landing</span><span>Saldo</span><span>Revenue</span>
+                  </div>
+                  {paidAttrUsers.map((u) => {
+                    const sourceColor =
+                      u.source.includes("Facebook Ads") ? "#1877F2" :
+                      u.source.includes("Google Ads") ? "#34d399" :
+                      u.source.includes("TikTok") ? "#ff0050" :
+                      u.source.includes("Instagram") ? "#E4405F" :
+                      u.source === "Directo" ? "#94a3b8" :
+                      u.source.includes("Pre-tracking") ? "#64748b" :
+                      "#7dd3fc";
+                    const camp = u.attribution?.utm_campaign || u.attribution?.landing_page || "—";
+                    return (
+                      <div key={u.id} style={{ display:"grid", gridTemplateColumns:"1.6fr 1fr 1.4fr 0.7fr 0.9fr", gap:"10px", padding:"12px 18px", borderBottom:"1px solid #0d0d1a", alignItems:"center" }}>
+                        <span style={{ fontSize:"13px", color:"#e2e8f0", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }} title={u.email}>{u.email}</span>
+                        <span style={{ padding:"3px 8px", borderRadius:"6px", background:`${sourceColor}15`, border:`1px solid ${sourceColor}30`, color:sourceColor, fontSize:"10px", fontWeight:700, width:"fit-content" }}>{u.source}</span>
+                        <span style={{ fontSize:"11px", color:"#5a6480", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }} title={camp}>{camp}</span>
+                        <span style={{ fontSize:"13px", fontWeight:700, color: u.balance > 0 ? "#34d399" : "#3a3a5c" }}>${u.balance.toFixed(2)}</span>
+                        <span style={{ fontSize:"13px", fontWeight:700, color: u.revenue > 0 ? "#a78bfa" : "#3a3a5c" }}>${u.revenue.toFixed(2)}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <p style={{ marginTop:"16px", fontSize:"12px", color:"#5a6480", textAlign:"center" }}>
+                  💡 Las fuentes con mayor revenue son las que vale escalar en Ads. Pre-tracking = registrados antes de activar el sistema de attribution.
+                </p>
+              </>
+            )}
           </div>
         )}
 
