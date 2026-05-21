@@ -127,6 +127,7 @@ export async function POST(req: Request) {
       ],
       success_url: `${origin}/smm/funds?autorecharge=success`,
       cancel_url: `${origin}/smm/funds?autorecharge=cancel`,
+      allow_promotion_codes: true,
       subscription_data: {
         metadata: {
           purpose: "smm_autorecharge",

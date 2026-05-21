@@ -67,6 +67,7 @@ export async function POST(req: Request) {
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: `${origin}/welcome?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/?payment=cancel`,
+        allow_promotion_codes: true,
         subscription_data: {
           metadata: { pending_account: "true" },
         },
@@ -104,6 +105,7 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/?payment=success`,
       cancel_url: `${origin}/?payment=cancel`,
+      allow_promotion_codes: true,
       subscription_data: {
         metadata: { supabase_user_id: user.id },
       },
