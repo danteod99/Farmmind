@@ -703,7 +703,7 @@ function LoginScreen() {
               gradient: "linear-gradient(135deg, #E1306C, #F77737)",
               badge: "Instagram",
               badgeColor: "#E1306C",
-              version: "v1.5.1",
+              version: "v1.5.2",
               price: "Incluido en Pro",
             },
             {
@@ -713,7 +713,7 @@ function LoginScreen() {
               gradient: "linear-gradient(135deg, #1877F2, #0d5bc4)",
               badge: "Facebook",
               badgeColor: "#1877F2",
-              version: "v1.5.4",
+              version: "v1.5.5",
               price: "Incluido en Pro",
             },
             {
