@@ -298,11 +298,12 @@ export async function GET(request: Request) {
           }
 
           if (!isPro) {
-            return NextResponse.redirect(`${origin}/oferta?gate=1`);
+            // Free user logueado: deja que vea /downloads (tiene paywall propio)
+            return NextResponse.redirect(`${origin}/downloads`);
           }
         } catch (e) {
           console.error("[Auth Callback] Pro gate check failed:", e);
-          return NextResponse.redirect(`${origin}/oferta?gate=1`);
+          return NextResponse.redirect(`${origin}/downloads`);
         }
       }
     }
