@@ -2,107 +2,261 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/app/lib/supabase";
+import {
+  BookOpen, Play, Lock, Clock, Check, Zap, Sparkles,
+} from "lucide-react";
 import { SmmNav } from "@/app/components/SmmNav";
-import { TrustFooter } from "@/app/components/TrustFooter";
-import ChatPopup from "@/app/components/ChatPopup";
-import { GraduationCap, Sparkles, Clock } from "lucide-react";
+import { supabase } from "@/app/lib/supabase";
+
+interface Course {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  cover_url: string;
+  level: string;
+  duration: string;
+  display_order: number;
+}
+
+interface CoursesData {
+  courses: Course[];
+  user_state: {
+    authenticated: boolean;
+    has_access: boolean;
+    is_founder: boolean;
+    is_subscribed: boolean;
+  };
+}
 
 export default function CursosPage() {
   const router = useRouter();
+  const [data, setData] = useState<CoursesData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState(0);
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/"); return; }
-      setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
-      setUserEmail(user.email || "");
-      setUserAvatar(user.user_metadata?.avatar_url || "");
-      // GATE Pro
-      try {
-        const profileRes = await fetch("/api/user/profile");
-        if (profileRes.ok) {
-          const profile = await profileRes.json();
-          if (!profile.isPro) {
-            window.location.href = "/oferta?gate=1";
-            return;
-          }
-        }
-        const res = await fetch("/api/smm/orders");
-        if (res.ok) { const d = await res.json(); setBalance(d.balance || 0); }
-      } finally { setLoading(false); }
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) {
+        router.replace("/smm");
+        return;
+      }
+      if (mounted) {
+        setUserName(u.user.user_metadata?.full_name || u.user.email?.split("@")[0] || "Usuario");
+        setUserEmail(u.user.email || "");
+        setUserAvatar(u.user.user_metadata?.avatar_url || "");
+        setAuthReady(true);
+      }
     })();
+    return () => { mounted = false; };
   }, [router]);
 
-  if (loading) return (
-    <div style={{ height: "100vh", background: "#07070e", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid #007ABF", borderTopColor: "transparent", animation: "spin 0.8s linear infinite" }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-  );
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [coursesRes, balRes] = await Promise.all([
+        fetch("/api/courses", { credentials: "include" }),
+        fetch("/api/smm/orders", { credentials: "include" }),
+      ]);
+      if (coursesRes.ok) setData(await coursesRes.json());
+      if (balRes.ok) {
+        const b = await balRes.json();
+        setBalance(b.balance || 0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authReady) fetchData();
+  }, [authReady, fetchData]);
+
+  const startCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      const res = await fetch("/api/network/checkout", {
+        method: "POST",
+        credentials: "include",
+      });
+      const j = await res.json();
+      if (j.url) window.location.href = j.url;
+      else alert(j.error || "Error iniciando pago");
+    } catch {
+      alert("Error conectando con Stripe");
+    } finally {
+      setCheckingOut(false);
+    }
+  };
+
+  if (!authReady || loading || !data) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-blue-400">Cargando cursos...</div>
+      </div>
+    );
+  }
+
+  const { user_state, courses } = data;
 
   return (
-    <>
-      <style>{`
-        body { background: #07070e; color: #f0efff; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; }
-        @keyframes pulse-glow { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
-      `}</style>
-      <div style={{ minHeight: "100vh", background: "#07070e" }}>
-        <SmmNav
-          balance={balance}
-          userAvatar={userAvatar}
-          userName={userName}
-          userEmail={userEmail}
-          links={[
-            { href: "/smm/services", label: "Servicios" },
-            { href: "/smm/orders", label: "Pedidos" },
-            { href: "/smm/funds", label: "Recargar" },
-            { href: "/cursos", label: "Cursos", active: true },
-            { href: "/downloads", label: "Descargas" },
-            { href: "/smm/ai", label: "Asistente IA" },
-            { href: "https://www.scalinglatam.site", label: "Granja de bots", external: true },
-          ]}
-        />
+    <div className="min-h-screen bg-black text-white">
+      <SmmNav
+        balance={balance}
+        userAvatar={userAvatar}
+        userName={userName}
+        userEmail={userEmail}
+        links={[
+          { href: "/smm/services", label: "Servicios" },
+          { href: "/smm/funds", label: "Recargar" },
+          { href: "/network", label: "🌐 Mi Red" },
+          { href: "/cursos", label: "📚 Mis Cursos", active: true },
+          { href: "/granjas", label: "🤖 Granjas" },
+          { href: "/downloads", label: "💻 Descargas" },
+          { href: "/smm/ai", label: "🤖 Asistente IA" },
+          { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+        ]}
+      />
 
-        <div style={{ maxWidth: "960px", margin: "0 auto", padding: "60px 28px" }}>
-          <div style={{ textAlign: "center", marginBottom: "48px" }}>
-            <div style={{ display: "inline-flex", padding: "16px", borderRadius: "20px", background: "linear-gradient(135deg, #007ABF20, #56B4E020)", border: "1px solid #007ABF40", marginBottom: "20px" }}>
-              <GraduationCap size={40} color="#56B4E0" />
-            </div>
-            <h1 style={{ fontSize: "44px", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.03em", background: "linear-gradient(135deg, #fff 0%, #88D0F0 50%, #56B4E0 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "16px" }}>
-              Cursos TRUST MIND
-            </h1>
-            <p style={{ fontSize: "17px", color: "#94a3b8", maxWidth: "560px", margin: "0 auto", lineHeight: 1.6 }}>
-              Aprende a escalar tu negocio digital con nuestros cursos exclusivos de marketing, automatización y crecimiento.
-            </p>
-          </div>
-
-          <div style={{ background: "linear-gradient(135deg, #0d0d18, #0a0a14)", border: "1px solid #1e1e30", borderRadius: "20px", padding: "48px 32px", textAlign: "center" }}>
-            <div style={{ display: "inline-flex", padding: "12px", borderRadius: "14px", background: "#fbbf2415", border: "1px solid #fbbf2435", marginBottom: "20px", animation: "pulse-glow 2s ease-in-out infinite" }}>
-              <Clock size={28} color="#fbbf24" />
-            </div>
-            <h2 style={{ fontSize: "26px", fontWeight: 700, color: "white", marginBottom: "12px" }}>
-              Próximamente
-            </h2>
-            <p style={{ fontSize: "15px", color: "#94a3b8", maxWidth: "440px", margin: "0 auto 24px", lineHeight: 1.6 }}>
-              Estamos preparando contenido premium para que lleves tu negocio al siguiente nivel. Mantente atento.
-            </p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 18px", borderRadius: "12px", background: "#007ABF15", border: "1px solid #007ABF30", color: "#56B4E0", fontSize: "13px", fontWeight: 600 }}>
-              <Sparkles size={14} /> Muy pronto
-            </div>
-          </div>
+      <main className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+        {/* Title */}
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <BookOpen className="w-8 h-8 text-blue-400" />
+            Mis Cursos
+          </h1>
+          <p className="text-white/60 mt-1">
+            {user_state.is_founder
+              ? "Tienes acceso completo como fundador."
+              : user_state.is_subscribed
+                ? "Tienes acceso completo a todos los cursos."
+                : "Activa tu membresía para desbloquear los cursos."}
+          </p>
         </div>
+
+        {/* Paywall si no tiene acceso */}
+        {!user_state.has_access && (
+          <section className="bg-gradient-to-br from-blue-700/20 via-blue-900/10 to-black border-2 border-blue-500/40 rounded-2xl p-6 sm:p-8">
+            <div className="flex items-start gap-4 mb-5">
+              <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
+                <Lock className="w-7 h-7" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Desbloquea todos los cursos</h2>
+                <p className="text-white/70 mt-1">
+                  Activa tu membresía de la red por <b className="text-blue-300">$200/mes</b> y obtén acceso completo
+                  a todos los cursos, comunidad y la red de mercadeo.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={startCheckout}
+              disabled={checkingOut}
+              className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold text-base flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/30 disabled:opacity-50"
+            >
+              <Zap className="w-5 h-5" />
+              {checkingOut ? "Conectando..." : "Activar membresía — $200/mes"}
+            </button>
+          </section>
+        )}
+
+        {/* Bonus: Si está suscrito, mostrar el descuento SMM */}
+        {user_state.has_access && (
+          <section className="bg-gradient-to-br from-emerald-500/10 to-black border border-emerald-500/30 rounded-2xl p-5 flex items-start gap-4">
+            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-emerald-300">Tu membresía incluye 30% off en SMM</div>
+              <p className="text-sm text-white/60 mt-1">
+                Como miembro activo, todos los servicios SMM tienen 30% de descuento automático sobre el precio base.
+              </p>
+            </div>
+            <Link href="/smm/services" className="hidden sm:flex px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-semibold items-center gap-2">
+              Ir a SMM →
+            </Link>
+          </section>
+        )}
+
+        {/* Lista de cursos */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {courses.map((c) => (
+            <CourseCard key={c.id} course={c} hasAccess={user_state.has_access} />
+          ))}
+        </section>
+
+        {courses.length === 0 && (
+          <div className="text-center py-16 text-white/40">
+            Aún no hay cursos publicados. Pronto.
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function CourseCard({ course, hasAccess }: { course: Course; hasAccess: boolean }) {
+  const levelColors: Record<string, string> = {
+    principiante: "bg-emerald-500/20 text-emerald-300",
+    intermedio: "bg-yellow-500/20 text-yellow-300",
+    avanzado: "bg-red-500/20 text-red-300",
+  };
+
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-blue-500/30 transition group">
+      {/* Cover */}
+      <div className="aspect-video bg-gradient-to-br from-blue-900/40 to-black flex items-center justify-center relative">
+        {course.cover_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={course.cover_url} alt={course.title} className="w-full h-full object-cover" />
+        ) : (
+          <BookOpen className="w-16 h-16 text-blue-400/30" />
+        )}
+        {!hasAccess && (
+          <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+            <Lock className="w-10 h-10 text-white/60" />
+          </div>
+        )}
       </div>
 
-      <TrustFooter />
-      <ChatPopup />
-    </>
+      {/* Content */}
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded ${levelColors[course.level] || "bg-white/10 text-white/60"}`}>
+            {course.level}
+          </span>
+          {course.duration && (
+            <span className="text-[10px] uppercase tracking-wider text-white/40 flex items-center gap-1">
+              <Clock className="w-3 h-3" /> {course.duration}
+            </span>
+          )}
+        </div>
+        <h3 className="font-bold text-white text-lg mb-2 group-hover:text-blue-300 transition">{course.title}</h3>
+        <p className="text-sm text-white/55 line-clamp-3 mb-4">{course.description}</p>
+
+        {hasAccess ? (
+          <Link
+            href={`/cursos/${course.slug}`}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-semibold transition"
+          >
+            <Play className="w-4 h-4" /> Empezar curso
+          </Link>
+        ) : (
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white/40">
+            <Lock className="w-4 h-4" /> Bloqueado
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

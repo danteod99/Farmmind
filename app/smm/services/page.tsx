@@ -322,6 +322,7 @@ export default function ServicesPage() {
   const [loadingAll, setLoadingAll] = useState(false);
   const [totalServices, setTotalServices] = useState(0);
   const [balance, setBalance] = useState(0);
+  const [networkDiscount, setNetworkDiscount] = useState(0);
   const [userName, setUserName] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
   const [userEmail, setUserEmail] = useState("");
@@ -432,6 +433,7 @@ export default function ServicesPage() {
       if (ordRes.ok) {
         const data = await ordRes.json();
         setBalance(data.balance || 0);
+        setNetworkDiscount(data.network_discount || 0);
       }
       if (statsRes.ok) {
         const data = await statsRes.json();
@@ -581,8 +583,10 @@ export default function ServicesPage() {
     }
   };
 
+  const effectiveRate = (service: Service) =>
+    parseFloat(service.rate) * (1 - networkDiscount);
   const calcCost = (service: Service, qty: number) =>
-    ((parseFloat(service.rate) / 1000) * qty).toFixed(2);
+    ((effectiveRate(service) / 1000) * qty).toFixed(2);
 
   if (loading) {
     return (
@@ -681,14 +685,36 @@ export default function ServicesPage() {
           userEmail={userEmail}
           links={[
             { href: "/smm/services", label: "Servicios", active: true },
-            { href: "/smm/orders", label: "Pedidos" },
             { href: "/smm/funds", label: "Recargar" },
-            { href: "/cursos", label: "Cursos" },
-            { href: "/downloads", label: "Descargas" },
-            { href: "/smm/ai", label: "Asistente IA" },
-            { href: "https://www.scalinglatam.site", label: "Granja de bots", external: true },
+            { href: "/network", label: "🌐 Mi Red" },
+            { href: "/cursos", label: "📚 Mis Cursos" },
+            { href: "/granjas", label: "🤖 Granjas" },
+            { href: "/downloads", label: "💻 Descargas" },
+            { href: "/smm/ai", label: "🤖 Asistente IA" },
+            { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
           ]}
         />
+
+        {/* ━━━ NETWORK DISCOUNT BANNER ━━━ */}
+        {networkDiscount > 0 && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            padding: "10px 20px",
+            background: "linear-gradient(90deg, #047857, #10b981)",
+            color: "white",
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: "0.3px",
+          }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "2px 10px", borderRadius: 6, background: "rgba(255,255,255,0.25)", fontSize: 11, fontWeight: 800 }}>
+              ✨ MIEMBRO DE LA RED
+            </span>
+            <span>30% de descuento aplicado en todos los servicios</span>
+          </div>
+        )}
 
         {/* ━━━ NEW SOFTWARE BANNER ━━━ */}
         <a
@@ -717,6 +743,35 @@ export default function ServicesPage() {
           <span style={{ fontSize: 16 }}>→</span>
           <span style={{ fontSize: 11, opacity: 0.8, textDecoration: "underline" }}>Descargar gratis</span>
         </a>
+
+        {/* ━━━ SUB-TABS: Servicios / Pedidos ━━━ */}
+        <div style={{ borderBottom: "1px solid #1e1e30", background: "#070710" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 4, padding: "0 16px" }}>
+            <Link href="/smm/services" style={{
+              padding: "12px 18px",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#56B4E0",
+              borderBottom: "2px solid #007ABF",
+              textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              <Package size={14} /> Servicios
+            </Link>
+            <Link href="/smm/orders" style={{
+              padding: "12px 18px",
+              fontSize: 13,
+              fontWeight: 500,
+              color: "#94a3b8",
+              borderBottom: "2px solid transparent",
+              textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 6,
+              transition: "color 0.15s",
+            }}>
+              <ShoppingCart size={14} /> Mis Pedidos
+            </Link>
+          </div>
+        </div>
 
         {/* ━━━ AI ASSISTANT ━━━ */}
         <div style={{
@@ -916,7 +971,14 @@ export default function ServicesPage() {
                             </div>
                           </div>
                           <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <p style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${parseFloat(svc.rate).toFixed(2)}<span style={{ fontSize: "9px", color: "#5a6480" }}>/1K</span></p>
+                            {networkDiscount > 0 ? (
+                              <>
+                                <p style={{ fontSize: "10px", color: "#64748b", textDecoration: "line-through", lineHeight: 1 }}>${parseFloat(svc.rate).toFixed(2)}</p>
+                                <p style={{ fontSize: "13px", color: "#34d399", fontWeight: 700, marginTop: "2px" }}>${effectiveRate(svc).toFixed(2)}<span style={{ fontSize: "9px", color: "#5a6480" }}>/1K</span></p>
+                              </>
+                            ) : (
+                              <p style={{ fontSize: "13px", color: "#34d399", fontWeight: 700 }}>${parseFloat(svc.rate).toFixed(2)}<span style={{ fontSize: "9px", color: "#5a6480" }}>/1K</span></p>
+                            )}
                           </div>
                         </button>
                       );
@@ -1076,7 +1138,8 @@ export default function ServicesPage() {
             ) : (
               <div className="svc-grid" role="list" aria-label="Lista de servicios" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
                 {filtered.map((service) => {
-                  const cost1k = parseFloat(service.rate);
+                  const originalRate = parseFloat(service.rate);
+                  const cost1k = originalRate * (1 - networkDiscount);
                   const platformColor = getPlatformColor(service.category);
 
                   return (
@@ -1105,7 +1168,15 @@ export default function ServicesPage() {
                         <div style={{ display: "flex", gap: "20px", marginBottom: "2px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                             <DollarSign size={12} color="#34d399" />
-                            <span style={{ fontSize: "14px", color: "#34d399", fontWeight: 800, textShadow: "0 0 12px #34d39950" }}>${cost1k.toFixed(2)}</span>
+                            {networkDiscount > 0 ? (
+                              <>
+                                <span style={{ fontSize: "11px", color: "#64748b", textDecoration: "line-through" }}>${originalRate.toFixed(2)}</span>
+                                <span style={{ fontSize: "14px", color: "#34d399", fontWeight: 800, textShadow: "0 0 12px #34d39950" }}>${cost1k.toFixed(2)}</span>
+                                <span style={{ fontSize: "9px", color: "#34d399", fontWeight: 700, background: "#34d39920", padding: "2px 5px", borderRadius: "4px" }}>-30%</span>
+                              </>
+                            ) : (
+                              <span style={{ fontSize: "14px", color: "#34d399", fontWeight: 800, textShadow: "0 0 12px #34d39950" }}>${cost1k.toFixed(2)}</span>
+                            )}
                             <span style={{ fontSize: "10px", color: "#3d4a5c" }}>/ 1K</span>
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>

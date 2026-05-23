@@ -112,6 +112,17 @@ export async function POST(req: Request) {
         const purpose = subscription.metadata?.purpose;
         const pendingAccount = subscription.metadata?.pending_account === "true";
 
+        // Fallback: lookup userId by stripe_customer_id (suscripciones antiguas sin metadata)
+        if (!userId) {
+          const customerId = subscription.customer as string;
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("stripe_customer_id", customerId)
+            .maybeSingle();
+          userId = profile?.id;
+        }
+
         // Si es un guest pago (sin supabase_user_id), crear cuenta Supabase con email del customer
         if (!userId && pendingAccount) {
           try {
@@ -221,11 +232,15 @@ export async function POST(req: Request) {
           ? new Date(periodEndUnixPro * 1000).toISOString()
           : null;
 
+        // Estados terminales sin pago = se trata como cancelado (origin/main)
+        const TERMINAL_NO_PAY = ["canceled", "unpaid", "incomplete_expired"];
+        const isTerminal = TERMINAL_NO_PAY.includes(subscription.status);
+
         await supabaseAdmin.from("profiles").upsert({
           id: userId,
           subscription_status: subscription.status,
-          stripe_subscription_id: subscription.id,
-          subscription_plan: "pro",
+          stripe_subscription_id: isTerminal ? null : subscription.id,
+          subscription_plan: isTerminal ? "free" : "pro",
           subscription_period_end: periodEndIso,
         });
 
@@ -248,17 +263,49 @@ export async function POST(req: Request) {
             { onConflict: "user_id,product" }
           );
         }
+
+        // Si terminó sin pago, auto-remove de la red (no-founder, sin downline)
+        if (isTerminal) {
+          const { data: pos } = await supabaseAdmin
+            .from("network_positions")
+            .select("user_id, is_founder")
+            .eq("user_id", userId)
+            .maybeSingle();
+          if (pos && !pos.is_founder) {
+            const { data: downline } = await supabaseAdmin
+              .from("network_positions")
+              .select("user_id")
+              .eq("placement_parent_id", userId)
+              .limit(1);
+            if (!downline || downline.length === 0) {
+              await supabaseAdmin.from("network_positions").delete().eq("user_id", userId);
+              await supabaseAdmin.from("network_pending_placements").delete().eq("user_id", userId);
+              console.log(`[Network] Removed user ${userId} (status=${subscription.status}, no downline)`);
+            }
+          }
+        }
         break;
       }
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.supabase_user_id;
+        let userId = subscription.metadata?.supabase_user_id;
         const purpose = subscription.metadata?.purpose;
+
+        // Si no hay metadata, buscar via stripe_customer_id (suscripciones antiguas)
+        if (!userId) {
+          const customerId = subscription.customer as string;
+          const { data: profile } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("stripe_customer_id", customerId)
+            .maybeSingle();
+          userId = profile?.id;
+        }
 
         if (!userId) break;
 
-        // Branch: auto-recarga SMM cancelada → también revocar Pro + bundle
+        // Branch: auto-recarga SMM cancelada → revocar Pro + bundle
         if (purpose === "smm_autorecharge") {
           await supabaseAdmin
             .from("smm_autorecharge")
@@ -278,6 +325,7 @@ export async function POST(req: Request) {
         }
 
         // Branch: suscripción Pro cancelada
+        // 1. Marcar perfil como cancelado (esto ya bloquea comisiones via "pago para cobrar")
         await supabaseAdmin.from("profiles").upsert({
           id: userId,
           subscription_status: "canceled",
@@ -285,11 +333,38 @@ export async function POST(req: Request) {
           stripe_subscription_id: null,
         });
 
-        // Expirar acceso bundle a TrustInsta + TrustFace
+        // 2. Expirar acceso bundle a TrustInsta + TrustFace
         await supabaseAdmin
           .from("tm_subscriptions")
           .update({ expires_at: new Date().toISOString(), tier: "free" })
           .eq("stripe_subscription_id", subscription.id);
+
+        // 3. Auto-remove de la red de mercadeo
+        // Solo removemos si NO es founder Y NO tiene downline (para no romper el árbol).
+        // Si tiene downline, la posición queda pero "pago para cobrar" bloquea sus comisiones.
+        const { data: pos } = await supabaseAdmin
+          .from("network_positions")
+          .select("user_id, is_founder")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (pos && !pos.is_founder) {
+          const { data: downline } = await supabaseAdmin
+            .from("network_positions")
+            .select("user_id")
+            .eq("placement_parent_id", userId)
+            .limit(1);
+
+          if (!downline || downline.length === 0) {
+            // Sin downline → eliminamos completamente de la red
+            await supabaseAdmin.from("network_positions").delete().eq("user_id", userId);
+            await supabaseAdmin.from("network_pending_placements").delete().eq("user_id", userId);
+            console.log(`[Network] Removed user ${userId} from network (subscription canceled, no downline)`);
+          } else {
+            // Con downline → solo loggeamos, la posición queda pero comisiones bloqueadas
+            console.log(`[Network] User ${userId} canceled but has downline - kept position, commissions blocked`);
+          }
+        }
         break;
       }
 
@@ -470,6 +545,44 @@ export async function POST(req: Request) {
             .from("smm_autorecharge")
             .update({ status: "past_due" })
             .eq("stripe_subscription_id", subId);
+        }
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        // Bono Directo 15% al sponsor del que paga.
+        // Nota: el case "invoice.paid" arriba ya acredita saldo SMM. Stripe dispara
+        // ambos eventos para el mismo pago, así que separamos las dos lógicas.
+        // Se ejecuta cada vez que se cobra la suscripcion (mes 1, mes 2, ...).
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId = invoice.customer as string;
+        const amountPaidUsd = (invoice.amount_paid || 0) / 100;
+        const invoiceId = invoice.id || `inv_${Date.now()}`;
+
+        if (amountPaidUsd > 0 && customerId) {
+          const { data: payerProfile } = await supabaseAdmin
+            .from("profiles")
+            .select("id")
+            .eq("stripe_customer_id", customerId)
+            .maybeSingle();
+
+          if (payerProfile?.id) {
+            // Verificar si ya procesamos esta invoice (idempotencia)
+            const { data: existing } = await supabaseAdmin
+              .from("network_commissions")
+              .select("id")
+              .eq("source_payment", invoiceId)
+              .eq("type", "direct")
+              .maybeSingle();
+
+            if (!existing) {
+              await supabaseAdmin.rpc("network_grant_direct_bonus", {
+                p_payer_id: payerProfile.id,
+                p_payment_amount: amountPaidUsd,
+                p_invoice_id: invoiceId,
+              });
+            }
+          }
         }
         break;
       }

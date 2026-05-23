@@ -53,6 +53,32 @@ export async function POST(req: Request) {
     if (isNaN(parsedRate) || parsedRate <= 0) {
       return Response.json({ error: "Rate inválido" }, { status: 400 });
     }
+
+    // ── DESCUENTO 30% para suscritos a la red o founders ──
+    // Se aplica server-side para que sea trustworthy (no confiar en cliente).
+    let effectiveRate = parsedRate;
+    let networkDiscountApplied = false;
+    {
+      const adminCheck = getSupabaseAdmin();
+      const [{ data: pos }, { data: profile }] = await Promise.all([
+        adminCheck.from("network_positions").select("is_founder").eq("user_id", user.id).maybeSingle(),
+        adminCheck
+          .from("profiles")
+          .select("subscription_plan, subscription_status, stripe_subscription_id")
+          .eq("id", user.id)
+          .maybeSingle(),
+      ]);
+      const isFounder = pos?.is_founder === true;
+      const isSubscribed = (
+        profile?.subscription_plan === "pro" &&
+        Boolean(profile?.stripe_subscription_id) &&
+        (profile?.subscription_status === "active" || profile?.subscription_status === "trialing")
+      );
+      if (isFounder || isSubscribed) {
+        effectiveRate = parsedRate * 0.70; // 30% descuento
+        networkDiscountApplied = true;
+      }
+    }
     // URL validation
     if (!link || typeof link !== "string" || link.trim().length === 0) {
       return Response.json({ error: "El link no puede estar vacío" }, { status: 400 });
@@ -69,7 +95,7 @@ export async function POST(req: Request) {
       return Response.json({ error: "Link debe ser una URL válida" }, { status: 400 });
     }
 
-    const orderCost = (parsedRate / 1000) * parsedQuantity;
+    const orderCost = (effectiveRate / 1000) * parsedQuantity;
 
     // Descontar balance atómicamente via RPC (evita race conditions)
     const admin = getSupabaseAdmin();
@@ -125,7 +151,7 @@ export async function POST(req: Request) {
           category,
           link,
           quantity: parsedQuantity,
-          rate: parsedRate,
+          rate: effectiveRate,
           charge: orderCost,
           status: "pending",
         })

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import {
   LogOut, RefreshCw, Clock, Zap, CheckCircle, AlertCircle, Loader,
-  ShoppingCart, ArrowLeft, ExternalLink, Search, Filter
+  ShoppingCart, ArrowLeft, ExternalLink, Search, Filter, Package
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import ChatPopup from "@/app/components/ChatPopup";
@@ -143,13 +143,14 @@ export default function OrdersPage() {
           userName={userName}
           userEmail={userEmail}
           links={[
-            { href: "/smm/services", label: "Servicios" },
-            { href: "/smm/orders", label: "Pedidos", active: true },
+            { href: "/smm/services", label: "Servicios", active: true },
             { href: "/smm/funds", label: "Recargar" },
-            { href: "/cursos", label: "Cursos" },
-            { href: "/downloads", label: "Descargas" },
-            { href: "/smm/ai", label: "Asistente IA" },
-            { href: "https://www.scalinglatam.site", label: "Granja de bots", external: true },
+            { href: "/network", label: "🌐 Mi Red" },
+            { href: "/cursos", label: "📚 Mis Cursos" },
+            { href: "/granjas", label: "🤖 Granjas" },
+            { href: "/downloads", label: "💻 Descargas" },
+            { href: "/smm/ai", label: "🤖 Asistente IA" },
+            { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
           ]}
         />
 
@@ -160,6 +161,34 @@ export default function OrdersPage() {
           <span style={{ fontSize: 16 }}>→</span>
           <span style={{ fontSize: 11, opacity: 0.8, textDecoration: "underline" }}>Descargar gratis</span>
         </a>
+
+        {/* ━━━ SUB-TABS: Servicios / Pedidos ━━━ */}
+        <div style={{ borderBottom: "1px solid #1e1e30", background: "#070710" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", gap: 4, padding: "0 16px" }}>
+            <Link href="/smm/services" style={{
+              padding: "12px 18px",
+              fontSize: 13,
+              fontWeight: 500,
+              color: "#94a3b8",
+              borderBottom: "2px solid transparent",
+              textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              <Package size={14} /> Servicios
+            </Link>
+            <Link href="/smm/orders" style={{
+              padding: "12px 18px",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#56B4E0",
+              borderBottom: "2px solid #007ABF",
+              textDecoration: "none",
+              display: "flex", alignItems: "center", gap: 6,
+            }}>
+              <ShoppingCart size={14} /> Mis Pedidos
+            </Link>
+          </div>
+        </div>
 
         {/* Hero */}
         <div style={{ position: "relative", overflow: "hidden", background: "linear-gradient(160deg, #000C18 0%, #001530 35%, #000A14 65%, #07070e 100%)", borderBottom: "1px solid #002860", padding: "44px 28px 36px" }}>

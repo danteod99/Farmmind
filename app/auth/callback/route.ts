@@ -2,6 +2,62 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+import Stripe from "stripe";
+
+async function createCheckoutSessionUrl(
+  userId: string,
+  userEmail: string,
+  userName: string,
+  origin: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  admin: any,
+): Promise<string | null> {
+  const priceId =
+    process.env.NEXT_PUBLIC_STRIPE_NETWORK_PRICE_ID ||
+    process.env.STRIPE_NETWORK_PRICE_ID;
+  if (!priceId || !process.env.STRIPE_SECRET_KEY) return null;
+
+  try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2026-02-25.clover",
+    });
+
+    // Buscar/crear customer
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    let customerId: string | undefined = profile?.stripe_customer_id;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: userEmail,
+        name: userName,
+        metadata: { supabase_user_id: userId },
+      });
+      customerId = customer.id;
+      await admin.from("profiles").upsert({ id: userId, stripe_customer_id: customerId });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: "subscription",
+      payment_method_types: ["card"],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/bienvenida?payment=success`,
+      cancel_url: `${origin}/network?payment=cancel`,
+      subscription_data: {
+        metadata: { supabase_user_id: userId, plan_type: "network" },
+      },
+    });
+
+    return session.url;
+  } catch (e) {
+    console.error("[Auth Callback] Stripe checkout error:", e);
+    return null;
+  }
+}
 
 export async function GET(request: Request) {
   const fullUrl = request.url;
@@ -207,9 +263,100 @@ export async function GET(request: Request) {
           console.error("[Auth Callback] Error persisting attribution:", attrErr);
         }
 
-        if (!bal) {
-          // New user — create balance
+        const isNewUser = !bal;
+
+        if (isNewUser) {
+          // New user — create balance row
           await admin.from("smm_balances").insert({ user_id: session.user.id, balance: 0 });
+        }
+
+        // ── Network marketing: asignar sponsor (solo usuarios nuevos) ──
+        // 1. Si vino con cookie 'ref' valida -> ese es el sponsor
+        // 2. Si NO vino con ref -> CEO (founder al top) es el sponsor por default
+        let cameWithReferral = false;
+        if (isNewUser) {
+          try {
+            const cookieHeader = request.headers.get("cookie") || "";
+            const refMatch = cookieHeader.match(/(?:^|;\s*)ref=([^;]+)/);
+            const refCode = refMatch
+              ? decodeURIComponent(refMatch[1]).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12)
+              : null;
+
+            let sponsorId: string | null = null;
+            let sponsorSource: "referral" | "ceo_default" = "ceo_default";
+
+            // Intentar resolver sponsor via codigo de referido
+            if (refCode) {
+              const { data: refRow } = await admin
+                .from("network_referral_codes")
+                .select("user_id")
+                .eq("code", refCode)
+                .maybeSingle();
+              if (refRow?.user_id && refRow.user_id !== session.user.id) {
+                sponsorId = refRow.user_id;
+                sponsorSource = "referral";
+              }
+            }
+
+            // Fallback: si no hay sponsor valido, usar CEO (founder al top)
+            if (!sponsorId) {
+              const { data: ceo } = await admin
+                .from("network_positions")
+                .select("user_id")
+                .eq("is_founder", true)
+                .is("sponsor_id", null)
+                .is("placement_parent_id", null)
+                .order("created_at", { ascending: true })
+                .limit(1)
+                .maybeSingle();
+              if (ceo?.user_id && ceo.user_id !== session.user.id) {
+                sponsorId = ceo.user_id;
+              }
+            }
+
+            if (sponsorId) {
+              const { data: existingPending } = await admin
+                .from("network_pending_placements")
+                .select("user_id")
+                .eq("user_id", session.user.id)
+                .maybeSingle();
+
+              const { data: existingPosition } = await admin
+                .from("network_positions")
+                .select("user_id")
+                .eq("user_id", session.user.id)
+                .maybeSingle();
+
+              if (!existingPending && !existingPosition) {
+                await admin.from("network_pending_placements").insert({
+                  user_id: session.user.id,
+                  sponsor_id: sponsorId,
+                  status: "pending",
+                });
+                console.log(`[Network] Pending creado: user=${session.user.id}, sponsor=${sponsorId}, source=${sponsorSource}`);
+                cameWithReferral = sponsorSource === "referral";
+              }
+            }
+          } catch (e) {
+            console.error("[Auth Callback] Error asignando sponsor:", e);
+          }
+
+          // Solo si vino con referido valido (link de invitacion) -> ir directo a Stripe Checkout.
+          // Sin referido -> seguir el flujo normal (Pro gate decide a donde va).
+          // Esto respeta el commit "permitir registro libre — paywall solo en SMM/Descargas".
+          if (cameWithReferral) {
+            const checkoutUrl = await createCheckoutSessionUrl(
+              session.user.id,
+              session.user.email || "",
+              session.user.user_metadata?.full_name || session.user.email || "Usuario",
+              origin,
+              admin,
+            );
+            const redirectUrl = checkoutUrl || `${origin}/network?registered=1`;
+            const response = NextResponse.redirect(redirectUrl);
+            response.cookies.set("ref", "", { path: "/", maxAge: 0 });
+            return response;
+          }
         }
       } catch (e) {
         console.error("[Auth Callback] Error checking new user:", e);

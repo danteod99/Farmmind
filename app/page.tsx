@@ -102,60 +102,26 @@ function UpgradeModal({ onClose, onUpgrade, cycle, onCycleChange }: { onClose: (
           <Crown size={28} className="text-yellow-300" />
         </div>
 
-        <h2 className="text-xl font-bold text-white mb-2">Límite alcanzado</h2>
-        <p className="text-sm text-gray-400 mb-5">
-          Usaste tus <strong className="text-white">5 mensajes de demo</strong> de este mes.<br />
-          Pasa a Pro para desbloquear todo.
+        <h2 className="text-xl font-bold text-white mb-2">Activa tu membresía</h2>
+        <p className="text-sm text-gray-400 mb-6">
+          Una sola membresía: <strong className="text-white">curso de granjas + AI ilimitado + red de mercadeo</strong>.<br />
+          Gana hasta 40% de comisión por cada referido.
         </p>
 
-        {/* Billing toggle */}
-        <div className="flex justify-center mb-5">
-          <div className="inline-flex p-1 rounded-xl" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-            <button onClick={() => onCycleChange("monthly")}
-              className="px-4 py-2 rounded-lg text-xs font-bold transition-all"
-              style={{
-                background: cycle === "monthly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
-                color: cycle === "monthly" ? "white" : "#94a3b8",
-              }}>
-              Mensual
-            </button>
-            <button onClick={() => onCycleChange("yearly")}
-              className="px-4 py-2 rounded-lg text-xs font-bold transition-all relative"
-              style={{
-                background: cycle === "yearly" ? "linear-gradient(135deg, #007ABF, #00B4D8)" : "transparent",
-                color: cycle === "yearly" ? "white" : "#94a3b8",
-              }}>
-              Anual
-              <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: "#34d399", color: "#003020" }}>-60%</span>
-            </button>
+        {/* Membership card */}
+        <div className="rounded-xl p-5 text-left mb-6" style={{ background: "linear-gradient(135deg, #0a1d3d, #0d2454)", border: "1px solid #007ABF" }}>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-xs font-semibold tracking-wider" style={{ color: "#56B4E0" }}>MEMBRESÍA TRUSTMIND</p>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: "#007ABF30", color: "#7dd3fc" }}>RED + AI</span>
           </div>
-        </div>
-
-        {/* Plan free vs pro */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="rounded-xl p-4 text-left" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-            <p className="text-xs font-semibold text-gray-400 mb-2">FREE</p>
-            <p className="text-2xl font-bold text-white mb-3">$0</p>
-            <div className="space-y-1.5 text-xs text-gray-400">
-              <p>✓ 5 mensajes demo</p>
-              <p className="text-gray-600">✗ Historial</p>
-              <p className="text-gray-600">✗ Growth Dashboard</p>
-              <p className="text-gray-600">✗ Soporte</p>
-            </div>
-          </div>
-          <div className="rounded-xl p-4 text-left" style={{ background: "linear-gradient(135deg, #2e1065, #1e1b4b)", border: "1px solid #007ABF" }}>
-            <div className="flex items-center gap-1 mb-2">
-              <p className="text-xs font-semibold" style={{ color: "#56B4E0" }}>PRO</p>
-              <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#007ABF20", color: "#56B4E0" }}>Popular</span>
-            </div>
-            <p className="text-2xl font-bold text-white mb-1">${price}<span className="text-sm font-normal text-gray-400">/mes</span></p>
-            {cycle === "yearly" && <p className="text-[10px] text-gray-400 mb-2">Facturado anual · $240/año</p>}
-            <div className="space-y-1.5 text-xs text-gray-300 mt-2">
-              <p>✓ Mensajes ilimitados</p>
-              <p>✓ Historial completo</p>
-              <p>✓ Acceso prioritario</p>
-              <p>✓ Nuevas funciones</p>
-            </div>
+          <p className="text-3xl font-black text-white mb-4">$200<span className="text-sm font-normal text-gray-400">/mes</span></p>
+          <div className="space-y-1.5 text-xs text-gray-200">
+            <p>✓ <b>Curso completo</b> de granjas de bots</p>
+            <p>✓ <b>AI ilimitado</b> (sin límite de mensajes)</p>
+            <p>✓ <b>Tu link</b> de invitación a la red</p>
+            <p>✓ <b>15% bono directo</b> por cada referido</p>
+            <p>✓ <b>Hasta 40%</b> en comisiones (15+10+10+5%)</p>
+            <p>✓ Comisiones como saldo SMM gastable</p>
           </div>
         </div>
 
@@ -165,7 +131,7 @@ function UpgradeModal({ onClose, onUpgrade, cycle, onCycleChange }: { onClose: (
           style={{ background: "linear-gradient(135deg, #007ABF, #005F96)" }}
         >
           <Sparkles size={15} />
-          {cycle === "monthly" ? "Obtener Pro — $50/mes" : "Obtener Pro Anual — $240/año"}
+          Activar membresía — $200/mes
         </button>
         <p className="text-xs text-gray-600 mt-3">Cancela cuando quieras • Pago seguro con Stripe</p>
       </div>
@@ -796,7 +762,7 @@ function LoginScreen() {
           <div style={{ textAlign: "center", marginBottom: "32px" }}>
             <div style={{ display: "inline-block", fontSize: "12px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px", padding: "6px 14px", background: "rgba(0,122,191,0.08)", borderRadius: "6px" }}>Pricing</div>
             <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.03em", color: "white", marginBottom: "10px" }}>Simple y transparente</h2>
-            <p style={{ color: "#64748b", fontSize: "15px" }}>Empieza gratis. Escala cuando quieras.</p>
+            <p style={{ color: "#64748b", fontSize: "15px" }}>Empieza gratis. Activa la membresía cuando quieras ganar comisiones.</p>
           </div>
 
           {/* Billing cycle toggle */}
@@ -856,31 +822,29 @@ function LoginScreen() {
                 Empezar gratis
               </button>
             </div>
-            {/* Pro */}
+            {/* Membresía Red */}
             <div className="pricing-card" style={{ background: "linear-gradient(160deg, #001830 0%, #000d1f 100%)", border: "1px solid rgba(0, 122, 191, 0.35)", borderRadius: "24px", padding: "36px", position: "relative", overflow: "hidden" }}>
               <div style={{ position: "absolute", top: "14px", right: "14px", padding: "4px 12px", borderRadius: "20px", background: "linear-gradient(135deg, #007ABF, #00B4D8)", fontSize: "11px", color: "white", fontWeight: 700, letterSpacing: "0.3px" }}>
-                Popular
+                + Red de mercadeo
               </div>
               <div style={{ position: "absolute", top: "-60px", right: "-60px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF15, transparent 70%)", pointerEvents: "none" }} />
-              <p style={{ fontSize: "13px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>Pro</p>
-              <div style={{ marginBottom: "28px" }}>
-                {billingCycle === "monthly" ? (
-                  <>
-                    <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$50</span>
-                    <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
-                  </>
-                ) : (
-                  <>
-                    <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$20</span>
-                    <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
-                    <div style={{ fontSize: "12px", color: "#7dd3fc", marginTop: "4px", fontWeight: 600 }}>
-                      Facturado anualmente · $240/año
-                    </div>
-                  </>
-                )}
+              <p style={{ fontSize: "13px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "16px" }}>Membresía</p>
+              <div style={{ marginBottom: "12px" }}>
+                <span style={{ fontSize: "52px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$200</span>
+                <span style={{ fontSize: "14px", color: "#475569", marginLeft: "4px" }}>/mes</span>
               </div>
+              <p style={{ fontSize: "13px", color: "#7dd3fc", marginBottom: "20px", fontWeight: 600 }}>
+                Gana hasta <b>40% de comisión</b> por referido
+              </p>
               <div style={{ borderTop: "1px solid rgba(0, 122, 191, 0.2)", paddingTop: "24px" }}>
-                {["Mensajes ilimitados", "Historial completo", "Growth Dashboard", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
+                {[
+                  "Curso completo de granjas de bots",
+                  "AI ilimitado (sin límite mensual)",
+                  "Tu link de invitación a la red",
+                  "15% bono directo + 10% binario",
+                  "10% matching + 5% pool de rangos",
+                  "Comisiones como saldo SMM gastable",
+                ].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
                     <div style={{ width: "20px", height: "20px", borderRadius: "6px", background: "rgba(0, 180, 216, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Check size={12} color="#7dd3fc" />
@@ -892,7 +856,7 @@ function LoginScreen() {
               <button onClick={() => handleSubscribe(billingCycle)} disabled={loading} style={{ marginTop: "24px", width: "100%", padding: "14px", borderRadius: "14px", border: "none", background: "linear-gradient(135deg, #007ABF, #00B4D8)", color: "white", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", transition: "all 0.2s", boxShadow: "0 4px 20px rgba(0, 122, 191, 0.3)" }}
                 onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(0, 122, 191, 0.4)"; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0, 122, 191, 0.3)"; }}>
-                <Crown size={15} /> {loading ? "Procesando..." : (billingCycle === "yearly" ? "Pagar Pro Anual — $240" : "Pagar Pro — $50/mes")}
+                <Crown size={15} /> Activar membresía
               </button>
             </div>
           </div>
@@ -1073,19 +1037,15 @@ export default function TrustMindChat() {
     const cycle = cycleOverride || upgradeCycle;
     setUpgradingToStripe(true);
     try {
-      const priceId = cycle === "yearly"
-        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
-        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-      const res = await fetch("/api/stripe/checkout", {
+      // Usa el endpoint de la red ($200/mes con Price ID configurado en NEXT_PUBLIC_STRIPE_NETWORK_PRICE_ID)
+      const res = await fetch("/api/network/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
       });
       const data = await res.json();
-      if (data.url) { window.location.href = data.url; return; }
-      alert(data.error || "Error conectando con Stripe. Intenta más tarde.");
-    } catch (err) {
-      alert("Error: " + (err instanceof Error ? err.message : "desconocido"));
+      if (data.url) window.location.href = data.url;
+      else alert(data.error || "Error conectando con Stripe");
+    } catch {
+      alert("Error conectando con Stripe. Intenta más tarde.");
     } finally {
       setUpgradingToStripe(false);
     }
