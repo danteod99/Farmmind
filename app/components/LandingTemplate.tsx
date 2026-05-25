@@ -334,12 +334,15 @@ export default function LandingTemplate({
                 Popular
               </div>
               <p style={{ fontSize: "12px", fontWeight: 700, color: secondaryColor, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Pro</p>
-              <div style={{ marginBottom: "24px" }}>
-                <span style={{ fontSize: "48px", fontWeight: 900, color: "white" }}>$19</span>
+              <div style={{ marginBottom: "8px" }}>
+                <span style={{ fontSize: "48px", fontWeight: 900, color: "white" }}>$50</span>
                 <span style={{ fontSize: "14px", color: "#64748b" }}> / mes</span>
               </div>
+              <p style={{ fontSize: "12px", color: secondaryColor, marginBottom: "16px", fontWeight: 600 }}>
+                o <strong>$20/mes</strong> facturado anual ($240/año, -60%)
+              </p>
               <div style={{ borderTop: `1px solid ${accentColor}20`, paddingTop: "20px" }}>
-                {["Mensajes ilimitados", "Historial completo", "Growth Dashboard", "Acceso prioritario", "Nuevas funciones primero", "Soporte directo"].map((f) => (
+                {["Mensajes IA ilimitados", "+5,000 servicios SMM", "TrustInsta + TrustFace + TrustFarm", "Curso de granjas de bots", "Historial + acceso prioritario", "Soporte directo por WhatsApp"].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                     <span style={{ color: secondaryColor, fontSize: "14px" }}>✓</span>
                     <span style={{ fontSize: "13px", color: `${secondaryColor}cc` }}>{f}</span>
