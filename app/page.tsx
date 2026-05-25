@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { Bot, Check, Crown, Cpu, Globe, MessageSquare, Network, ShoppingCart, Sparkles, Star, Zap, ShieldCheck, Smartphone } from "lucide-react";
+import { Bot, Cpu, Globe, MessageSquare, ShoppingCart, Sparkles, Star, Zap, ShieldCheck, Smartphone } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { TrustFooter } from "@/app/components/TrustFooter";
+import { PricingProCard } from "@/app/components/PricingProCard";
 
 export const metadata = {
   title: "TrustMind — IA que comanda 1,000 granjas de bots",
-  description: "Plataforma de IA que automatiza granjas de bots. Compra una granja completa, controla 1,000 cuentas con un agente IA, gana hasta 40% de comisión revendiendo. Membresía $200/mes.",
+  description: "Plataforma de IA que automatiza granjas de bots. Controla 1,000 cuentas con un agente IA, software antidetect, +5,000 servicios SMM y cursos. TRUST MIND Pro desde $20/mes.",
   alternates: { canonical: "https://www.trustmind.online" },
   openGraph: {
     title: "TrustMind — IA que comanda 1,000 granjas de bots",
-    description: "IA que automatiza granjas de bots. Compra una granja, escala con membresía y red de mercadeo. Hasta 40% de comisión.",
+    description: "IA que automatiza granjas de bots. Software antidetect, +5,000 servicios SMM, curso completo. Desde $20/mes.",
     url: "https://www.trustmind.online",
     siteName: "TrustMind",
     type: "website",
@@ -35,11 +36,6 @@ const FEATURES = [
     desc: "Compras una granja real (smartphones + cuentas precalentadas + proxies + software). Llave en mano, lista para escalar.",
   },
   {
-    icon: Network,
-    title: "Red de mercadeo binaria",
-    desc: "Activa tu membresía y obtén tu link de invitación. Hasta 40% en comisiones (15% directo + 10% binario + 10% matching + 5% pool).",
-  },
-  {
     icon: ShieldCheck,
     title: "Antidetect + proxies premium",
     desc: "Software TrustInsta + TrustFace con stealth integrado. Proxies residenciales rotativos. Cero baneos masivos.",
@@ -52,7 +48,12 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "Curso completo incluido",
-    desc: "Aprende a operar granjas de bots, escalar redes, gestionar tu red de mercadeo. Todo dentro de la membresía.",
+    desc: "Aprende a operar granjas de bots, escalar redes y monetizar tu operación. Todo dentro de la membresía Pro.",
+  },
+  {
+    icon: Cpu,
+    title: "Software desktop incluido",
+    desc: "Acceso a TrustInsta (Instagram), TrustFace (Facebook) y TrustFarm (control de granjas Android). Mac y Windows.",
   },
 ];
 
@@ -89,7 +90,7 @@ const TESTIMONIALS = [
   {
     name: "Ana R.",
     role: "Reseller · Colombia",
-    text: "Activé la membresía por la red de mercadeo. Ya tengo 8 directos y gano más en comisiones que en mi trabajo anterior.",
+    text: "Con el plan Pro automatizo 50 cuentas en simultáneo y revendo seguidores a clientes. La IA me sugiere campañas y precios en segundos.",
   },
   {
     name: "Diego F.",
@@ -129,9 +130,9 @@ export default function HomePage() {
         </Link>
         <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: "28px" }}>
           <Link href="/granjas" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Granjas</Link>
-          <Link href="/smm" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Panel SMM</Link>
+          <Link href="/smm" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Servicios SMM</Link>
           <Link href="/downloads" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Software</Link>
-          <Link href="/network" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Red de mercadeo</Link>
+          <Link href="/cursos" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Cursos</Link>
         </div>
         <Link href="/chat" className="btn-primary" style={{ padding: "10px 18px", borderRadius: "12px", color: "white", fontSize: "13px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
           <Bot size={14} /> Hablar con la IA
@@ -147,7 +148,7 @@ export default function HomePage() {
           {/* Badge */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 18px", borderRadius: "100px", background: "linear-gradient(135deg, rgba(0, 122, 191, 0.18), rgba(0, 180, 216, 0.15))", border: "1px solid rgba(0, 180, 216, 0.4)", marginBottom: "32px" }}>
             <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399", animation: "pulse-glow 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 700, letterSpacing: "0.3px" }}>Operadores reales · $200K facturados en 5 meses</span>
+            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 700, letterSpacing: "0.3px" }}>TRUST MIND Pro — desde $20/mes · acceso completo</span>
           </div>
 
           {/* Headline */}
@@ -160,7 +161,7 @@ export default function HomePage() {
           </h1>
 
           <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#94a3b8", lineHeight: 1.7, maxWidth: "640px", margin: "0 auto 40px", fontWeight: 400 }}>
-            Compra una <strong style={{ color: "#7dd3fc" }}>granja física de 1,000 cuentas</strong> y deja que un agente IA opere Instagram, TikTok y Facebook por ti. Software antidetect, proxies premium, +5,000 servicios SMM, red de mercadeo. <strong style={{ color: "#7dd3fc" }}>Una sola membresía: $200/mes.</strong>
+            Un <strong style={{ color: "#7dd3fc" }}>agente IA</strong> que opera Instagram, TikTok y Facebook por ti. Software antidetect (TrustInsta + TrustFace + TrustFarm), proxies premium, +5,000 servicios SMM y curso completo de granjas de bots. <strong style={{ color: "#7dd3fc" }}>TRUST MIND Pro — desde $20/mes.</strong>
           </p>
 
           {/* CTA */}
@@ -300,51 +301,14 @@ export default function HomePage() {
       <section className="home-section" style={{ padding: "60px 32px 80px" }}>
         <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "48px" }}>
-            <p style={{ fontSize: "11px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "10px" }}>Membresía</p>
+            <p style={{ fontSize: "11px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "10px" }}>Pricing</p>
             <h2 style={{ fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em" }}>
               Un solo plan. <span style={{ color: "#7dd3fc" }}>Todo incluido.</span>
             </h2>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px", maxWidth: "560px", margin: "0 auto" }}>
-            <div style={{ background: "linear-gradient(160deg, #001830 0%, #000d1f 100%)", border: "1px solid rgba(0, 122, 191, 0.4)", borderRadius: "28px", padding: "44px", position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: "16px", right: "16px", padding: "5px 14px", borderRadius: "20px", background: "linear-gradient(135deg, #007ABF, #00B4D8)", fontSize: "11px", color: "white", fontWeight: 700, letterSpacing: "0.3px" }}>+ Red de mercadeo</div>
-              <div style={{ position: "absolute", top: "-60px", right: "-60px", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, #007ABF20, transparent 70%)", pointerEvents: "none" }} />
-
-              <p style={{ fontSize: "13px", fontWeight: 700, color: "#7dd3fc", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Membresía TrustMind</p>
-              <div style={{ marginBottom: "8px" }}>
-                <span style={{ fontSize: "56px", fontWeight: 900, color: "white", letterSpacing: "-0.04em" }}>$200</span>
-                <span style={{ fontSize: "16px", color: "#475569", marginLeft: "6px" }}>/mes</span>
-              </div>
-              <p style={{ fontSize: "14px", color: "#7dd3fc", marginBottom: "28px", fontWeight: 600 }}>
-                Gana hasta <strong>40% de comisión</strong> por referido
-              </p>
-
-              <div style={{ borderTop: "1px solid rgba(0, 122, 191, 0.2)", paddingTop: "24px", marginBottom: "28px" }}>
-                {[
-                  "Agente IA ilimitado (sin límite de mensajes)",
-                  "Curso completo de granjas de bots",
-                  "Tu link de invitación a la red",
-                  "15% bono directo + 10% binario",
-                  "10% matching + 5% pool de rangos",
-                  "Comisiones como saldo SMM gastable",
-                  "Acceso a TrustInsta + TrustFace + TrustFarm",
-                  "Soporte directo por WhatsApp",
-                ].map((f) => (
-                  <div key={f} style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                    <div style={{ width: "20px", height: "20px", borderRadius: "6px", background: "rgba(0, 180, 216, 0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <Check size={12} color="#7dd3fc" />
-                    </div>
-                    <span style={{ fontSize: "14px", color: "#a5d8f3" }}>{f}</span>
-                  </div>
-                ))}
-              </div>
-
-              <Link href="/network" className="btn-primary" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "16px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none" }}>
-                <Crown size={16} /> Activar membresía — $200/mes
-              </Link>
-              <p style={{ fontSize: "12px", color: "#64748b", textAlign: "center", marginTop: "12px" }}>Cancela cuando quieras · Pago seguro con Stripe</p>
-            </div>
+            <PricingProCard />
 
             <div style={{ background: "linear-gradient(160deg, #0a0a14 0%, #06060c 100%)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "28px", textAlign: "center" }}>
               <p style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "12px" }}>¿Quieres una granja física llave en mano?</p>
