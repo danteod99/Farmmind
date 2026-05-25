@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LogIn, User as UserIcon, Shield } from "lucide-react";
+import { LogIn, User as UserIcon, Shield, Wallet } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import { isAdmin } from "@/app/lib/admin";
@@ -14,6 +14,7 @@ interface LoginButtonProps {
 
 export function LoginButton({ variant = "nav", redirectTo = "/smm/services" }: LoginButtonProps) {
   const [user, setUser] = useState<User | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -25,6 +26,22 @@ export function LoginButton({ variant = "nav", redirectTo = "/smm/services" }: L
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) { setBalance(null); return; }
+    let cancelled = false;
+    const fetchBalance = async () => {
+      try {
+        const r = await fetch("/api/smm/orders", { credentials: "include" });
+        if (!r.ok) return;
+        const j = await r.json();
+        if (!cancelled && typeof j.balance === "number") setBalance(j.balance);
+      } catch {}
+    };
+    fetchBalance();
+    const interval = setInterval(fetchBalance, 30000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [user]);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -42,8 +59,27 @@ export function LoginButton({ variant = "nav", redirectTo = "/smm/services" }: L
     const userIsAdmin = isAdmin(user.email);
     return (
       <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-        {userIsAdmin && (
+        {/* Saldo */}
+        {balance !== null && (
           <Link
+            href="/smm/funds"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "7px",
+              padding: "8px 13px", borderRadius: "11px",
+              background: "rgba(52, 211, 153, 0.10)",
+              border: "1px solid rgba(52, 211, 153, 0.35)",
+              color: "#34d399", fontSize: "13px", fontWeight: 700,
+              textDecoration: "none", transition: "all 0.2s",
+            }}
+            title="Mi saldo"
+          >
+            <Wallet size={13} />
+            ${balance.toFixed(2)}
+          </Link>
+        )}
+        {/* Admin tag */}
+        {userIsAdmin && (
+          <a
             href="/admin"
             style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
@@ -57,8 +93,9 @@ export function LoginButton({ variant = "nav", redirectTo = "/smm/services" }: L
           >
             <Shield size={13} />
             Admin
-          </Link>
+          </a>
         )}
+        {/* Mi panel */}
         <Link
           href="/smm/services"
           style={{
