@@ -138,37 +138,9 @@ export default function CursosPage() {
           <p className="text-white/60 mt-1">
             {user_state.is_founder
               ? "Tienes acceso completo como fundador."
-              : user_state.is_subscribed
-                ? "Tienes acceso completo a todos los cursos."
-                : "Activa tu membresía para desbloquear los cursos."}
+              : "Bienvenido a la academia de Scaling LATAM. Aprende a operar granjas, escalar redes y monetizar."}
           </p>
         </div>
-
-        {/* Paywall si no tiene acceso */}
-        {!user_state.has_access && (
-          <section className="bg-gradient-to-br from-blue-700/20 via-blue-900/10 to-black border-2 border-blue-500/40 rounded-2xl p-6 sm:p-8">
-            <div className="flex items-start gap-4 mb-5">
-              <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 flex-shrink-0">
-                <Lock className="w-7 h-7" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-white">Desbloquea todos los cursos</h2>
-                <p className="text-white/70 mt-1">
-                  Activa tu membresía de la red por <b className="text-blue-300">$200/mes</b> y obtén acceso completo
-                  a todos los cursos, comunidad y la red de mercadeo.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={startCheckout}
-              disabled={checkingOut}
-              className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold text-base flex items-center justify-center gap-2 transition shadow-lg shadow-blue-500/30 disabled:opacity-50"
-            >
-              <Zap className="w-5 h-5" />
-              {checkingOut ? "Conectando..." : "Activar membresía — $200/mes"}
-            </button>
-          </section>
-        )}
 
         {/* Bonus: Si está suscrito, mostrar el descuento SMM */}
         {user_state.has_access && (
@@ -191,7 +163,7 @@ export default function CursosPage() {
         {/* Lista de cursos */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {courses.map((c) => (
-            <CourseCard key={c.id} course={c} hasAccess={user_state.has_access} />
+            <CourseCard key={c.id} course={c} hasAccess={true} />
           ))}
         </section>
 

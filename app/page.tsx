@@ -3,6 +3,7 @@ import { Bot, Cpu, Globe, MessageSquare, ShoppingCart, Sparkles, Star, Zap, Shie
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { TrustFooter } from "@/app/components/TrustFooter";
 import { PricingProCard } from "@/app/components/PricingProCard";
+import { LoginButton } from "@/app/components/LoginButton";
 
 export const metadata = {
   title: "TrustMind — IA que comanda 1,000 granjas de bots",
@@ -21,7 +22,7 @@ const STATS = [
   { value: "1,000", label: "Cuentas por granja" },
   { value: "29", label: "Granjas vendidas/mes" },
   { value: "24/7", label: "IA activa" },
-  { value: "$200K", label: "Facturado en 5 meses" },
+  { value: "$750K", label: "Facturado en 1 año" },
 ];
 
 const FEATURES = [
@@ -134,9 +135,12 @@ export default function HomePage() {
           <Link href="/downloads" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Software</Link>
           <Link href="/cursos" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Cursos</Link>
         </div>
-        <Link href="/chat" className="btn-primary" style={{ padding: "10px 18px", borderRadius: "12px", color: "white", fontSize: "13px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-          <Bot size={14} /> Hablar con la IA
-        </Link>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
+          <LoginButton variant="nav" />
+          <Link href="/chat" className="btn-primary" style={{ padding: "10px 18px", borderRadius: "12px", color: "white", fontSize: "13px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Bot size={14} /> Hablar con la IA
+          </Link>
+        </div>
       </nav>
 
       {/* ── HERO ── */}
