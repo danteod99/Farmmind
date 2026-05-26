@@ -686,7 +686,6 @@ export default function ServicesPage() {
           links={[
             { href: "/smm/services", label: "Servicios", active: true },
             { href: "/smm/funds", label: "Recargar" },
-            { href: "/network", label: "🌐 Mi Red" },
             { href: "/cursos", label: "📚 Mis Cursos" },
             { href: "/granjas", label: "🤖 Granjas" },
             { href: "/downloads", label: "💻 Descargas" },

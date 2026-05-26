@@ -309,7 +309,6 @@ export default function FundsPage() {
           links={[
             { href: "/smm/services", label: "Servicios" },
             { href: "/smm/funds", label: "Recargar", active: true },
-            { href: "/network", label: "🌐 Mi Red" },
             { href: "/cursos", label: "📚 Mis Cursos" },
             { href: "/granjas", label: "🤖 Granjas" },
             { href: "/downloads", label: "💻 Descargas" },
