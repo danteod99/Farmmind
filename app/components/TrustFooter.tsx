@@ -16,15 +16,7 @@ export function TrustFooter() {
       justifyContent: "center",
       gap: "14px",
     }}>
-      <FarmMindLogo size={36} />
-      <span style={{
-        fontSize: "22px",
-        fontWeight: 900,
-        letterSpacing: "0.15em",
-        color: "white",
-      }}>
-        TRUST MIND
-      </span>
+      <FarmMindLogo size={48} />
     </footer>
   );
 }

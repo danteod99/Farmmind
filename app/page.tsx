@@ -125,9 +125,8 @@ export default function HomePage() {
 
       {/* ── NAVBAR ── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(5,5,8,0.85)", backdropFilter: "blur(24px)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 clamp(16px, 4vw, 48px)", height: "72px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
           <FarmMindLogo size={36} />
-          <span style={{ fontSize: "18px", fontWeight: 900, letterSpacing: "0.12em", color: "white" }}>TRUST MIND</span>
         </Link>
         <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: "28px" }}>
           <Link href="/granjas" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Granjas</Link>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { isAdmin } from "@/app/lib/admin";
 
 const CUSTOM_DOMAIN = "www.trustmind.online";
 const MAIN_DOMAINS = [
@@ -84,18 +85,26 @@ export async function middleware(request: NextRequest) {
   // ── Supabase Auth: refresh session & forward cookies (including PKCE code_verifier) ──
   let supabaseResponse = NextResponse.next({ request });
   const supabase = createSupabaseMiddleware(request, supabaseResponse);
-  await supabase.auth.getUser();
+  const { data: { user: authUser } } = await supabase.auth.getUser();
 
   // ── 0. Protect /admin routes at edge level ──
   if (pathname.startsWith("/admin")) {
-    const sbAccessToken = request.cookies.getAll().find(
-      (c) => c.name.includes("auth-token") || c.name.includes("sb-") && c.name.includes("-auth-token")
-    );
-    if (!sbAccessToken?.value) {
+    // No session at all → mandalo a /smm a loguearse
+    if (!authUser) {
+      console.log("[Middleware /admin] no auth user, redirecting to /smm");
       const url = request.nextUrl.clone();
       url.pathname = "/smm";
       return NextResponse.redirect(url);
     }
+    // Logueado pero no admin → mandalo a /smm/services
+    if (!isAdmin(authUser.email)) {
+      console.log(`[Middleware /admin] user ${authUser.email} is not admin, redirecting to /smm/services`);
+      const url = request.nextUrl.clone();
+      url.pathname = "/smm/services";
+      return NextResponse.redirect(url);
+    }
+    // Admin verificado → continúa
+    console.log(`[Middleware /admin] admin access granted: ${authUser.email}`);
   }
 
   // Skip non-page routes (API, Next internals, auth, static files)
