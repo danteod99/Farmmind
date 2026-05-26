@@ -206,6 +206,7 @@ export async function GET(request: Request) {
     }
     if (filterType === "buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders > 0 || u.total_recharged > 0 || u.is_pro_stripe);
     if (filterType === "non-buyers") filteredUsers = filteredUsers.filter((u) => u.total_orders === 0 && u.total_recharged === 0 && !u.is_pro_stripe);
+    if (filterType === "pro") filteredUsers = filteredUsers.filter((u) => u.is_pro_stripe);
     if (filterType === "software") filteredUsers = filteredUsers.filter((u) => u.has_software);
     if (filterType === "new") {
       filteredUsers = filteredUsers.filter((u) => new Date(u.created_at) > weekAgo);

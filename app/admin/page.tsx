@@ -31,6 +31,7 @@ interface UserRow {
   has_software: boolean;
   software_sub: { product: string; active: boolean } | null;
   attribution: Attribution | null;
+  is_pro_stripe?: boolean;
 }
 
 function sourceBadge(attr: Attribution | null): { label: string; color: string; bg: string } {
@@ -82,7 +83,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [filter, setFilter] = useState<"all" | "buyers" | "non-buyers" | "new" | "software">("all");
+  const [filter, setFilter] = useState<"all" | "buyers" | "non-buyers" | "new" | "software" | "pro">("all");
   const [sortBy, setSortBy] = useState<SortCol>("created_at");
   const [sortDir, setSortDir] = useState<"desc" | "asc">("desc");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -466,8 +467,9 @@ export default function AdminPage() {
             {search && <button onClick={()=>{setSearch("");setPage(1);}} style={{ position:"absolute", right:"9px", top:"50%", transform:"translateY(-50%)", background:"none", border:"none", color:"#5a6480", cursor:"pointer" }}><X size={12}/></button>}
           </div>
           <div style={{ display:"flex", gap:"5px" }}>
-            {(["all","buyers","non-buyers","software","new"] as const).map((f)=>{
-              const lbl = { all:`Todos (${users.length})`, buyers:`Compraron (${stats?.buyers||0})`, "non-buyers":`Sin compras (${stats?.nonBuyers||0})`, software:`Software (${stats?.softwareUsers||0})`, new:`Nuevos (${stats?.newThisWeek||0})` };
+            {(["all","pro","buyers","non-buyers","software","new"] as const).map((f)=>{
+              const proCount = users.filter((u) => u.is_pro_stripe).length;
+              const lbl = { all:`Todos (${users.length})`, pro:`👑 Pro Stripe (${proCount})`, buyers:`Compraron (${stats?.buyers||0})`, "non-buyers":`Sin compras (${stats?.nonBuyers||0})`, software:`Software (${stats?.softwareUsers||0})`, new:`Nuevos (${stats?.newThisWeek||0})` };
               const on = filter===f;
               return <button key={f} onClick={()=>{setFilter(f);setPage(1);}}
                 style={{ padding:"7px 12px", borderRadius:"7px", border:`1px solid ${on?"#007ABF":"#1e1e30"}`, background:on?"#007ABF20":"transparent", color:on?"#88D0F0":"#5a6480", fontSize:"11px", fontWeight:on?700:500, cursor:"pointer", fontFamily:"inherit", whiteSpace:"nowrap", transition:"all 0.15s" }}>
@@ -495,7 +497,7 @@ export default function AdminPage() {
           {filtered.length===0 ? (
             <div style={{ padding:"36px", textAlign:"center", color:"#3a3a5c", fontSize:"13px" }}>No se encontraron usuarios</div>
           ) : filtered.map((u)=>{
-            const buyer = u.total_orders>0 || u.total_recharged>0;
+            const buyer = u.total_orders>0 || u.total_recharged>0 || u.is_pro_stripe;
             const exp = expanded===u.id;
             return (
               <div key={u.id}>
@@ -512,8 +514,9 @@ export default function AdminPage() {
                       <p style={{ fontSize:"11px", color:"#5a6480", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{u.email}</p>
                     </div>
                     <span style={{ padding:"2px 7px", borderRadius:"5px", background:buyer?"#34d39915":"#f8717115", border:`1px solid ${buyer?"#34d39930":"#f8717130"}`, fontSize:"9px", fontWeight:700, color:buyer?"#34d399":"#f87171", whiteSpace:"nowrap", flexShrink:0 }}>{buyer?"Comprador":"Sin compras"}</span>
+                    {u.is_pro_stripe && <span style={{ padding:"2px 7px", borderRadius:"5px", background:"#fbbf2415", border:"1px solid #fbbf2440", fontSize:"9px", fontWeight:800, color:"#fbbf24", whiteSpace:"nowrap", flexShrink:0, display:"inline-flex", alignItems:"center", gap:"3px" }}>👑 PRO STRIPE</span>}
                     {u.has_software && <span style={{ padding:"2px 7px", borderRadius:"5px", background:"#007ABF15", border:"1px solid #007ABF30", fontSize:"9px", fontWeight:700, color:"#56B4E0", whiteSpace:"nowrap", flexShrink:0 }}>Software</span>}
-                    {u.software_sub?.active && <span style={{ padding:"2px 7px", borderRadius:"5px", background:"#a78bfa15", border:"1px solid #a78bfa30", fontSize:"9px", fontWeight:700, color:"#a78bfa", whiteSpace:"nowrap", flexShrink:0 }}>Pro</span>}
+                    {u.software_sub?.active && <span style={{ padding:"2px 7px", borderRadius:"5px", background:"#a78bfa15", border:"1px solid #a78bfa30", fontSize:"9px", fontWeight:700, color:"#a78bfa", whiteSpace:"nowrap", flexShrink:0 }}>Bundle</span>}
                   </div>
                   <p style={{ fontSize:"12px", color:"#8892a4" }}>{fmt(u.created_at)}</p>
                   {/* Fuente */}
