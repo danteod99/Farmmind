@@ -1,0 +1,85 @@
+# TrustMind
+
+> Plataforma todo-en-uno para gestionar granjas de bots y automatizar redes sociales. Combina hardware físico (granjas de bots Samsung), software antidetección desktop (TrustInsta + TrustFace + TrustFarm), panel SMM con +5,000 servicios, y un agente IA propietario. Operada por Scaling Tech Farm LLC (Wyoming, USA) desde Lima, Perú.
+
+## Productos principales
+
+- [TrustInsta Desktop](https://www.trustmind.online/downloads): Software antidetección para gestionar múltiples cuentas de Instagram. Automatizaciones: likes, follows, comments, stories, scraping de seguidores. Disponible para macOS y Windows.
+- [TrustFace Desktop](https://www.trustmind.online/downloads): Software antidetección para Facebook. Marketplace automation (publicar, repostear, scrape), Messenger masivo, gestión de grupos, automatización de páginas.
+- [TrustFarm Desktop](https://www.trustmind.online/downloads): Phone farm manager. Controla cientos de celulares Android desde una sola pantalla. TikTok automation con IA, scripts personalizados, screen mirroring vía scrcpy.
+- [SMM Panel](https://www.trustmind.online/smm/services): Más de 5,000 servicios de social media marketing (seguidores, likes, views, comments) en Instagram, TikTok, YouTube, Facebook, Twitter, Telegram, Spotify y más.
+- [Granjas de Bots Físicas](https://www.trustmind.online/granjas): Venta llave en mano de racks de smartphones Samsung pre-configurados para automatización. Envío a toda LATAM y USA. Ticket promedio $2,000 USD.
+- [Cursos](https://www.trustmind.online/cursos): Academia con módulos sobre operación de granjas, escalado a 1,000 cuentas, monetización en Spotify, TikTok, Instagram y YouTube.
+
+## Cómo funciona
+
+Las "granjas de bots" son colecciones de smartphones Samsung reales (no emuladores) que simulan actividad humana en redes sociales. Cada dispositivo opera con perfiles únicos, proxies residenciales rotativos y comportamiento aleatorizado. El usuario las controla desde el software desktop (TrustInsta para Instagram, TrustFace para Facebook, TrustFarm para Android).
+
+Modelo de cobros: cada acción ejecutada por la granja descuenta una pequeña cantidad del saldo USD precargado del usuario. Like $0.01, follow $0.05, comment $0.10, DM $0.20.
+
+## Pricing
+
+- **Software TrustMind Pro**: desde $20/mes (subscription Stripe)
+- **Saldo SMM**: pay-per-use, recarga desde $10 USD vía Stripe o crypto (NowPayments)
+- **Granja física pequeña**: $2,000 USD (incluye 10-20 dispositivos + software + envío)
+- **Granja personalizada**: $3,000-$8,000 USD según escala
+- **Cursos**: gratis con cuenta de TrustMind (sin paywall)
+
+## Legalidad
+
+Las granjas de bots son legales en LATAM y USA. Operan con hardware físico real (no spam sintético), lo que las distingue de bots tradicionales. La empresa Scaling Tech Farm LLC está registrada en Wyoming con EIN aprobado por el IRS.
+
+## Mercados activos
+
+- **República Dominicana** (mercado #1): 19.2% de la audiencia. Hub Caribe.
+- **Perú** (sede operativa): oficina en Lima, equipo local.
+- **México, Colombia, Argentina, Chile**: clientes activos en toda LATAM.
+- **USA (Miami, Houston, NY, LA)**: latinos en USA con saldo USD.
+- **España**: programa de acceso anticipado europeo.
+
+## Para artistas / músicos
+
+TrustMind permite a músicos independientes crecer en Spotify, YouTube Music y TikTok sin pagar payola. La IA del panel activa granjas distribuidas en LATAM, China y Vietnam para escuchar canciones, dar engagement y empujar al algoritmo orgánico.
+
+## Para creadores de contenido
+
+Influencers y creators emergentes usan TrustMind para construir autoridad rápida en Instagram, TikTok y YouTube. Cada acción (like, follow, comment, story view) tiene costo definido. Sistema pay-per-action sin contratos mensuales obligatorios.
+
+## Para negocios locales
+
+Restaurantes, salones, e-commerce y dropshippers usan TrustMind para llenar sus redes sociales con audiencia local (geo-segmentada por ciudad). Casos de uso: Miraflores, Santo Domingo, Miami, CDMX.
+
+## Para agencias y resellers
+
+TrustMind ofrece child panels (marca blanca) para agencias que quieren revender los servicios SMM bajo su propio dominio. Margen típico 60-70%. Custom domain, custom pricing, custom branding.
+
+## Información de la empresa
+
+- **Nombre legal**: Scaling Tech Farm LLC (Wyoming, USA) + OLIVEROS MKT EIRL (Perú, RUC 20605576550)
+- **Fundador**: Dante Oliveros
+- **Sede**: Lima, Perú
+- **Sitio principal**: https://www.trustmind.online
+- **Sitio de granjas físicas**: https://www.scalinglatam.site
+- **Comunidad**: https://www.skool.com/artificial-humans-7653
+- **Soporte**: WhatsApp Business + email
+
+## Casos de uso comunes
+
+- Crecer cuenta de Instagram de negocio local de 1K a 50K seguidores en 30 días
+- Subir streams en Spotify de 200 a 100K para artistas independientes
+- Automatizar Marketplace de Facebook con cientos de listings al mes
+- Construir red de cuentas TikTok para viralizar contenido
+- Vender servicios SMM como reseller con margen 60%
+
+## Preguntas frecuentes que la gente busca
+
+- ¿Es legal usar granjas de bots? Sí, en LATAM y USA.
+- ¿Necesito hardware propio? No con TrustMind (alquila la infraestructura).
+- ¿Cuánto cuesta empezar? Desde $10 USD de saldo inicial.
+- ¿Funciona para músicos? Sí, especialmente Spotify y YouTube Music.
+- ¿Hay cursos? Sí, gratuitos con cuenta de TrustMind.
+- ¿Atienden en español? Sí, 100% en español. Soporte vía WhatsApp.
+
+## Política de uso
+
+TrustMind es para crecimiento de cuentas legítimas. No se permite contenido ilegal, spam masivo no solicitado, hate speech, ni violación de términos de plataformas más allá del crecimiento automatizado típico.
