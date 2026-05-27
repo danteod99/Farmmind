@@ -5,6 +5,41 @@ import { createClient } from "@supabase/supabase-js";
 import { calculateCost, isValidAction, type DesktopApp } from "@/app/lib/desktopActionCosts";
 
 /**
+ * Auth helper que acepta:
+ *  - Authorization: Bearer <jwt>  (desktop apps)
+ *  - Cookies de Supabase (web SSR)
+ */
+async function getAuthUser(request: NextRequest) {
+  // Path A: Bearer token (desktop)
+  const authHeader = request.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      { auth: { persistSession: false } }
+    );
+    const { data, error } = await admin.auth.getUser(token);
+    if (!error && data.user) return data.user;
+  }
+
+  // Path B: cookies (web)
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll(); },
+        setAll() {},
+      },
+    }
+  );
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+}
+
+/**
  * POST /api/desktop/charge
  * Cobra cierta cantidad de acciones del balance del user autenticado.
  *
@@ -22,21 +57,9 @@ import { calculateCost, isValidAction, type DesktopApp } from "@/app/lib/desktop
  */
 
 export async function POST(request: NextRequest) {
-  // 1. Auth check via cookies
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll() {},
-      },
-    }
-  );
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) {
+  // 1. Auth (acepta Bearer JWT desde desktop o cookies desde web)
+  const user = await getAuthUser(request);
+  if (!user) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
@@ -118,20 +141,8 @@ export async function POST(request: NextRequest) {
  * GET /api/desktop/charge
  * Devuelve el balance actual del user (helper para refresh en desktop apps)
  */
-export async function GET() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() { return cookieStore.getAll(); },
-        setAll() {},
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+export async function GET(request: NextRequest) {
+  const user = await getAuthUser(request);
   if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
 
   const admin = createClient(
