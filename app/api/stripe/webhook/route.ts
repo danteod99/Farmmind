@@ -590,7 +590,24 @@ export async function POST(req: Request) {
 
     return new Response("OK", { status: 200 });
   } catch (error) {
-    console.error("Webhook handler error:", error);
-    return new Response("Internal error", { status: 500 });
+    // IMPORTANTE: NUNCA devolver 500 por un error de procesamiento.
+    // Si devolvemos 5xx repetidamente, Stripe DESHABILITA el webhook
+    // automáticamente (fue lo que pasó el 2026-05). Acusamos recibo con
+    // 200 y registramos el fallo para reconciliación manual. Las
+    // operaciones críticas (subscription status) son idempotentes y se
+    // pueden reconstruir desde Stripe en cualquier momento.
+    console.error(`[Webhook] Error procesando ${event.type} (${event.id}):`, error);
+    try {
+      await supabaseAdmin.from("webhook_failures").insert({
+        provider: "stripe",
+        event_type: event.type,
+        event_id: event.id,
+        error_message: error instanceof Error ? error.message : String(error),
+        payload: event.data?.object ?? null,
+      });
+    } catch (logErr) {
+      console.error("[Webhook] No se pudo registrar el fallo:", logErr);
+    }
+    return new Response("OK (error logged)", { status: 200 });
   }
 }
