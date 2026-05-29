@@ -38,25 +38,7 @@ export async function POST(req: Request) {
 
     const userId = data.user?.id;
 
-    // Si vino con codigo de referido, crear pending placement
-    if (userId && ref) {
-      const cleanRef = String(ref).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
-      if (cleanRef) {
-        const { data: refRow } = await sb
-          .from("network_referral_codes")
-          .select("user_id")
-          .eq("code", cleanRef)
-          .maybeSingle();
-
-        if (refRow?.user_id && refRow.user_id !== userId) {
-          await sb.from("network_pending_placements").insert({
-            user_id: userId,
-            sponsor_id: refRow.user_id,
-            status: "pending",
-          });
-        }
-      }
-    }
+    // (Red de mercadeo eliminada 2026-05-28: ya no se crean placements por referido.)
 
     return NextResponse.json({ success: true, user_id: userId });
   } catch {

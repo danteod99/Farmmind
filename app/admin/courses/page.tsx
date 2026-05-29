@@ -99,7 +99,6 @@ export default function AdminCoursesPage() {
           <div className="flex gap-4 text-sm">
             <Link href="/admin" className="text-white/60 hover:text-white">Dashboard</Link>
             <Link href="/admin/courses" className="text-blue-300 font-semibold">Cursos</Link>
-            <Link href="/admin/network" className="text-white/60 hover:text-white">Red</Link>
           </div>
         </div>
       </header>

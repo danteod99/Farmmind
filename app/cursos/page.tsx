@@ -41,7 +41,6 @@ export default function CursosPage() {
   const [userEmail, setUserEmail] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
   const [authReady, setAuthReady] = useState(false);
-  const [checkingOut, setCheckingOut] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -82,22 +81,6 @@ export default function CursosPage() {
     if (authReady) fetchData();
   }, [authReady, fetchData]);
 
-  const startCheckout = async () => {
-    setCheckingOut(true);
-    try {
-      const res = await fetch("/api/network/checkout", {
-        method: "POST",
-        credentials: "include",
-      });
-      const j = await res.json();
-      if (j.url) window.location.href = j.url;
-      else alert(j.error || "Error iniciando pago");
-    } catch {
-      alert("Error conectando con Stripe");
-    } finally {
-      setCheckingOut(false);
-    }
-  };
 
   if (!authReady || loading || !data) {
     return (

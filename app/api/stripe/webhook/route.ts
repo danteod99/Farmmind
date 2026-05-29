@@ -264,26 +264,6 @@ export async function POST(req: Request) {
           );
         }
 
-        // Si terminó sin pago, auto-remove de la red (no-founder, sin downline)
-        if (isTerminal) {
-          const { data: pos } = await supabaseAdmin
-            .from("network_positions")
-            .select("user_id, is_founder")
-            .eq("user_id", userId)
-            .maybeSingle();
-          if (pos && !pos.is_founder) {
-            const { data: downline } = await supabaseAdmin
-              .from("network_positions")
-              .select("user_id")
-              .eq("placement_parent_id", userId)
-              .limit(1);
-            if (!downline || downline.length === 0) {
-              await supabaseAdmin.from("network_positions").delete().eq("user_id", userId);
-              await supabaseAdmin.from("network_pending_placements").delete().eq("user_id", userId);
-              console.log(`[Network] Removed user ${userId} (status=${subscription.status}, no downline)`);
-            }
-          }
-        }
         break;
       }
 
@@ -339,32 +319,6 @@ export async function POST(req: Request) {
           .update({ expires_at: new Date().toISOString(), tier: "free" })
           .eq("stripe_subscription_id", subscription.id);
 
-        // 3. Auto-remove de la red de mercadeo
-        // Solo removemos si NO es founder Y NO tiene downline (para no romper el árbol).
-        // Si tiene downline, la posición queda pero "pago para cobrar" bloquea sus comisiones.
-        const { data: pos } = await supabaseAdmin
-          .from("network_positions")
-          .select("user_id, is_founder")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (pos && !pos.is_founder) {
-          const { data: downline } = await supabaseAdmin
-            .from("network_positions")
-            .select("user_id")
-            .eq("placement_parent_id", userId)
-            .limit(1);
-
-          if (!downline || downline.length === 0) {
-            // Sin downline → eliminamos completamente de la red
-            await supabaseAdmin.from("network_positions").delete().eq("user_id", userId);
-            await supabaseAdmin.from("network_pending_placements").delete().eq("user_id", userId);
-            console.log(`[Network] Removed user ${userId} from network (subscription canceled, no downline)`);
-          } else {
-            // Con downline → solo loggeamos, la posición queda pero comisiones bloqueadas
-            console.log(`[Network] User ${userId} canceled but has downline - kept position, commissions blocked`);
-          }
-        }
         break;
       }
 
@@ -583,43 +537,8 @@ export async function POST(req: Request) {
         break;
       }
 
-      case "invoice.payment_succeeded": {
-        // Bono Directo 15% al sponsor del que paga.
-        // Nota: el case "invoice.paid" arriba ya acredita saldo SMM. Stripe dispara
-        // ambos eventos para el mismo pago, así que separamos las dos lógicas.
-        // Se ejecuta cada vez que se cobra la suscripcion (mes 1, mes 2, ...).
-        const invoice = event.data.object as Stripe.Invoice;
-        const customerId = invoice.customer as string;
-        const amountPaidUsd = (invoice.amount_paid || 0) / 100;
-        const invoiceId = invoice.id || `inv_${Date.now()}`;
-
-        if (amountPaidUsd > 0 && customerId) {
-          const { data: payerProfile } = await supabaseAdmin
-            .from("profiles")
-            .select("id")
-            .eq("stripe_customer_id", customerId)
-            .maybeSingle();
-
-          if (payerProfile?.id) {
-            // Verificar si ya procesamos esta invoice (idempotencia)
-            const { data: existing } = await supabaseAdmin
-              .from("network_commissions")
-              .select("id")
-              .eq("source_payment", invoiceId)
-              .eq("type", "direct")
-              .maybeSingle();
-
-            if (!existing) {
-              await supabaseAdmin.rpc("network_grant_direct_bonus", {
-                p_payer_id: payerProfile.id,
-                p_payment_amount: amountPaidUsd,
-                p_invoice_id: invoiceId,
-              });
-            }
-          }
-        }
-        break;
-      }
+      // (Red de mercadeo eliminada 2026-05-28: ya no se distribuyen comisiones.
+      //  El saldo del payer se acredita en el case "invoice.paid" de arriba.)
     }
 
     return new Response("OK", { status: 200 });

@@ -298,10 +298,6 @@ export default function AdminPage() {
             style={{ display:"flex", alignItems:"center", gap:"6px", padding:"6px 12px", borderRadius:"8px", background:"#007ABF15", border:"1px solid #007ABF30", color:"#56B4E0", fontSize:"12px", fontWeight:600, textDecoration:"none" }}>
             📚 Cursos
           </Link>
-          <Link href="/admin/network"
-            style={{ display:"flex", alignItems:"center", gap:"6px", padding:"6px 12px", borderRadius:"8px", background:"#007ABF15", border:"1px solid #007ABF30", color:"#56B4E0", fontSize:"12px", fontWeight:600, textDecoration:"none" }}>
-            🌐 Red
-          </Link>
           <Link href="/admin/resellers"
             style={{ display:"flex", alignItems:"center", gap:"6px", padding:"6px 12px", borderRadius:"8px", background:"#34d39915", border:"1px solid #34d39930", color:"#34d399", fontSize:"12px", fontWeight:600, textDecoration:"none" }}>
             🔗 Revendedores

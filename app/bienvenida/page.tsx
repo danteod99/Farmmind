@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Sparkles, BookOpen, ShoppingCart, Wallet,
-  ChevronRight, ChevronLeft, Check, Share2, Copy, Zap, PartyPopper,
+  ChevronRight, ChevronLeft, PartyPopper,
 } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 
@@ -21,11 +21,8 @@ interface Step {
 export default function BienvenidaPage() {
   const router = useRouter();
   const [step, setStep] = useState(0);
-  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("");
-  const [referralLink, setReferralLink] = useState("");
-  const [referralCode, setReferralCode] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -38,33 +35,17 @@ export default function BienvenidaPage() {
       if (mounted) {
         const name = u.user.user_metadata?.full_name || u.user.email?.split("@")[0] || "Usuario";
         setUserName(name);
-        try {
-          const r = await fetch("/api/network/me", { credentials: "include" });
-          if (r.ok) {
-            const j = await r.json();
-            setReferralLink(j.link || "");
-            setReferralCode(j.code || "");
-          }
-        } catch {}
         setLoading(false);
       }
     })();
     return () => { mounted = false; };
   }, [router]);
 
-  const copy = () => {
-    if (!referralLink) return;
-    navigator.clipboard.writeText(referralLink).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  };
-
   const finish = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("trustmind_welcome_seen_v1", "1");
     }
-    router.push("/network");
+    router.push("/smm/services");
   };
 
   const skip = () => {
@@ -87,41 +68,28 @@ export default function BienvenidaPage() {
       icon: <PartyPopper className="w-16 h-16" />,
       title: `¡Bienvenido, ${userName}!`,
       description:
-        "Tu membresía está activa. Acabas de unirte a TrustMind. En 30 segundos te muestro cómo aprovechar al máximo todo lo que tienes desbloqueado.",
-    },
-    {
-      icon: <Share2 className="w-16 h-16" />,
-      title: "Tu link de invitación",
-      description:
-        "Comparte tu link y ganas hasta 40% de comisión: 15% bono directo + 10% binario + 10% matching + 5% pool de rangos. Cada $200 que pague un referido te genera $30 instantáneos en tu saldo (y más cuando tu red crezca).",
-      cta: { label: "Ir a Mi Red", href: "/network" },
+        "Acabas de unirte a TrustMind. En 30 segundos te muestro cómo aprovechar al máximo todo lo que tienes disponible.",
     },
     {
       icon: <BookOpen className="w-16 h-16" />,
-      title: "Curso completo desbloqueado",
+      title: "Cursos desbloqueados",
       description:
         "Tienes acceso a todos los módulos: granjas de bots, GenFarmer, escalado a 1,000 cuentas, monetización en Spotify, TikTok, Instagram y YouTube. Aprende todo lo necesario para construir tu operación.",
       cta: { label: "Ver mis cursos", href: "/cursos" },
     },
     {
       icon: <ShoppingCart className="w-16 h-16" />,
-      title: "30% OFF en servicios SMM",
+      title: "+5,000 servicios SMM",
       description:
-        "Como miembro activo tienes 30% de descuento automático en TODOS los servicios SMM (seguidores, views, likes, comentarios). Lo puedes pagar con tu saldo de comisiones o recargando.",
+        "Recarga tu saldo y pide seguidores, views, likes y comentarios en todas las plataformas. Entrega rápida, precios por acción. Tu granja trabajando para ti.",
       cta: { label: "Ver servicios", href: "/smm/services" },
     },
     {
       icon: <Wallet className="w-16 h-16" />,
-      title: "Tus comisiones = saldo gastable",
+      title: "Recarga tu saldo",
       description:
-        "Cada vez que un referido pague, los bonos se acreditan automáticamente como saldo SMM. Lo puedes gastar en servicios o seguir acumulando. Sin retiros engorrosos ni esperas.",
-      cta: { label: "Ver mi saldo", href: "/smm/funds" },
-    },
-    {
-      icon: <Zap className="w-16 h-16" />,
-      title: "Empieza a invitar AHORA",
-      description:
-        "El mejor momento para crecer es hoy. Comparte tu link con 3-5 personas y arranca tu downline binaria. El sistema completo está a tu disposición — solo falta que tomes acción.",
+        "Recarga con tarjeta o crypto y empieza a operar. Cada acción descuenta una pequeña cantidad de tu saldo. Sin contratos ni mensualidades obligatorias.",
+      cta: { label: "Recargar saldo", href: "/smm/funds" },
     },
   ];
 
@@ -177,32 +145,6 @@ export default function BienvenidaPage() {
               <p className="text-base sm:text-lg text-white/70 leading-relaxed max-w-xl mx-auto">
                 {current.description}
               </p>
-
-              {/* Referral link en paso 1 */}
-              {step === 1 && referralLink && (
-                <div className="mt-8 max-w-md mx-auto">
-                  <div className="flex gap-2">
-                    <input
-                      readOnly
-                      value={referralLink}
-                      className="flex-1 bg-black/60 border border-white/10 rounded-lg px-4 py-3 text-sm text-white font-mono text-center"
-                      onClick={(e) => (e.target as HTMLInputElement).select()}
-                    />
-                    <button
-                      onClick={copy}
-                      className="px-5 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg text-sm font-bold flex items-center gap-2 transition"
-                    >
-                      {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                      {copied ? "Copiado" : "Copiar"}
-                    </button>
-                  </div>
-                  {referralCode && (
-                    <p className="mt-3 text-xs text-white/40">
-                      Código: <span className="font-mono text-white/60">{referralCode}</span>
-                    </p>
-                  )}
-                </div>
-              )}
 
               {/* CTA contextual */}
               {current.cta && (

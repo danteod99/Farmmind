@@ -8,46 +8,46 @@ export default function LandingRD() {
       countryFlag="🇩🇴"
       accentColor="#007ABF"
       secondaryColor="#56B4E0"
-      badge="Plataforma #1 en República Dominicana · Activo 24/7"
-      headlineTop="Domina las redes"
+      badge="Hub Caribe · Mercado #1 de Scaling LATAM"
+      headlineTop="Tu cuenta crece"
       headlineBottom="desde RD"
-      subheadline="La herramienta de Social Media Marketing preferida por emprendedores dominicanos. Crece en Instagram, TikTok, YouTube y más — todo automatizado con IA."
-      ctaText="Empezar gratis — Es de gratis"
-      ctaSubtext="5 mensajes demo · Sin tarjeta · Pago en USD"
+      subheadline="Somos la primera IA que comanda 1,000 granjas de bots reales para hacer crecer tu cuenta. RD es nuestro mercado más fuerte — operamos directo en el Caribe, con soporte y entrega local."
+      ctaText="Empezar gratis ahora"
+      ctaSubtext="Demo gratis · Sin tarjeta · Soporte local en español"
       chatPreview={{
-        user: "Quiero crecer mi página de dembow en Instagram desde Santo Domingo, ¿qué me recomiendas?",
-        ai: "Para crecer tu página de dembow en IG desde RD, te recomiendo: **seguidores dominicanos reales** con engagement alto, **likes automáticos** en cada post, y **views para Reels**. Con nuestro panel puedes pedir todo junto. Los precios arrancan desde **$0.50 por 1K seguidores**. ¿Empezamos?",
+        user: "Tengo una página de dembow en Instagram con 800 seguidores. ¿Me ayudas a crecerla con la IA?",
+        ai: "Claro, mi pana. **Activando 3 granjas en Santo Domingo y 1 en Puerto Plata** especializadas en nicho urbano dominicano. La IA va a empujar tus reels, dar likes y comentarios en español caribeño. **Resultados visibles en 24-48 horas**. ¿Le damos?",
       }}
       stats={[
-        { value: "2,500+", label: "Usuarios en RD" },
-        { value: "15M+", label: "Seguidores entregados" },
-        { value: "$0.50", label: "Precio desde / 1K" },
-        { value: "24/7", label: "Soporte en español" },
+        { value: "19.2%", label: "De nuestra audiencia es RD" },
+        { value: "3,597", label: "Dominicanos activos este mes" },
+        { value: "1,000+", label: "Granjas comandadas por IA" },
+        { value: "67h", label: "Watch time semanal en RD" },
       ]}
-      featuresTitle="Hecho para el mercado dominicano"
-      featuresSubtitle="Servicios optimizados para crecer en RD y todo el Caribe."
+      featuresTitle="Operamos en el Caribe, no desde afuera"
+      featuresSubtitle="Granjas reales en el Caribe + IA que las comanda. Hecho para artistas, negocios e influencers dominicanos."
       features={[
-        { emoji: "📱", title: "Instagram & TikTok Growth", desc: "Seguidores, likes, views y comentarios optimizados para cuentas dominicanas. Engagement real que impulsa el algoritmo.", color: "#E1306C" },
-        { emoji: "🎵", title: "Promoción musical", desc: "Impulsa tu dembow, bachata o trap dominicano. Streams en Spotify, views en YouTube y promoción en todas las plataformas.", color: "#1DB954" },
-        { emoji: "🤖", title: "Agente IA en español", desc: "Pregúntale cualquier cosa sobre growth hacking, estrategias anti-baneo y optimización. Responde al instante en español.", color: "#007ABF" },
-        { emoji: "💳", title: "Pagos accesibles", desc: "Acepta crypto, tarjeta y más. Precios en USD accesibles para el mercado dominicano. Sin mínimos altos.", color: "#F59E0B" },
-        { emoji: "📊", title: "Dashboard completo", desc: "+5,000 servicios disponibles. Monitorea tus pedidos en tiempo real. Historial completo de todas tus órdenes.", color: "#8B5CF6" },
-        { emoji: "🔥", title: "Resultados rápidos", desc: "Entrega en minutos para la mayoría de servicios. Tu cuenta empieza a crecer desde el primer pedido.", color: "#EF4444" },
+        { emoji: "🤖", title: "IA que comanda granjas reales", desc: "No compras seguidores fake. La IA activa granjas de bots físicas en RD, Caribe y LATAM. Engagement real, no números muertos.", color: "#007ABF" },
+        { emoji: "🎵", title: "Dembow, bachata, urbano latino", desc: "Promociona tu música en Spotify, YouTube Music y TikTok. La IA activa granjas dominicanas que escuchan en loop tu canción.", color: "#1DB954" },
+        { emoji: "🏪", title: "Negocios locales SD y Santiago", desc: "Restaurantes, salones, tiendas, colmados. Crece tu Instagram con audiencia dominicana real que se convierte en cliente que paga.", color: "#E1306C" },
+        { emoji: "🛡️", title: "La IA rota granjas anti-baneo", desc: "Tu cuenta nunca usa la misma granja dos veces seguidas. La IA distribuye el trabajo entre 1,000 granjas. Cero baneos.", color: "#10B981" },
+        { emoji: "💵", title: "Pago en USD desde RD", desc: "Stripe, crypto, transferencia. Operación legal a través de Scaling Tech Farm LLC en USA. Facturas formales.", color: "#F59E0B" },
+        { emoji: "🇩🇴", title: "Soporte local 24/7", desc: "Equipo dominicano atiende por WhatsApp en horario RD. Entendemos el mercado, hablamos como local.", color: "#8B5CF6" },
       ]}
-      useCasesTitle="¿Para quién es Scaling Latam en RD?"
+      useCasesTitle="¿Para quién es Scaling LATAM en RD?"
       useCases={[
-        { icon: "🎤", title: "Artistas de dembow y urbano", desc: "Promociona tu música en Spotify, YouTube y TikTok. Gana streams y visibilidad sin gastar una fortuna en publicidad tradicional." },
-        { icon: "🏪", title: "Negocios locales en Santo Domingo", desc: "Restaurantes, barbershops, tiendas — crece tu Instagram con seguidores dominicanos reales que se convierten en clientes." },
-        { icon: "📸", title: "Influencers y creadores de contenido", desc: "Impulsa tus métricas para conseguir mejores deals con marcas. Likes, views y engagement automatizado." },
-        { icon: "🏢", title: "Agencias de marketing", desc: "Revende nuestros servicios a tus clientes. Panel de reseller con precios especiales y marca blanca." },
+        { icon: "🎤", title: "Artistas urbanos dominicanos", desc: "Dembowseros, raperos, traperos, bachateros. La IA activa granjas que escuchan tu música 24/7. Streams reales, regalías reales en Spotify." },
+        { icon: "💈", title: "Negocios locales en Santo Domingo, Santiago y Punta Cana", desc: "Barbershops, salones, restaurantes, colmados. Llena tu Instagram con dominicanos reales que viven cerca de ti." },
+        { icon: "📸", title: "Influencers y creadores RD", desc: "Sube tu autoridad para cobrar mejor a marcas. La IA te da seguidores, likes y comentarios en español dominicano." },
+        { icon: "🏢", title: "Resellers y agencias dominicanas", desc: "Construye tu propio negocio sobre nuestra infraestructura. Panel reseller con tu marca, margen 60-70%, sin armar nada físico." },
       ]}
       testimonials={[
-        { name: "Carlos M.", role: "Artista urbano · Santo Domingo", text: "Desde que uso Scaling Latam mis tracks tienen 3x más streams. El agente IA me ayudó a configurar todo en minutos.", country: "🇩🇴" },
-        { name: "María P.", role: "Dueña de salón · Santiago", text: "Mi Instagram pasó de 2K a 15K seguidores en un mes. Ahora tengo más clientes que nunca. Súper recomendado.", country: "🇩🇴" },
-        { name: "Juan R.", role: "Agencia digital · Punta Cana", text: "Revendo los servicios a mis clientes de turismo. Los precios son imbatibles y la calidad es consistente.", country: "🇩🇴" },
+        { name: "Carlos M.", role: "Artista urbano · Santo Domingo", text: "Subí mi último tema y la IA activó granjas que lo escucharon en loop. 47K streams en 2 semanas. Cobré $312 en regalías. Esto es real.", country: "🇩🇴" },
+        { name: "María P.", role: "Dueña de salón · Santiago", text: "Mi Instagram pasó de 2,400 a 18,000 seguidores reales en 30 días. Ahora tengo lista de espera para citas. Vale cada centavo.", country: "🇩🇴" },
+        { name: "Junior R.", role: "Influencer · Punta Cana", text: "Antes me pagaban $50 por post. Ahora $400. La IA me dio la autoridad que necesitaba para subir el ticket. Brutal.", country: "🇩🇴" },
       ]}
-      finalCtaTitle={"¿Listo para crecer\nen RD?"}
-      finalCtaSubtitle="Únete a miles de dominicanos que ya usan Scaling Latam · Empieza gratis hoy"
+      finalCtaTitle={"¿Listo para crecer\ncomo dominicano?"}
+      finalCtaSubtitle="Empresa formal · Soporte 100% en español caribeño · Únete a 3,500+ dominicanos que ya usan la IA"
     />
   );
 }
