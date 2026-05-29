@@ -14,6 +14,7 @@ import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { SmmNav } from "@/app/components/SmmNav";
 import ChatPopup from "@/app/components/ChatPopup";
 import { TrustFooter } from "@/app/components/TrustFooter";
+import ExpressTab from "./_ExpressTab";
 
 interface Service {
   service: number;
@@ -338,7 +339,7 @@ export default function ServicesPage() {
   const [buyingAccount, setBuyingAccount] = useState(false);
   const [buySuccess, setBuySuccess] = useState(false);
   const [buyError, setBuyError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"services" | "cuentas">("services");
+  const [activeTab, setActiveTab] = useState<"services" | "cuentas" | "express">("services");
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -907,14 +908,17 @@ export default function ServicesPage() {
           <div style={{ display: "flex", gap: "4px", marginBottom: "32px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "16px", padding: "5px" }}>
             {[
               { id: "services", label: "⚡ Servicios Social Media", count: services.length },
-              { id: "cuentas", label: "👑 Cuentas Premium", count: PREMIUM_ACCOUNTS.length },
+              { id: "express",  label: "🛒 Cuentas Express",      count: null as number | null },
+              { id: "cuentas",  label: "👑 Cuentas Premium",      count: PREMIUM_ACCOUNTS.length },
             ].map((tab) => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as "services" | "cuentas")}
+              <button key={tab.id} onClick={() => setActiveTab(tab.id as "services" | "cuentas" | "express")}
                 style={{ flex: 1, padding: "11px 20px", borderRadius: "12px", border: "none", background: activeTab === tab.id ? "rgba(255,255,255,0.08)" : "transparent", color: activeTab === tab.id ? "white" : "#5a6480", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "none" }}>
                 {tab.label}
-                <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "20px", background: activeTab === tab.id ? "#ffffff20" : "#1a1a2e", fontWeight: 600 }}>
-                  {tab.id === "services" ? services.length.toLocaleString() : tab.count}
-                </span>
+                {tab.count !== null && (
+                  <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "20px", background: activeTab === tab.id ? "#ffffff20" : "#1a1a2e", fontWeight: 600 }}>
+                    {tab.id === "services" ? services.length.toLocaleString() : tab.count}
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -1018,6 +1022,22 @@ export default function ServicesPage() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* ━━━ CUENTAS EXPRESS (dark.shopping) ━━━ */}
+          {activeTab === "express" && (
+            <ExpressTab
+              balance={balance}
+              onRefreshBalance={async () => {
+                try {
+                  const r = await fetch("/api/smm/orders");
+                  if (r.ok) {
+                    const d = await r.json();
+                    setBalance(d.balance || 0);
+                  }
+                } catch {}
+              }}
+            />
           )}
 
           {/* ━━━ CUENTAS PREMIUM TAB ━━━ */}
