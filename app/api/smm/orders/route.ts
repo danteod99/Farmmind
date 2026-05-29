@@ -84,27 +84,13 @@ export async function GET() {
       .order("created_at", { ascending: false })
       .limit(50);
 
-    // ¿Tiene descuento de red? (founder o suscrito)
-    const [{ data: pos }, { data: profile }] = await Promise.all([
-      admin.from("network_positions").select("is_founder").eq("user_id", user.id).maybeSingle(),
-      admin.from("profiles")
-        .select("subscription_plan, subscription_status, stripe_subscription_id")
-        .eq("id", user.id).maybeSingle(),
-    ]);
-    const isFounder = pos?.is_founder === true;
-    const isSubscribed = (
-      profile?.subscription_plan === "pro" &&
-      Boolean(profile?.stripe_subscription_id) &&
-      (profile?.subscription_status === "active" || profile?.subscription_status === "trialing")
-    );
-    const networkDiscount = isFounder || isSubscribed ? 0.30 : 0;
-
+    // Descuento por suscripción removido 2026-05-29: todos pagan precio base.
     return Response.json({
       orders: updatedOrders || [],
       balance: balanceData?.balance || 0,
-      network_discount: networkDiscount,
-      is_founder: isFounder,
-      is_subscribed: isSubscribed,
+      network_discount: 0,
+      is_founder: false,
+      is_subscribed: false,
     });
   } catch (error) {
     console.error("SMM orders error:", error);

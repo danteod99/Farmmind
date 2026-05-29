@@ -54,31 +54,10 @@ export async function POST(req: Request) {
       return Response.json({ error: "Rate inválido" }, { status: 400 });
     }
 
-    // ── DESCUENTO 30% para suscritos a la red o founders ──
-    // Se aplica server-side para que sea trustworthy (no confiar en cliente).
-    let effectiveRate = parsedRate;
-    let networkDiscountApplied = false;
-    {
-      const adminCheck = getSupabaseAdmin();
-      const [{ data: pos }, { data: profile }] = await Promise.all([
-        adminCheck.from("network_positions").select("is_founder").eq("user_id", user.id).maybeSingle(),
-        adminCheck
-          .from("profiles")
-          .select("subscription_plan, subscription_status, stripe_subscription_id")
-          .eq("id", user.id)
-          .maybeSingle(),
-      ]);
-      const isFounder = pos?.is_founder === true;
-      const isSubscribed = (
-        profile?.subscription_plan === "pro" &&
-        Boolean(profile?.stripe_subscription_id) &&
-        (profile?.subscription_status === "active" || profile?.subscription_status === "trialing")
-      );
-      if (isFounder || isSubscribed) {
-        effectiveRate = parsedRate * 0.70; // 30% descuento
-        networkDiscountApplied = true;
-      }
-    }
+    // Precio sin descuentos: todos pagan el mismo rate (la suscripción ya no
+    // otorga 30% off en servicios SMM — removido 2026-05-29).
+    const effectiveRate = parsedRate;
+
     // URL validation
     if (!link || typeof link !== "string" || link.trim().length === 0) {
       return Response.json({ error: "El link no puede estar vacío" }, { status: 400 });

@@ -124,24 +124,6 @@ export default function CursosPage() {
           </p>
         </div>
 
-        {/* Bonus: Si está suscrito, mostrar el descuento SMM */}
-        {user_state.has_access && (
-          <section className="bg-gradient-to-br from-emerald-500/10 to-black border border-emerald-500/30 rounded-2xl p-5 flex items-start gap-4">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-emerald-300">Tu membresía incluye 30% off en SMM</div>
-              <p className="text-sm text-white/60 mt-1">
-                Como miembro activo, todos los servicios SMM tienen 30% de descuento automático sobre el precio base.
-              </p>
-            </div>
-            <Link href="/smm/services" className="hidden sm:flex px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-semibold items-center gap-2">
-              Ir a SMM →
-            </Link>
-          </section>
-        )}
-
         {/* Lista de cursos */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {courses.map((c) => (
