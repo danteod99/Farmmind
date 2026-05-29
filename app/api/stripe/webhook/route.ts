@@ -372,18 +372,52 @@ export async function POST(req: Request) {
         const invoice = event.data.object as Stripe.Invoice;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const inv = invoice as any;
-        const subscriptionId =
-          typeof inv.subscription === "string" ? inv.subscription : inv.subscription?.id;
 
-        if (!subscriptionId) break;
+        // El subscription ID puede venir en varias ubicaciones según versión
+        // de API. En invoices de tipo subscription_create (PRIMER cobro) suele
+        // venir VACÍO en invoice.subscription — por eso antes nunca acreditaba
+        // el primer pago de cada autorecarga.
+        let subscriptionId =
+          (typeof inv.subscription === "string" ? inv.subscription : inv.subscription?.id) ||
+          inv.lines?.data?.[0]?.subscription ||
+          inv.lines?.data?.[0]?.parent?.subscription_item_details?.subscription ||
+          inv.parent?.subscription_details?.subscription ||
+          null;
 
-        // Recuperar la subscription para leer metadata (Stripe no incluye metadata de sub en invoice payload)
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        // const purpose = subscription.metadata?.purpose;  // (mantener para posible uso futuro)
-        const userId = subscription.metadata?.supabase_user_id;
+        let userId: string | undefined;
+        let metaAmountUsd = 0;
 
-        // Acreditar saldo SMM en CUALQUIER pago de subscripción (Pro o auto-recarga)
-        if (!userId) break;
+        // 1. Intentar resolver userId vía metadata de la subscription
+        if (subscriptionId) {
+          try {
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            userId = subscription.metadata?.supabase_user_id;
+            metaAmountUsd = parseFloat(subscription.metadata?.amount_usd || "0");
+          } catch (e) {
+            console.warn(`[invoice.paid] No se pudo recuperar sub ${subscriptionId}:`, e);
+          }
+        }
+
+        // 2. Fallback: resolver userId vía customer → profiles (cubre el caso
+        //    del primer invoice sin subscription ID)
+        if (!userId) {
+          const customerId =
+            typeof inv.customer === "string" ? inv.customer : inv.customer?.id;
+          if (customerId) {
+            const { data: prof } = await supabaseAdmin
+              .from("profiles")
+              .select("id")
+              .eq("stripe_customer_id", customerId)
+              .maybeSingle();
+            userId = prof?.id;
+            if (userId && !subscriptionId) subscriptionId = `customer:${customerId}`;
+          }
+        }
+
+        if (!userId) {
+          console.warn(`[invoice.paid] Sin userId resoluble para invoice ${invoice.id}`);
+          break;
+        }
 
         // Idempotencia: si ya acreditamos esta invoice, salir
         const { data: existing } = await supabaseAdmin
@@ -398,9 +432,7 @@ export async function POST(req: Request) {
         }
 
         const amountPaidUsd = (invoice.amount_paid || 0) / 100;
-        const amountUsd =
-          amountPaidUsd ||
-          parseFloat(subscription.metadata?.amount_usd || "0");
+        const amountUsd = amountPaidUsd || metaAmountUsd;
 
         if (amountUsd <= 0) {
           console.warn(`Invoice ${invoice.id} con monto 0, skip`);
@@ -418,6 +450,11 @@ export async function POST(req: Request) {
           return new Response("Balance credit failed", { status: 500 });
         }
 
+        // subscriptionId real (no el fallback "customer:...")
+        const realSubId = subscriptionId && !subscriptionId.startsWith("customer:")
+          ? subscriptionId
+          : null;
+
         // Registrar la transacción
         await supabaseAdmin.from("smm_transactions").insert({
           user_id: userId,
@@ -428,22 +465,19 @@ export async function POST(req: Request) {
           credited: true,
           payment_provider: "stripe",
           stripe_invoice_id: invoice.id,
-          stripe_subscription_id: subscriptionId,
+          stripe_subscription_id: realSubId,
         });
 
-        // Actualizar timestamps en smm_autorecharge
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const subAny = subscription as any;
-        await supabaseAdmin
-          .from("smm_autorecharge")
-          .update({
-            last_charged_at: new Date().toISOString(),
-            next_charge_at: subAny.current_period_end
-              ? new Date(subAny.current_period_end * 1000).toISOString()
-              : null,
-            status: "active",
-          })
-          .eq("stripe_subscription_id", subscriptionId);
+        // Actualizar timestamps en smm_autorecharge (solo si hay sub real)
+        if (realSubId) {
+          await supabaseAdmin
+            .from("smm_autorecharge")
+            .update({
+              last_charged_at: new Date().toISOString(),
+              status: "active",
+            })
+            .eq("stripe_subscription_id", realSubId);
+        }
 
         console.log(`Saldo acreditado: user=${userId}, +$${amountUsd}, invoice=${invoice.id}`);
         break;
