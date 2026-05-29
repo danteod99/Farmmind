@@ -46,11 +46,7 @@ export async function GET(req: Request) {
         { revalidate: 60 }
       );
       if (!res.success) {
-        const dbg = url.searchParams.get("debug") === "1";
-        return Response.json({
-          error: "Error consultando dark.shopping",
-          ...(dbg ? { upstream: res, key_present: !!process.env.DARKSHOPPING_API_KEY, key_len: (process.env.DARKSHOPPING_API_KEY || "").length } : {}),
-        }, { status: 502 });
+        return Response.json({ error: "Error consultando dark.shopping" }, { status: 502 });
       }
       products = (res.data.items || []).map((p) => normalizeProduct(p as Parameters<typeof normalizeProduct>[0]));
       totalCount = res.data._meta?.totalCount || products.length;
