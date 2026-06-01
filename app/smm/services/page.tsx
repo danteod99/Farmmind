@@ -687,11 +687,11 @@ export default function ServicesPage() {
           links={[
             { href: "/smm/services", label: "Servicios", active: true },
             { href: "/smm/funds", label: "Recargar" },
-            { href: "/cursos", label: "📚 Mis Cursos" },
-            { href: "/granjas", label: "🤖 Granjas" },
+            { href: "/cursos", label: "Mis Cursos" },
+            { href: "/granjas", label: "Granjas" },
             { href: "/downloads", label: "💻 Descargas" },
-            { href: "/smm/ai", label: "🤖 Asistente IA" },
-            { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+            { href: "/smm/ai", label: "Asistente IA" },
+            { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
           ]}
         />
 
@@ -878,7 +878,7 @@ export default function ServicesPage() {
 
               {/* Platform filter pills */}
               <div className="svc-platform-pills" style={{ display: "flex", flexWrap: "wrap", gap: "8px", maxWidth: "420px" }}>
-                {[{ name: "all", label: "✦ Todos", color: "#007ABF", glow: "#007ABF" }, ...POPULAR_CATEGORIES.map((c) => ({ name: c, label: c, color: PLATFORM_COLORS[c].color, glow: PLATFORM_COLORS[c].glow }))].map((cat) => {
+                {[{ name: "all", label: "Todos", color: "#007ABF", glow: "#007ABF" }, ...POPULAR_CATEGORIES.map((c) => ({ name: c, label: c, color: PLATFORM_COLORS[c].color, glow: PLATFORM_COLORS[c].glow }))].map((cat) => {
                   const active = selectedCategory === cat.name;
                   return (
                     <button key={cat.name} onClick={() => { const next = active && cat.name !== "all" ? "all" : cat.name; setSelectedCategory(next); if (next !== "all" && !allServicesLoaded) loadAllServices(); }}
@@ -907,9 +907,9 @@ export default function ServicesPage() {
           {/* ── TABS ── */}
           <div style={{ display: "flex", gap: "4px", marginBottom: "32px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "16px", padding: "5px" }}>
             {[
-              { id: "services", label: "⚡ Servicios Social Media", count: services.length },
-              { id: "express",  label: "🛒 Cuentas Express",      count: null as number | null },
-              { id: "cuentas",  label: "👑 Cuentas Premium",      count: PREMIUM_ACCOUNTS.length },
+              { id: "services", label: "Servicios Social Media", count: services.length },
+              { id: "express",  label: "Cuentas Express",      count: null as number | null },
+              { id: "cuentas",  label: "Cuentas Premium",      count: PREMIUM_ACCOUNTS.length },
             ].map((tab) => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as "services" | "cuentas" | "express")}
                 style={{ flex: 1, padding: "11px 20px", borderRadius: "12px", border: "none", background: activeTab === tab.id ? "rgba(255,255,255,0.08)" : "transparent", color: activeTab === tab.id ? "white" : "#5a6480", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", boxShadow: "none" }}>
@@ -1004,7 +1004,7 @@ export default function ServicesPage() {
                 {/* Sort buttons */}
                 <div className="svc-sort-btns" style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                   {([
-                    { key: "popular",    label: "🔥 Más pedido" },
+                    { key: "popular",    label: "Más pedido" },
                     { key: "price_asc",  label: "↑ Precio ↑" },
                     { key: "price_desc", label: "↓ Precio ↓" },
                   ] as const).map(({ key, label }) => (

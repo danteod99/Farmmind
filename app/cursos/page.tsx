@@ -102,11 +102,11 @@ export default function CursosPage() {
         links={[
           { href: "/smm/services", label: "Servicios" },
           { href: "/smm/funds", label: "Recargar" },
-          { href: "/cursos", label: "📚 Mis Cursos", active: true },
-          { href: "/granjas", label: "🤖 Granjas" },
-          { href: "/downloads", label: "💻 Descargas" },
-          { href: "/smm/ai", label: "🤖 Asistente IA" },
-          { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+          { href: "/cursos", label: "Mis Cursos", active: true },
+          { href: "/granjas", label: "Granjas" },
+          { href: "/downloads", label: "Descargas" },
+          { href: "/smm/ai", label: "Asistente IA" },
+          { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
         ]}
       />
 

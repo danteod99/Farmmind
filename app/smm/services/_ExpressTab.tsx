@@ -181,11 +181,11 @@ export default function ExpressTab({
         <div style={{ display: "flex", gap: 6, background: "rgba(255,255,255,0.04)", padding: 4, borderRadius: 12 }}>
           <button onClick={() => setView("catalog")}
             style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: view === "catalog" ? "rgba(6,182,212,0.18)" : "transparent", color: view === "catalog" ? "#06b6d4" : "#8892a4", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-            🛒 Catálogo
+            Catálogo
           </button>
           <button onClick={() => setView("orders")}
             style={{ padding: "8px 16px", borderRadius: 10, border: "none", background: view === "orders" ? "rgba(6,182,212,0.18)" : "transparent", color: view === "orders" ? "#06b6d4" : "#8892a4", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-            📦 Mis pedidos
+            Mis pedidos
           </button>
         </div>
       </div>
@@ -207,10 +207,10 @@ export default function ExpressTab({
             </div>
           </div>
           <div style={{ display: "flex", gap: 6, marginBottom: 22, flexWrap: "wrap" }}>
-            {[{ key: "all", name: "Todos", emoji: "✨" }, ...categories].map((c) => (
+            {[{ key: "all", name: "Todos" }, ...categories].map((c) => (
               <button key={c.key} onClick={() => setCategory(c.key)}
                 style={{ padding: "7px 13px", borderRadius: 20, border: `1px solid ${category === c.key ? "#06b6d4" : "rgba(255,255,255,0.08)"}`, background: category === c.key ? "rgba(6,182,212,0.15)" : "transparent", color: category === c.key ? "#06b6d4" : "#8892a4", fontSize: 12, fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                {c.emoji} {c.name}
+                {c.name}
               </button>
             ))}
           </div>

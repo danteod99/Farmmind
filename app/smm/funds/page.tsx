@@ -309,11 +309,11 @@ export default function FundsPage() {
           links={[
             { href: "/smm/services", label: "Servicios" },
             { href: "/smm/funds", label: "Recargar", active: true },
-            { href: "/cursos", label: "📚 Mis Cursos" },
-            { href: "/granjas", label: "🤖 Granjas" },
-            { href: "/downloads", label: "💻 Descargas" },
-            { href: "/smm/ai", label: "🤖 Asistente IA" },
-            { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+            { href: "/cursos", label: "Mis Cursos" },
+            { href: "/granjas", label: "Granjas" },
+            { href: "/downloads", label: "Descargas" },
+            { href: "/smm/ai", label: "Asistente IA" },
+            { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
           ]}
         />
 

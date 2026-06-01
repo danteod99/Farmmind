@@ -277,11 +277,11 @@ export default function AIPage() {
   const NAV_LINKS: { href: string; label: string; active?: boolean; external?: boolean }[] = [
     { href: "/smm/services", label: "Servicios" },
     { href: "/smm/funds", label: "Recargar" },
-    { href: "/cursos", label: "📚 Mis Cursos" },
-    { href: "/granjas", label: "🤖 Granjas" },
-    { href: "/downloads", label: "💻 Descargas" },
-    { href: "/smm/ai", label: "🤖 Asistente IA", active: true },
-    { href: "https://www.scalinglatam.site", label: "🌐 Scaling Latam", external: true },
+    { href: "/cursos", label: "Mis Cursos" },
+    { href: "/granjas", label: "Granjas" },
+    { href: "/downloads", label: "Descargas" },
+    { href: "/smm/ai", label: "Asistente IA", active: true },
+    { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
   ];
 
   return (

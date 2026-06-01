@@ -123,9 +123,9 @@ export default function GranjasPage() {
         links={[
           { href: "/smm/services", label: "Servicios" },
           { href: "/smm/funds", label: "Recargar" },
-          { href: "/cursos", label: "📚 Mis Cursos" },
-          { href: "/granjas", label: "🤖 Granjas", active: true },
-          { href: "/smm/ai", label: "🤖 Asistente IA" },
+          { href: "/cursos", label: "Mis Cursos" },
+          { href: "/granjas", label: "Granjas", active: true },
+          { href: "/smm/ai", label: "Asistente IA" },
         ]}
       />
 
