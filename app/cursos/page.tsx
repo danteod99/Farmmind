@@ -29,6 +29,7 @@ interface CoursesData {
     has_access: boolean;
     is_founder: boolean;
     is_subscribed: boolean;
+    is_annual: boolean;
   };
 }
 
@@ -41,6 +42,32 @@ export default function CursosPage() {
   const [userEmail, setUserEmail] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
   const [authReady, setAuthReady] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  const startAnnualCheckout = async () => {
+    const priceId = process.env.NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID;
+    if (!priceId) {
+      alert("La suscripción anual aún no está configurada. Contacta a soporte.");
+      return;
+    }
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else {
+        alert(data.error || "Error iniciando checkout");
+        setCheckoutLoading(false);
+      }
+    } catch {
+      alert("Error de red");
+      setCheckoutLoading(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -120,14 +147,68 @@ export default function CursosPage() {
           <p className="text-white/60 mt-1">
             {user_state.is_founder
               ? "Tienes acceso completo como fundador."
-              : "Bienvenido a la academia de Scaling LATAM. Aprende a operar granjas, escalar redes y monetizar."}
+              : user_state.is_annual
+                ? "Acceso completo incluido con tu plan anual."
+                : "Academia de Scaling LATAM — incluida con el plan anual del software."}
           </p>
         </div>
+
+        {/* Paywall si no tiene acceso */}
+        {!user_state.has_access && (
+          <section className="relative overflow-hidden rounded-2xl border border-blue-500/30 bg-gradient-to-br from-blue-900/40 via-black to-black p-6 sm:p-8">
+            <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />
+
+            <div className="relative flex items-start gap-4 mb-5">
+              <div className="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-400/30 text-blue-300 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                  Desbloquea todos los cursos con el plan anual
+                </h2>
+                <p className="text-white/70 text-sm mt-2 leading-relaxed">
+                  La suscripción anual al software incluye <strong className="text-white">acceso completo a la academia</strong>:
+                  granjas, GenFarmer, escalado a 1,000 cuentas, monetización en Spotify, TikTok, Instagram, YouTube y más.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative flex flex-wrap items-center gap-3 mb-5">
+              {[
+                "Todos los módulos sin restricción",
+                "Actualizaciones gratis durante 12 meses",
+                "Bundle desktop: TrustInsta + TrustFace",
+                "Saldo SMM con precios base",
+              ].map((b) => (
+                <div key={b} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white/80">
+                  <Check className="w-3.5 h-3.5 text-emerald-400" /> {b}
+                </div>
+              ))}
+            </div>
+
+            <div className="relative flex flex-wrap items-center gap-3">
+              <button
+                onClick={startAnnualCheckout}
+                disabled={checkoutLoading}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-400 hover:to-cyan-300 text-black rounded-xl font-bold text-sm flex items-center gap-2 transition disabled:opacity-50"
+              >
+                <Zap className="w-4 h-4" />
+                {checkoutLoading ? "Abriendo checkout…" : "Suscribirme al plan anual"}
+              </button>
+              {user_state.is_subscribed && !user_state.is_annual && (
+                <span className="text-xs text-yellow-300/90 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-lg">
+                  Tienes plan mensual — actualiza a anual para incluir cursos
+                </span>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Lista de cursos */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {courses.map((c) => (
-            <CourseCard key={c.id} course={c} hasAccess={true} />
+            <CourseCard key={c.id} course={c} hasAccess={user_state.has_access} />
           ))}
         </section>
 

@@ -207,6 +207,7 @@ export async function POST(req: Request) {
               stripe_subscription_id: subscription.id,
               subscription_plan: "pro",
               subscription_period_end: periodEndIso,
+              subscription_interval: sub.items?.data?.[0]?.price?.recurring?.interval || null,
             });
             await supabaseAdmin.from("tm_subscriptions").upsert(
               {
@@ -242,6 +243,7 @@ export async function POST(req: Request) {
           stripe_subscription_id: isTerminal ? null : subscription.id,
           subscription_plan: isTerminal ? "free" : "pro",
           subscription_period_end: periodEndIso,
+          subscription_interval: isTerminal ? null : (sub.items?.data?.[0]?.price?.recurring?.interval || null),
         });
 
         // Al activar Pro, también dar acceso bundle a TrustInsta + TrustFace.
@@ -296,6 +298,7 @@ export async function POST(req: Request) {
             subscription_status: "canceled",
             subscription_plan: "free",
             stripe_subscription_id: null,
+            subscription_interval: null,
           });
           await supabaseAdmin
             .from("tm_subscriptions")
@@ -311,6 +314,7 @@ export async function POST(req: Request) {
           subscription_status: "canceled",
           subscription_plan: "free",
           stripe_subscription_id: null,
+          subscription_interval: null,
         });
 
         // 2. Expirar acceso bundle a TrustInsta + TrustFace
@@ -493,6 +497,7 @@ export async function POST(req: Request) {
                 subscription_status: "canceled",
                 subscription_plan: "free",
                 stripe_subscription_id: null,
+                subscription_interval: null,
               });
               await supabaseAdmin.from("tm_subscriptions")
                 .update({ expires_at: new Date().toISOString(), tier: "free" })
