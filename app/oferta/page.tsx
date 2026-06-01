@@ -265,10 +265,11 @@ export default function OfertaPage() {
               letterSpacing: "-0.035em",
               marginBottom: "20px",
             }}>
-              <span style={{ color: "white" }}>Cómo conseguí </span>
-              <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>+50,000 seguidores reales</span>
-              <span style={{ color: "white" }}> en Instagram, TikTok y Facebook con un agente IA — </span>
-              <span style={{ color: "#7dd3fc" }}>en piloto automático</span>
+              <span style={{ color: "white" }}>Cómo controlo </span>
+              <span style={{ background: "linear-gradient(135deg, #fbbf24, #f59e0b)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>+1,000 dispositivos</span>
+              <span style={{ color: "white" }}> sin invertir en comprarlos — esta es la </span>
+              <span style={{ color: "#7dd3fc" }}>granja virtual</span>
+              <span style={{ color: "white" }}> que opera todo en piloto automático</span>
             </h1>
 
             <p style={{
@@ -278,7 +279,7 @@ export default function OfertaPage() {
               margin: "0 auto 32px",
               lineHeight: 1.6,
             }}>
-              Mira la infraestructura real que más de <strong style={{ color: "white" }}>4,200 emprendedores en Latam</strong> usan para escalar redes sociales sin contratar agencia.
+              La infraestructura real que más de <strong style={{ color: "white" }}>4,200 emprendedores en LATAM</strong> usan para comandar miles de cuentas en redes — <strong style={{ color: "white" }}>sin comprar un solo teléfono físico</strong>.
             </p>
 
             {/* HERO IMAGE — Ejército de bots */}
