@@ -218,6 +218,7 @@ export async function GET(request: Request) {
     }
 
     // Check if this is a new user (no balance record yet = first login)
+    let isNewUserFlag = false;
     if (session?.user) {
       try {
         const admin = createClient(
@@ -264,6 +265,7 @@ export async function GET(request: Request) {
         }
 
         const isNewUser = !bal;
+        isNewUserFlag = isNewUser;
 
         if (isNewUser) {
           // New user — create balance row
@@ -380,11 +382,16 @@ export async function GET(request: Request) {
       }
     }
 
-    // Si vino de un pago, propaga los params para que /smm/services dispare Pixel
-    const finalDestination = purchaseId && purchaseAmount
-      ? `${origin}/smm/services?purchase=${encodeURIComponent(purchaseId)}&amount=${encodeURIComponent(purchaseAmount)}`
-      : `${origin}/smm/services`;
-    return NextResponse.redirect(finalDestination);
+    // Si vino de un pago, propaga los params para que /smm/services dispare Pixel.
+    // Si es nuevo signup (OAuth), agregar registered=1 para CompleteRegistration.
+    const baseParams: string[] = [];
+    if (purchaseId && purchaseAmount) {
+      baseParams.push(`purchase=${encodeURIComponent(purchaseId)}`);
+      baseParams.push(`amount=${encodeURIComponent(purchaseAmount)}`);
+    }
+    if (isNewUserFlag) baseParams.push("registered=1");
+    const qs = baseParams.length ? `?${baseParams.join("&")}` : "";
+    return NextResponse.redirect(`${origin}/smm/services${qs}`);
   }
 
   return NextResponse.redirect(`${origin}/smm/services`);

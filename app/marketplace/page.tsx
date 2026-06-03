@@ -41,6 +41,28 @@ export default function MarketplacePage() {
 
   const scrollToCta = () => ctaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
 
+  // Signup gratis via OAuth Google. El drip arranca desde /auth/callback.
+  const startSignup = async () => {
+    setLoading(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (w.fbq) {
+      w.fbq("track", "Lead", {
+        content_name: "TRUST MIND signup",
+        content_category: "free_account",
+      });
+    }
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+    } catch (err) {
+      alert("Error: " + (err instanceof Error ? err.message : "desconocido"));
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -176,25 +198,25 @@ export default function MarketplacePage() {
             </div>
 
             {/* CTA primary — botón pill estilo creativo */}
-            <button onClick={scrollToCta} className="mk-cta-primary"
+            <button onClick={startSignup} disabled={loading} className="mk-cta-primary"
               style={{
                 padding: "18px 44px",
                 borderRadius: "100px",
                 border: "none",
-                background: `linear-gradient(135deg, ${FB_CYAN}, ${FB_BLUE})`,
+                background: loading ? "#1a1a2e" : `linear-gradient(135deg, ${FB_CYAN}, ${FB_BLUE})`,
                 color: "white",
                 fontSize: "16px",
                 fontWeight: 900,
-                cursor: "pointer",
-                boxShadow: `0 8px 32px ${FB_CYAN}50`,
-                animation: "pulse-cta 2.5s ease-out infinite",
+                cursor: loading ? "not-allowed" : "pointer",
+                boxShadow: loading ? "none" : `0 8px 32px ${FB_CYAN}50`,
+                animation: loading ? "none" : "pulse-cta 2.5s ease-out infinite",
                 letterSpacing: "1px",
                 textTransform: "uppercase",
               }}>
-              OBTENER ACCESO VIP →
+              {loading ? "Abriendo Google…" : "PROBAR GRATIS AHORA →"}
             </button>
             <p style={{ fontSize: "12px", color: "#64748b", marginTop: "14px" }}>
-              Activación inmediata · 30 días de garantía · Cancela cuando quieras
+              Acceso al panel sin tarjeta · Cancela cuando quieras
             </p>
           </div>
         </section>
@@ -390,22 +412,20 @@ export default function MarketplacePage() {
                   </div>
                 </div>
 
-                <button onClick={() => handleCheckout()} disabled={loading}
+                <button onClick={startSignup} disabled={loading}
                   style={{
                     width: "100%", padding: 18, borderRadius: 100, border: "none",
-                    background: loading ? "#1a1a2e" : selectedPlan === "yearly"
-                      ? "linear-gradient(135deg, #fbbf24, #f59e0b)"
-                      : `linear-gradient(135deg, ${FB_CYAN}, ${FB_BLUE})`,
-                    color: loading ? "#64748b" : selectedPlan === "yearly" ? "#1a1a00" : "white",
+                    background: loading ? "#1a1a2e" : `linear-gradient(135deg, ${FB_CYAN}, ${FB_BLUE})`,
+                    color: "white",
                     fontSize: 16, fontWeight: 900, cursor: loading ? "not-allowed" : "pointer", letterSpacing: 1, textTransform: "uppercase",
                     boxShadow: loading ? "none" : `0 8px 32px ${FB_CYAN}60`,
                     animation: loading ? "none" : "pulse-cta 2.5s ease-out infinite",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                   }}>
-                  {loading ? "Procesando..." : "OBTENER ACCESO VIP →"}
+                  {loading ? "Abriendo Google…" : "CREAR CUENTA GRATIS →"}
                 </button>
                 <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 16, flexWrap: "wrap" }}>
-                  {["🔒 Pago seguro Stripe", "✓ 30 días de garantía", "⚡ Acceso inmediato"].map((t) => (
+                  {["🚀 Acceso inmediato al panel", "✓ Sin tarjeta", "⚡ Cancela cuando quieras"].map((t) => (
                     <span key={t} style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>{t}</span>
                   ))}
                 </div>
@@ -448,17 +468,17 @@ export default function MarketplacePage() {
           <h2 style={{ fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 900, color: "white", marginBottom: 12, letterSpacing: "-0.02em", textTransform: "uppercase" }}>
             El software vende <span style={{ color: FB_CYAN }}>por ti</span>
           </h2>
-          <p style={{ fontSize: 15, color: "#94a3b8", marginBottom: 24 }}>$240/año (= $20/mes) o $50/mes · Acceso VIP inmediato</p>
-          <button onClick={() => handleCheckout()} disabled={loading} className="mk-cta-primary"
+          <p style={{ fontSize: 15, color: "#94a3b8", marginBottom: 24 }}>Acceso al panel sin tarjeta · Cancela cuando quieras</p>
+          <button onClick={startSignup} disabled={loading} className="mk-cta-primary"
             style={{
               padding: "18px 44px", borderRadius: 100, border: "none",
-              background: `linear-gradient(135deg, ${FB_CYAN}, ${FB_BLUE})`,
+              background: loading ? "#1a1a2e" : `linear-gradient(135deg, ${FB_CYAN}, ${FB_BLUE})`,
               color: "white", fontSize: 16, fontWeight: 900, cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: `0 8px 32px ${FB_CYAN}60`,
+              boxShadow: loading ? "none" : `0 8px 32px ${FB_CYAN}60`,
               letterSpacing: 1, textTransform: "uppercase",
               display: "inline-flex", alignItems: "center", gap: 10,
             }}>
-            <Sparkles size={18} /> {loading ? "..." : "OBTENER ACCESO VIP →"}
+            <Sparkles size={18} /> {loading ? "Abriendo Google…" : "CREAR CUENTA GRATIS →"}
           </button>
         </section>
 

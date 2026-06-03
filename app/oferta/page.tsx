@@ -97,6 +97,30 @@ export default function OfertaPage() {
 
   const scrollToCta = () => ctaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
 
+  // Signup gratis via OAuth Google.
+  // El drip campaign arranca solo desde /auth/callback al detectar new user.
+  const startSignup = async () => {
+    setLoading(true);
+    // FB Pixel Lead — entrega información de contacto (Google email)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (w.fbq) {
+      w.fbq("track", "Lead", {
+        content_name: "TRUST MIND signup",
+        content_category: "free_account",
+      });
+    }
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
+      });
+    } catch (err) {
+      alert("Error: " + (err instanceof Error ? err.message : "desconocido"));
+      setLoading(false);
+    }
+  };
+
   // Mostrar banner si llegó porque requiere Pro
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -370,25 +394,25 @@ export default function OfertaPage() {
             </div>
 
             {/* CTA principal */}
-            <button onClick={scrollToCta} className="vsl-hero-cta-primary"
+            <button onClick={startSignup} disabled={loading} className="vsl-hero-cta-primary"
               style={{
                 padding: "18px 36px",
                 borderRadius: "14px",
                 border: "none",
-                background: "linear-gradient(135deg, #007ABF, #00B4D8)",
+                background: loading ? "#1a1a2e" : "linear-gradient(135deg, #007ABF, #00B4D8)",
                 color: "white",
                 fontSize: "17px",
                 fontWeight: 800,
-                cursor: "pointer",
-                boxShadow: "0 8px 32px rgba(0, 180, 216, 0.4)",
-                animation: "pulse-cta 2.5s ease-out infinite",
+                cursor: loading ? "not-allowed" : "pointer",
+                boxShadow: loading ? "none" : "0 8px 32px rgba(0, 180, 216, 0.4)",
+                animation: loading ? "none" : "pulse-cta 2.5s ease-out infinite",
                 display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px",
                 letterSpacing: "0.2px",
               }}>
-              <Sparkles size={18} /> QUIERO ESTA OFERTA AHORA →
+              <Sparkles size={18} /> {loading ? "Abriendo Google…" : "PROBAR GRATIS AHORA →"}
             </button>
             <p style={{ fontSize: "12px", color: "#64748b", marginTop: "12px" }}>
-              ⚡ Acceso inmediato · Sin permanencia · 30 días de garantía
+              ⚡ Acceso inmediato · Sin tarjeta · Cancela cuando quieras
             </p>
           </div>
         </section>
@@ -762,7 +786,7 @@ export default function OfertaPage() {
                 </div>
 
                 {/* CTA */}
-                <button onClick={() => handleCheckout()} disabled={loading}
+                <button onClick={startSignup} disabled={loading}
                   style={{
                     width: "100%",
                     padding: "18px",
@@ -779,11 +803,9 @@ export default function OfertaPage() {
                     display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
                   }}>
                   {loading ? (
-                    <><div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid #64748b", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Procesando...</>
-                  ) : selectedPlan === "yearly" ? (
-                    <>🚀 ACTIVAR ANUAL — $240/AÑO</>
+                    <><div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid #64748b", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Abriendo Google…</>
                   ) : (
-                    <>🚀 ACTIVAR MENSUAL — $50/MES</>
+                    <>🚀 CREAR CUENTA GRATIS</>
                   )}
                 </button>
 
@@ -883,35 +905,25 @@ export default function OfertaPage() {
             </div>
 
             <div>
-              <button onClick={() => handleCheckout()} disabled={loading} className="vsl-final-cta-btn"
+              <button onClick={startSignup} disabled={loading} className="vsl-final-cta-btn"
                 style={{
                   padding: "20px 44px",
                   borderRadius: "14px",
                   border: "none",
-                  background: loading ? "#1a1a2e" : selectedPlan === "yearly"
-                    ? "linear-gradient(135deg, #fbbf24, #f59e0b)"
-                    : "linear-gradient(135deg, #007ABF, #00B4D8)",
-                  color: loading ? "#64748b" : selectedPlan === "yearly" ? "#1a1a00" : "white",
+                  background: loading ? "#1a1a2e" : "linear-gradient(135deg, #fbbf24, #f59e0b)",
+                  color: loading ? "#64748b" : "#1a1a00",
                   fontSize: "18px",
                   fontWeight: 900,
                   cursor: loading ? "not-allowed" : "pointer",
                   letterSpacing: "0.3px",
-                  boxShadow: loading ? "none" : selectedPlan === "yearly"
-                    ? "0 8px 32px rgba(251, 191, 36, 0.4)"
-                    : "0 8px 32px rgba(0, 180, 216, 0.4)",
+                  boxShadow: loading ? "none" : "0 8px 32px rgba(251, 191, 36, 0.4)",
                   animation: loading ? "none" : "pulse-cta 2.5s ease-out infinite",
                   display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px",
                 }}>
-                {loading
-                  ? "Procesando..."
-                  : selectedPlan === "yearly"
-                  ? "🚀 SÍ, QUIERO ANUAL — $240/AÑO →"
-                  : "🚀 SÍ, QUIERO MENSUAL — $50/MES →"}
+                {loading ? "Abriendo Google…" : "🚀 CREAR CUENTA GRATIS →"}
               </button>
               <p style={{ fontSize: "12px", color: "#94a3b8", marginTop: "12px" }}>
-                {selectedPlan === "yearly"
-                  ? "60% de descuento · Ahorra $360"
-                  : <>¿Prefieres ahorrar 60%? <span onClick={() => setSelectedPlan("yearly")} style={{ color: "#fbbf24", cursor: "pointer", textDecoration: "underline", fontWeight: 700 }}>Cambiar a anual ($20/mes)</span></>}
+                Acceso al panel ahora · Sin tarjeta · Cancela cuando quieras
               </p>
             </div>
 
