@@ -302,11 +302,36 @@ export default function OfertaPage() {
               fontSize: "clamp(16px, 2vw, 19px)",
               color: "#94a3b8",
               maxWidth: "620px",
-              margin: "0 auto 32px",
+              margin: "0 auto 22px",
               lineHeight: 1.6,
             }}>
               La infraestructura real que más de <strong style={{ color: "white" }}>4,200 emprendedores en LATAM</strong> usan para comandar miles de cuentas en redes — <strong style={{ color: "white" }}>sin comprar un solo teléfono físico</strong>.
             </p>
+
+            {/* TRUST BADGES — arriba del fold */}
+            <div className="vsl-trust-row" style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "10px 18px",
+              marginBottom: "28px",
+              fontSize: "13px",
+              color: "#cbd5e1",
+            }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600 }}>
+                <Shield size={14} style={{ color: "#34d399" }} /> Pago seguro Stripe
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600 }}>
+                <Clock size={14} style={{ color: "#7dd3fc" }} /> Cancela cuando quieras
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600 }}>
+                <Users size={14} style={{ color: "#fbbf24" }} /> +4,200 usuarios
+              </span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600 }}>
+                <span style={{ color: "#fbbf24", fontSize: "13px", letterSpacing: "-1px" }}>★★★★★</span>
+                <span>4.9 / 5</span>
+              </span>
+            </div>
 
             {/* HERO IMAGE — Ejército de bots */}
             <div className="vsl-hero-image" style={{

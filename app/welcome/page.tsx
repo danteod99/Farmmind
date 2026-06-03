@@ -63,14 +63,20 @@ export default async function WelcomePage({
       return <ErrorScreen title="Error" message="No se pudo recuperar tu email del pago. Contacta soporte." />;
     }
 
-    // ─── 1. Crear o encontrar user ───
+    // ─── 1. Crear o encontrar user (resistente a race con webhook) ───
+    // El webhook Stripe puede ejecutarse en paralelo y crear el mismo user.
+    // Estrategia: buscar primero; si no existe intentar crear; si colisiona,
+    // re-buscar (caso race).
+    const findByEmail = async (target: string): Promise<{ id: string } | null> => {
+      const { data: list } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+      const found = list.users.find((u) => u.email?.toLowerCase() === target.toLowerCase());
+      return found ? { id: found.id } : null;
+    };
+
     let userId: string;
-    const { data: existingList } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
-    const existing = existingList.users.find(
-      (u) => u.email?.toLowerCase() === email.toLowerCase()
-    );
-    if (existing) {
-      userId = existing.id;
+    const initial = await findByEmail(email);
+    if (initial) {
+      userId = initial.id;
     } else {
       const fullName = (customer?.name as string) || email.split("@")[0];
       const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
@@ -78,16 +84,31 @@ export default async function WelcomePage({
         email_confirm: true,
         user_metadata: { full_name: fullName },
       });
-      if (createErr || !created?.user) {
-        console.error("[/welcome] createUser error:", createErr);
-        return <ErrorScreen title="Error" message={createErr?.message || "No se pudo crear tu cuenta"} />;
+
+      if (created?.user) {
+        userId = created.user.id;
+        await supabaseAdmin
+          .from("smm_balances")
+          .insert({ user_id: userId, balance: 0 })
+          .select()
+          .maybeSingle();
+      } else {
+        // Race: el webhook probablemente lo creó entre nuestra búsqueda y este insert
+        const isAlreadyExists =
+          createErr?.message?.toLowerCase().includes("already") ||
+          (createErr as { code?: string })?.code === "email_exists";
+        if (isAlreadyExists) {
+          const retry = await findByEmail(email);
+          if (!retry) {
+            console.error("[/welcome] createUser said exists pero no lo encuentro:", createErr);
+            return <ErrorScreen title="Error" message="Conflicto creando tu cuenta. Refresca esta página en unos segundos." />;
+          }
+          userId = retry.id;
+        } else {
+          console.error("[/welcome] createUser error:", createErr);
+          return <ErrorScreen title="Error" message={createErr?.message || "No se pudo crear tu cuenta"} />;
+        }
       }
-      userId = created.user.id;
-      await supabaseAdmin
-        .from("smm_balances")
-        .insert({ user_id: userId, balance: 0 })
-        .select()
-        .maybeSingle();
     }
 
     // ─── 2. Activar Pro + bundle + saldo ───
@@ -210,7 +231,8 @@ export default async function WelcomePage({
 
     // ─── 4. Generar magic link + redirect directo (params para Pixel client) ───
     const amountForPixel = (session.amount_total || 0) / 100;
-    const callbackUrl = `${origin}/auth/callback?purchase=${session.id}&amount=${amountForPixel}`;
+    // registered=1 → /smm/services dispara fbq CompleteRegistration
+    const callbackUrl = `${origin}/auth/callback?purchase=${session.id}&amount=${amountForPixel}&registered=1`;
     const { data: linkData, error: linkErr } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",
       email,
@@ -228,8 +250,16 @@ export default async function WelcomePage({
       );
     }
 
-    // Redirect inmediato server-side al magic link → /auth/callback → /smm/services
-    redirect(linkData.properties.action_link);
+    // Mostrar página de éxito con CTAs claros + auto-redirect via magic link
+    // tras 6s (en caso que el user no haga click). Esto evita la "pantalla
+    // en blanco" durante el redirect y le da al user contexto visual.
+    return (
+      <SuccessScreen
+        email={email}
+        magicLink={linkData.properties.action_link}
+        amountPaid={(session.amount_total || 0) / 100}
+      />
+    );
   } catch (e) {
     // Next.js redirect lanza un error especial: dejarlo propagar
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -259,6 +289,91 @@ function ErrorScreen({ title, message }: { title: string; message: string }) {
         </p>
       </div>
     </div>
+  );
+}
+
+function SuccessScreen({ email, magicLink, amountPaid }: { email: string; magicLink: string; amountPaid: number }) {
+  // Escape para inyectar en script inline (server-safe)
+  const safeUrl = JSON.stringify(magicLink);
+  return (
+    <>
+      {/* Auto-redirect tras 6s si el user no hace click — fallback de UX */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `setTimeout(function(){ window.location.href = ${safeUrl}; }, 6000);`,
+        }}
+      />
+      <div style={{ background: "radial-gradient(ellipse at top, rgba(0,180,216,0.15), transparent 60%), #07070e", minHeight: "100vh", padding: "56px 20px", color: "#f0efff", fontFamily: "'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif" }}>
+        <div style={{ maxWidth: "720px", margin: "0 auto" }}>
+
+            {/* Confirmación */}
+            <div style={{ textAlign: "center", marginBottom: "40px" }}>
+              <div style={{ display: "inline-flex", padding: "20px", borderRadius: "24px", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.35)", marginBottom: "20px", fontSize: "48px", lineHeight: 1 }}>✓</div>
+              <h1 style={{ fontSize: "clamp(28px, 4.5vw, 42px)", fontWeight: 900, marginBottom: "10px", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                ¡Pago confirmado!
+              </h1>
+              <p style={{ fontSize: "16px", color: "#94a3b8", lineHeight: 1.55, marginBottom: "6px" }}>
+                Tu suscripción a <strong style={{ color: "white" }}>TRUST MIND Pro</strong> está activa.
+              </p>
+              {amountPaid > 0 && (
+                <p style={{ fontSize: "13px", color: "#10b981", fontWeight: 700 }}>
+                  +${amountPaid.toFixed(2)} acreditados a tu saldo SMM
+                </p>
+              )}
+            </div>
+
+            {/* CTA principal */}
+            <a href={magicLink} style={{
+              display: "block",
+              padding: "18px 24px",
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #007ABF, #00B4D8)",
+              color: "white",
+              fontSize: "16px",
+              fontWeight: 800,
+              textDecoration: "none",
+              textAlign: "center",
+              boxShadow: "0 12px 40px rgba(0, 180, 216, 0.4)",
+              marginBottom: "12px",
+            }}>
+              Entrar al panel ahora →
+            </a>
+            <p style={{ fontSize: "12px", color: "#5a6480", textAlign: "center", marginBottom: "40px" }}>
+              Te redirigimos automáticamente en 6 segundos. Cuenta: {email}
+            </p>
+
+            {/* Próximos pasos / Upsells */}
+            <div>
+              <p style={{ fontSize: "11px", color: "#5a6480", textTransform: "uppercase", letterSpacing: "1.5px", fontWeight: 700, marginBottom: "16px", textAlign: "center" }}>
+                Qué hacer ahora dentro del panel
+              </p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+                <div style={{ padding: "18px", borderRadius: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div style={{ fontSize: "22px", marginBottom: "8px" }}>⚡</div>
+                  <p style={{ fontSize: "14px", fontWeight: 800, color: "white", marginBottom: "4px" }}>Lanza tu primer pedido SMM</p>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.4 }}>Saldo activo. Likes, seguidores y views desde el primer minuto.</p>
+                </div>
+                <div style={{ padding: "18px", borderRadius: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div style={{ fontSize: "22px", marginBottom: "8px" }}>🎓</div>
+                  <p style={{ fontSize: "14px", fontWeight: 800, color: "white", marginBottom: "4px" }}>Academia desbloqueada</p>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.4 }}>Cursos de granjas, GenFarmer y monetización en cada plataforma.</p>
+                </div>
+                <div style={{ padding: "18px", borderRadius: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <div style={{ fontSize: "22px", marginBottom: "8px" }}>📥</div>
+                  <p style={{ fontSize: "14px", fontWeight: 800, color: "white", marginBottom: "4px" }}>Cuentas Express</p>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", lineHeight: 1.4 }}>Gmail, IG, TikTok, Telegram listas en segundos — usá tu saldo.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Soporte */}
+            <p style={{ fontSize: "12px", color: "#64748b", textAlign: "center", marginTop: "40px" }}>
+              ¿Algo no funciona? Escribinos a{" "}
+              <a href="https://wa.me/51931119176" style={{ color: "#7dd3fc", textDecoration: "underline" }}>WhatsApp +51 931 119 176</a>
+            </p>
+          </div>
+        </div>
+    </>
   );
 }
 
