@@ -1,0 +1,22 @@
+name: Drip nurture cron
+
+# Vercel Hobby no permite crons sub-diarios, así que disparamos
+# /api/cron/send-drip desde GitHub Actions cada 15 min.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  send-drip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger send-drip endpoint
+        run: |
+          curl -sS -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "User-Agent: github-actions-cron" \
+            --fail-with-body \
+            --max-time 120 \
+            https://www.trustmind.online/api/cron/send-drip
