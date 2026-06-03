@@ -300,8 +300,9 @@ export async function GET(request: Request) {
     const purchaseId = searchParams.get("purchase");
     const purchaseAmount = searchParams.get("amount");
 
-    // GATE: solo usuarios Pro pueden acceder a /smm/*. Free → forzar paywall.
-    // Admins, panel_clients y resellers entran sin restricción.
+    // Reconciliar Pro contra Stripe si tiene customer pero DB no refleja la sub
+    // (cubre race condition: pagó pero webhook aún no procesa). Esto NO bloquea
+    // a free users — solo activa Pro si Stripe lo confirma.
     if (session?.user) {
       const adminEmails = (process.env.ADMIN_EMAILS || "danteod99@gmail.com").split(",").map(e => e.trim().toLowerCase());
       const isAdminUser = adminEmails.includes((session.user.email || "").toLowerCase());
@@ -332,8 +333,6 @@ export async function GET(request: Request) {
               (profile?.subscription_status === "active" ||
                 profile?.subscription_status === "trialing"));
 
-          // Si NO es Pro pero tiene stripe_customer_id, intentar reconciliar contra Stripe
-          // (cubre race condition: pagó pero webhook aún no procesa)
           if (!isPro && profile?.stripe_customer_id) {
             try {
               const Stripe = (await import("stripe")).default;
@@ -344,7 +343,6 @@ export async function GET(request: Request) {
                 limit: 5,
               });
               if (stripeSubs.data.length > 0) {
-                // Hay sub activa en Stripe pero DB no la refleja — activar Pro y dejar entrar
                 const activeSub = stripeSubs.data[0];
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const subAny = activeSub as any;
@@ -364,20 +362,16 @@ export async function GET(request: Request) {
                   { onConflict: "user_id,product" }
                 );
                 console.log(`[Auth Callback] Pro reconciliado via Stripe para ${session.user.email}`);
-                return NextResponse.redirect(`${origin}/smm/services?welcome=1`);
               }
             } catch (reconcileErr) {
               console.error("[Auth Callback] Stripe reconcile failed:", reconcileErr);
             }
           }
-
-          if (!isPro) {
-            // Free user logueado: deja que vea /downloads (tiene paywall propio)
-            return NextResponse.redirect(`${origin}/downloads`);
-          }
+          // Modelo freemium 2026-06-03: ya NO se redirige a /downloads ni
+          // /oferta?gate=1 si no es Pro. Free users entran al panel y ven
+          // paywalls suaves por feature (cursos, recargar, etc).
         } catch (e) {
-          console.error("[Auth Callback] Pro gate check failed:", e);
-          return NextResponse.redirect(`${origin}/downloads`);
+          console.error("[Auth Callback] Pro reconcile check failed:", e);
         }
       }
     }
