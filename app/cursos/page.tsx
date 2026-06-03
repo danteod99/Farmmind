@@ -45,17 +45,29 @@ export default function CursosPage() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const startAnnualCheckout = async () => {
-    const priceId = process.env.NEXT_PUBLIC_STRIPE_ANNUAL_PRICE_ID;
+    const priceId = process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID;
     if (!priceId) {
       alert("La suscripción anual aún no está configurada. Contacta a soporte.");
       return;
     }
     setCheckoutLoading(true);
+    // FB Pixel + CAPI InitiateCheckout (pareado por eventId)
+    const eventId = `ic_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    const value = 240;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (w.fbq) {
+      w.fbq("track", "InitiateCheckout", {
+        value, currency: "USD",
+        content_name: "TRUST MIND Pro Anual",
+        content_type: "subscription",
+      }, { eventID: eventId });
+    }
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId, fbEventId: eventId, fbPlan: "yearly", fbValue: value }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;

@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { sendFbEvent } from "@/app/lib/fb-capi";
 
 function getStripe() {
   return new Stripe(process.env.STRIPE_SECRET_KEY || "sk_placeholder", {
@@ -46,7 +47,8 @@ export async function POST(req: Request) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { priceId } = await req.json();
+    const body = await req.json();
+    const { priceId, fbEventId, fbPlan, fbValue } = body || {};
     if (!priceId || typeof priceId !== "string" || !priceId.startsWith("price_")) {
       return Response.json(
         { error: "Price ID inválido. Contacta a soporte (config de Stripe falta)." },
@@ -56,6 +58,28 @@ export async function POST(req: Request) {
 
     const origin = req.headers.get("origin") || "https://www.trustmind.online";
     const stripe = getStripe();
+
+    // FB CAPI InitiateCheckout — pareado con Pixel client-side via fbEventId.
+    // Lo enviamos en background (sin await) para no demorar el checkout.
+    if (fbEventId) {
+      const cookieHeader = req.headers.get("cookie") || "";
+      const fbpMatch = cookieHeader.match(/_fbp=([^;]+)/);
+      const fbcMatch = cookieHeader.match(/_fbc=([^;]+)/);
+      sendFbEvent({
+        eventName: "InitiateCheckout",
+        eventId: String(fbEventId),
+        email: user?.email,
+        amount: typeof fbValue === "number" ? fbValue : undefined,
+        currency: "USD",
+        contentName: fbPlan === "yearly" ? "TRUST MIND Pro Anual" : "TRUST MIND Pro Mensual",
+        contentType: "subscription",
+        fbp: fbpMatch?.[1] || null,
+        fbc: fbcMatch?.[1] || null,
+        ipAddress: req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+        userAgent: req.headers.get("user-agent") || null,
+        eventSourceUrl: req.headers.get("referer") || origin + "/oferta",
+      }).catch(() => {});
+    }
 
     // ─── Modo GUEST: sin sesión, Stripe Checkout recolecta email
     // En mode='subscription' Stripe siempre crea customer automático con el email,

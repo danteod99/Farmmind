@@ -39,6 +39,19 @@ export default function OfertaPage() {
     return () => clearInterval(id);
   }, []);
 
+  // FB Pixel — ViewContent al ver la oferta (señal soft de interés)
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (w.fbq) {
+      w.fbq("track", "ViewContent", {
+        content_name: "TRUST MIND Pro",
+        content_type: "subscription",
+        content_category: "oferta",
+      });
+    }
+  }, []);
+
   const formatTime = (s: number) => {
     const h = Math.floor(s / 3600);
     const m = Math.floor((s % 3600) / 60);
@@ -53,11 +66,24 @@ export default function OfertaPage() {
       const priceId = plan === "yearly"
         ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
         : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
+      // Generamos un eventId para deduplicar Pixel y CAPI
+      const eventId = `ic_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+      const value = plan === "yearly" ? 240 : 50;
+      // FB Pixel — InitiateCheckout client-side
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = window as any;
+      if (w.fbq) {
+        w.fbq("track", "InitiateCheckout", {
+          value, currency: "USD",
+          content_name: plan === "yearly" ? "TRUST MIND Pro Anual" : "TRUST MIND Pro Mensual",
+          content_type: "subscription",
+        }, { eventID: eventId });
+      }
       // Llamar directo al server. Si no hay sesión devuelve 401 → entonces OAuth.
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId, fbEventId: eventId, fbPlan: plan, fbValue: value }),
       });
       const data = await res.json();
       if (data.url) { window.location.href = data.url; return; }
@@ -295,7 +321,10 @@ export default function OfertaPage() {
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/oferta/ejercito-bots.png"
+                src="/oferta/ejercito-bots.webp"
+                fetchPriority="high"
+                loading="eager"
+                decoding="async"
                 alt="Ejército de bots — Granja de teléfonos TrustMind"
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               />
@@ -492,19 +521,19 @@ export default function OfertaPage() {
             }}>
               {[
                 {
-                  src: "/resultados/testimonio-braulio.png",
+                  src: "/resultados/testimonio-braulio.webp",
                   name: "Braulio Espíritu",
                   result: "$7,275.80 procesados",
                   quote: "Ahora yo también soy granjero. Estos son los resultados de mis últimos meses, gracias Dante por la asesoría.",
                 },
                 {
-                  src: "/resultados/testimonio-ricardo.png",
+                  src: "/resultados/testimonio-ricardo.webp",
                   name: "Ricardo Sayas",
                   result: "$3,466.05 en 1 mes",
                   quote: "¡Qué locura! No puedo creer lo que estoy logrando con mi granja de bots. De verdad que vale la pena la inversión.",
                 },
                 {
-                  src: "/resultados/testimonio-isaac.png",
+                  src: "/resultados/testimonio-isaac.webp",
                   name: "Isaac Zaak",
                   result: "Primera granja recibida",
                   quote: "Hoy recibí mi primera granja, el lunes empiezo el montaje y configuración. ¡A todo gas!",
@@ -521,6 +550,7 @@ export default function OfertaPage() {
                   <div style={{ position: "relative", aspectRatio: "1/1", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0a0a14" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={t.src} alt={`Testimonio de ${t.name}`}
+                      loading="lazy" decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
                   </div>
                   <div style={{ padding: "20px" }}>
@@ -550,7 +580,7 @@ export default function OfertaPage() {
             }}>
               {[
                 {
-                  src: "/resultados/youtube-6m.png",
+                  src: "/resultados/youtube-6m.webp",
                   title: "6.3M views · $1,407 revenue",
                   desc: "Crecimiento orgánico de un canal que usa nuestro sistema. 5.4M horas de visualización.",
                 },
@@ -569,6 +599,7 @@ export default function OfertaPage() {
                   <div style={{ position: "relative", aspectRatio: "16/10", overflow: "hidden", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "#0a0a14" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={y.src} alt={y.title}
+                      loading="lazy" decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
                   </div>
                   <div style={{ padding: "18px 20px" }}>
