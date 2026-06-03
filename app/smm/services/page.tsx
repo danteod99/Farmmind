@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamicImport from "next/dynamic";
 import { supabase } from "@/app/lib/supabase";
 import {
   Search, LogOut, ShoppingCart, ChevronDown, X, Zap, CheckCircle,
@@ -12,9 +13,14 @@ import {
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { SmmNav } from "@/app/components/SmmNav";
-import ChatPopup from "@/app/components/ChatPopup";
-import { TrustFooter } from "@/app/components/TrustFooter";
-import ExpressTab from "./_ExpressTab";
+
+// Lazy load: solo importan cuando se usan. Reduce JS inicial ~30KB.
+const ChatPopup = dynamicImport(() => import("@/app/components/ChatPopup"), { ssr: false, loading: () => null });
+const TrustFooter = dynamicImport(() => import("@/app/components/TrustFooter").then(m => ({ default: m.TrustFooter })), { ssr: false, loading: () => null });
+const ExpressTab = dynamicImport(() => import("./_ExpressTab"), {
+  ssr: false,
+  loading: () => <div style={{ padding: 60, textAlign: "center", color: "#5a6480", fontSize: 13 }}>Cargando catálogo…</div>,
+});
 
 interface Service {
   service: number;
@@ -418,32 +424,70 @@ export default function ServicesPage() {
   };
 
   const fetchData = async (userId: string) => {
+    // 1. Hidratar instant desde cache si existe (visitas subsecuentes ven UI 0ms)
     try {
-      // Load featured services first (fast) + orders + stats in parallel
-      const [servRes, ordRes, statsRes] = await Promise.all([
-        fetch("/api/smm/services?featured=true"),
-        fetch("/api/smm/orders"),
-        fetch("/api/smm/service-stats"),
-      ]);
-      if (servRes.ok) {
-        const data = await servRes.json();
-        const list = Array.isArray(data) ? data : (Array.isArray(data.services) ? data.services : []);
-        setServices(list);
-        if (data.total) setTotalServices(data.total);
+      const cached = localStorage.getItem("smm_services_cache_v1");
+      if (cached) {
+        const c = JSON.parse(cached);
+        if (Array.isArray(c.services) && Date.now() - c.t < 5 * 60 * 1000) {
+          setServices(c.services);
+          if (typeof c.total === "number") setTotalServices(c.total);
+          if (typeof c.balance === "number") setBalance(c.balance);
+          if (c.counts) setServiceOrderCounts(c.counts);
+          setLoading(false);
+        }
       }
-      if (ordRes.ok) {
-        const data = await ordRes.json();
-        setBalance(data.balance || 0);
-        setNetworkDiscount(data.network_discount || 0);
+    } catch { /* ignore cache errors */ }
+
+    // 2. Disparar fetches en paralelo, NO await todos juntos.
+    //    El UI se libera apenas llegue services; los demás llenan progresivamente.
+    const servPromise = fetch("/api/smm/services?featured=true").then(r => r.ok ? r.json() : null).catch(() => null);
+    const ordPromise = fetch("/api/smm/orders").then(r => r.ok ? r.json() : null).catch(() => null);
+    const statsPromise = fetch("/api/smm/service-stats").then(r => r.ok ? r.json() : null).catch(() => null);
+
+    let freshServices: Service[] = [];
+    let freshTotal = 0;
+    let freshBalance = 0;
+    let freshCounts: Record<string, number> = {};
+
+    const servData = await servPromise;
+    if (servData) {
+      freshServices = Array.isArray(servData) ? servData : (Array.isArray(servData.services) ? servData.services : []);
+      setServices(freshServices);
+      if (servData.total) {
+        freshTotal = servData.total;
+        setTotalServices(freshTotal);
       }
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setServiceOrderCounts(data.counts || {});
-      }
-      void userId;
-    } finally {
-      setLoading(false);
     }
+    setLoading(false); // UI libre apenas services llegue (~370ms)
+
+    // Los siguientes llegan después sin bloquear el render
+    ordPromise.then((ordData) => {
+      if (ordData) {
+        freshBalance = ordData.balance || 0;
+        setBalance(freshBalance);
+        setNetworkDiscount(ordData.network_discount || 0);
+      }
+    });
+    statsPromise.then((statsData) => {
+      if (statsData) {
+        freshCounts = statsData.counts || {};
+        setServiceOrderCounts(freshCounts);
+      }
+      // Persistir cache para próxima visita
+      try {
+        if (freshServices.length) {
+          localStorage.setItem("smm_services_cache_v1", JSON.stringify({
+            t: Date.now(),
+            services: freshServices,
+            total: freshTotal,
+            balance: freshBalance,
+            counts: freshCounts,
+          }));
+        }
+      } catch { /* ignore quota errors */ }
+    });
+    void userId;
   };
 
   const loadAllServices = async () => {
