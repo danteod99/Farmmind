@@ -268,6 +268,17 @@ export async function GET(request: Request) {
         if (isNewUser) {
           // New user — create balance row
           await admin.from("smm_balances").insert({ user_id: session.user.id, balance: 0 });
+
+          // Enqueue drip campaign (7 mensajes — emails + WhatsApp)
+          // No await: ejecuta en background, no demora el redirect
+          try {
+            const { scheduleSignupDrip } = await import("@/app/lib/drip-scheduler");
+            scheduleSignupDrip(session.user.id).catch((e) =>
+              console.error("[Auth Callback] drip enqueue failed:", e)
+            );
+          } catch (dripErr) {
+            console.error("[Auth Callback] drip import failed:", dripErr);
+          }
         }
 
         // (Red de mercadeo eliminada 2026-05-28: ya no se asignan sponsors

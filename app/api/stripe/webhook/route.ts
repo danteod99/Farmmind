@@ -264,6 +264,12 @@ export async function POST(req: Request) {
             },
             { onConflict: "user_id,product" }
           );
+
+          // Cancelar drip campaign pendiente — el user ya convirtió
+          try {
+            const { cancelDripForUser } = await import("@/app/lib/drip-scheduler");
+            cancelDripForUser(userId, "user converted to Pro").catch(() => {});
+          } catch { /* no-op */ }
         }
 
         break;
