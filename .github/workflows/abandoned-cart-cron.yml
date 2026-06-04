@@ -1,0 +1,22 @@
+name: Abandoned cart recovery
+
+# Reengancha por email a quien inició el checkout Pro y no pagó.
+# El endpoint es idempotente; correrlo cada hora es suficiente.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Trigger abandoned-cart endpoint
+        run: |
+          curl -sS -X GET \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "User-Agent: github-actions-cron" \
+            --fail-with-body \
+            --max-time 120 \
+            https://www.trustmind.online/api/cron/abandoned-cart

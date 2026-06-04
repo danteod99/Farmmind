@@ -1,5 +1,7 @@
 // Templates del drip "signup_nurture" — educacional + cierre directo.
-// 7 mensajes: 5 emails + 2 WhatsApp distribuidos en 7 días.
+// 6 emails distribuidos en 7 días. WhatsApp desactivado (aún no configurado).
+// Las primeras 24h son las clave para que el user recargue: 2 emails ahí
+// (bienvenida ~5 min + push de recarga ~6 h).
 // Schedule offsets: hours from signup.
 
 export interface DripStep {
@@ -16,6 +18,7 @@ export interface TemplateCtx {
   firstName: string;
   email: string;
   panelUrl: string;          // https://www.trustmind.online/smm/services
+  fundsUrl: string;          // https://www.trustmind.online/smm/funds (recarga de saldo)
   ofertaUrl: string;         // https://www.trustmind.online/oferta
   cursosUrl: string;
   unsubscribeUrl: string;
@@ -78,6 +81,26 @@ export const DRIP_STEPS: DripStep[] = [
     }),
   },
 
+  // ───── STEP 7 — Día 0 (~6 h) — Email — Push de recarga (2º email en las 24h clave) ─────
+  {
+    step: 7,
+    channel: "email",
+    offsetHours: 6,
+    subject: (c) => `${c.firstName}, así arrancás hoy (toma 2 minutos)`,
+    render: (c) => ({
+      html: wrap(`
+        <p style="font-size:21px;font-weight:900;color:white;line-height:1.22;margin:0 0 12px">Las primeras 24 horas deciden todo.</p>
+        <p style="margin:0 0 14px">El dato real: quien hace su <strong style="color:white">primer pedido el día 1</strong> tiene 4× más chance de quedarse y escalar. Quien lo deja para "después" casi nunca vuelve.</p>
+        <p style="margin:0 0 14px">Y para pedir tu primer servicio solo necesitás <strong style="color:#10b981">saldo en el panel</strong>. Con <strong style="color:white">$3-5 USD</strong> ya probás likes, seguidores o views y ves resultados en minutos.</p>
+        <p style="margin:0 0 14px">Recargás en 2 minutos (tarjeta o cripto), sin mínimos absurdos:</p>
+        ${ctaButton("Recargar saldo y pedir →", c.fundsUrl, "#10b981")}
+        <p style="margin:22px 0 0;font-size:13px;color:#94a3b8">¿Querés ver primero el catálogo? Está acá: <a href="${c.panelUrl}" style="color:#7dd3fc;text-decoration:underline">los servicios del panel</a>.</p>
+        <p style="margin:14px 0 0;font-size:13px;color:#94a3b8">— Dante, fundador</p>
+      `, c),
+      text: `${c.firstName}, las primeras 24h deciden todo. Recargá $3-5 y hacé tu primer pedido: ${c.fundsUrl}`,
+    }),
+  },
+
   // ───── STEP 1 — Día 1 — Email — Caso de éxito ─────
   {
     step: 1,
@@ -100,26 +123,6 @@ export const DRIP_STEPS: DripStep[] = [
         <p style="margin:24px 0 0;font-size:13px;color:#94a3b8">— Dante</p>
       `, c),
       text: `Braulio facturó $7,275 con TrustMind. Tu panel: ${c.panelUrl}`,
-    }),
-  },
-
-  // ───── STEP 2 — Día 2 — WhatsApp — Quick tip ─────
-  {
-    step: 2,
-    channel: "whatsapp",
-    offsetHours: 48,
-    render: (c) => ({
-      body: `Hola ${c.firstName}, soy Dante de TrustMind 👋
-
-Pregunta rápida: ¿ya entraste al panel?
-
-El 80% de los que se registran no vuelven el primer día. Si lo dejás pasar, después se complica.
-
-Tip simple: probá un pedido chico de likes o seguidores ($1-3 USD). Vas a ver cómo funciona en menos de 30 min.
-
-Panel: ${c.panelUrl}
-
-Cualquier duda me respondés acá mismo.`,
     }),
   },
 
@@ -174,26 +177,6 @@ Cualquier duda me respondés acá mismo.`,
         <p style="margin:14px 0 0;font-size:13px;color:#94a3b8">— Dante</p>
       `, c),
       text: `Plan anual TrustMind: $240/año. ${c.ofertaUrl}`,
-    }),
-  },
-
-  // ───── STEP 5 — Día 6 — WhatsApp — Recordatorio amable ─────
-  {
-    step: 5,
-    channel: "whatsapp",
-    offsetHours: 144,
-    render: (c) => ({
-      body: `${c.firstName}, último ping desde TrustMind 👋
-
-Mañana se cierra el precio del plan anual a $240.
-
-Después sube a $297.
-
-Si querés agarrarlo: ${c.ofertaUrl}
-
-(Si ya no te interesa, decime y no te mando nada más. Sin problema.)
-
-— Dante`,
     }),
   },
 

@@ -18,6 +18,18 @@ function verifyToken(userId: string, token: string): boolean {
   return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
 }
 
+// Token de baja por DIRECCIÓN de email (carrito abandonado, invitados sin cuenta).
+function verifyEmailToken(email: string, token: string): boolean {
+  const secret = process.env.UNSUBSCRIBE_SECRET || "trustmind_unsub";
+  const expected = crypto
+    .createHmac("sha256", secret)
+    .update(`email:${email.toLowerCase()}`)
+    .digest("hex")
+    .slice(0, 24);
+  if (token.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(token), Buffer.from(expected));
+}
+
 function renderPage(title: string, message: string, color: string): Response {
   const html = `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title} · TrustMind</title></head>
 <body style="margin:0;background:#07070e;color:#f0efff;font-family:-apple-system,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
@@ -35,7 +47,35 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const userId = url.searchParams.get("u");
   const token = url.searchParams.get("t");
+  const emailParam = url.searchParams.get("e");
   const channel = (url.searchParams.get("c") || "all") as "all" | "email" | "whatsapp";
+
+  // ── Baja por email (carrito abandonado / invitados sin cuenta) ──
+  if (emailParam && token) {
+    const email = emailParam.toLowerCase();
+    if (!verifyEmailToken(email, token)) {
+      return renderPage(
+        "Enlace inválido",
+        "Este enlace de cancelación no es válido o expiró. Si querés dejar de recibir mensajes, escribinos a soporte@trustmind.online.",
+        "#ef4444"
+      );
+    }
+    const sb = admin();
+    await sb.from("email_suppressions").upsert(
+      { email, reason: "unsubscribe link", source: "abandoned_cart" },
+      { onConflict: "email" }
+    );
+    // Cerrar cualquier recuperación pendiente de ese email.
+    await sb.from("payment_attempts")
+      .update({ recovery_step: 99 })
+      .eq("email", email)
+      .lt("recovery_step", 99);
+    return renderPage(
+      "Listo, cancelado",
+      "No vas a recibir más correos nuestros. Si fue un error o cambiás de opinión, escribinos a soporte@trustmind.online.",
+      "#10b981"
+    );
+  }
 
   if (!userId || !token || !verifyToken(userId, token)) {
     return renderPage(

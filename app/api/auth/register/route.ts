@@ -40,6 +40,15 @@ export async function POST(req: Request) {
 
     // (Red de mercadeo eliminada 2026-05-28: ya no se crean placements por referido.)
 
+    // Encolar la secuencia de nurture (igual que en signups por OAuth en /auth/callback).
+    // No bloquea ni rompe el registro si falla.
+    if (userId) {
+      const { scheduleSignupDrip } = await import("@/app/lib/drip-scheduler");
+      scheduleSignupDrip(userId).catch((e) =>
+        console.error("[register] scheduleSignupDrip failed:", e)
+      );
+    }
+
     return NextResponse.json({ success: true, user_id: userId });
   } catch {
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
