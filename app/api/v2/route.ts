@@ -172,12 +172,24 @@ async function actionAdd(
   return Response.json({ order: japResult.order });
 }
 
-async function actionStatus(params: Record<string, string>) {
+async function actionStatus(resellerId: string, params: Record<string, string>) {
   const { order } = params;
   if (!order) return err("Missing order field");
 
   const orderId = parseInt(order);
   if (isNaN(orderId)) return err("Invalid order ID");
+
+  // Authorization: el pedido debe pertenecer a ESTE reseller. Sin esta
+  // verificación, cualquier api_key válida podía leer el estado/cargo de
+  // pedidos ajenos consultándolos directo en el panel padre (IDOR).
+  const admin = getAdmin();
+  const { data: owned } = await admin
+    .from("smm_orders")
+    .select("id")
+    .eq("jap_order_id", orderId)
+    .eq("reseller_id", resellerId)
+    .maybeSingle();
+  if (!owned) return err("Incorrect order ID", 404);
 
   const statusData = await getOrderStatus(orderId);
 
@@ -240,7 +252,7 @@ async function handle(req: Request): Promise<Response> {
       case "add":
         return actionAdd(reseller.id, reseller.user_id, params);
       case "status":
-        return actionStatus(params);
+        return actionStatus(reseller.id, params);
       case "orders":
         return actionOrders(reseller.id);
       default:

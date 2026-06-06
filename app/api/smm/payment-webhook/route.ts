@@ -14,23 +14,27 @@ export async function POST(req: Request) {
     const body = await req.text();
     const data = JSON.parse(body);
 
-    // Verificar firma HMAC si está configurada
+    // Verificación de firma HMAC OBLIGATORIA. Antes era "fail-open": si el
+    // secret no estaba configurado, se saltaba la verificación y se acreditaba
+    // saldo con input sin autenticar. Ahora si falta el secret se rechaza.
     const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET;
-    if (ipnSecret) {
-      const signature = req.headers.get("x-nowpayments-sig");
-      if (!signature) {
-        return new Response("Missing signature", { status: 401 });
-      }
-      // NOWPayments ordena las claves del payload alfabéticamente para la firma
-      const sorted = JSON.stringify(sortObjectKeys(data));
-      const hmac = crypto.createHmac("sha512", ipnSecret).update(sorted).digest("hex");
-      // Use timing-safe comparison to prevent timing attacks
-      const hmacBuf = Buffer.from(hmac, "hex");
-      const sigBuf = Buffer.from(signature, "hex");
-      if (hmacBuf.length !== sigBuf.length || !crypto.timingSafeEqual(hmacBuf, sigBuf)) {
-        console.error("IPN signature mismatch");
-        return new Response("Invalid signature", { status: 401 });
-      }
+    if (!ipnSecret) {
+      console.error("NOWPAYMENTS_IPN_SECRET no configurado — rechazando IPN por seguridad");
+      return new Response("IPN verification not configured", { status: 503 });
+    }
+    const signature = req.headers.get("x-nowpayments-sig");
+    if (!signature) {
+      return new Response("Missing signature", { status: 401 });
+    }
+    // NOWPayments ordena las claves del payload alfabéticamente para la firma
+    const sorted = JSON.stringify(sortObjectKeys(data));
+    const hmac = crypto.createHmac("sha512", ipnSecret).update(sorted).digest("hex");
+    // Use timing-safe comparison to prevent timing attacks
+    const hmacBuf = Buffer.from(hmac, "hex");
+    const sigBuf = Buffer.from(signature, "hex");
+    if (hmacBuf.length !== sigBuf.length || !crypto.timingSafeEqual(hmacBuf, sigBuf)) {
+      console.error("IPN signature mismatch");
+      return new Response("Invalid signature", { status: 401 });
     }
 
     const { payment_id, payment_status, order_id, price_amount, actually_paid } = data;

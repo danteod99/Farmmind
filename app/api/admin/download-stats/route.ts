@@ -1,11 +1,32 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { isAdmin } from "@/app/lib/admin";
 
 function getSupabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
+}
+
+// Solo admins — este endpoint expone métricas de negocio (suscriptores,
+// conversión, descargas). Antes estaba abierto a cualquiera.
+async function requireAdmin(): Promise<boolean> {
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return cookieStore.getAll(); },
+        setAll() {},
+      },
+    }
+  );
+  const { data: { user } } = await supabase.auth.getUser();
+  return Boolean(user && isAdmin(user.email));
 }
 
 const REPOS = [
@@ -28,6 +49,10 @@ interface Release {
 
 export async function GET() {
   try {
+    if (!(await requireAdmin())) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
     const sb = getSupabaseAdmin();
 
     // Fetch all active subscriptions
