@@ -2,16 +2,15 @@ import Link from "next/link";
 import { Bot, Cpu, Globe, MessageSquare, ShoppingCart, Sparkles, Star, Zap, ShieldCheck, Smartphone } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { TrustFooter } from "@/app/components/TrustFooter";
-import { PricingProCard } from "@/app/components/PricingProCard";
 import { LoginButton } from "@/app/components/LoginButton";
 
 export const metadata = {
   title: "TrustMind — IA que comanda 1,000 granjas de bots",
-  description: "Plataforma de IA que automatiza granjas de bots. Controla 1,000 cuentas con un agente IA, software antidetect, +5,000 servicios SMM y cursos. TRUST MIND Pro desde $20/mes.",
+  description: "Plataforma de IA que automatiza granjas de bots. Controla 1,000 cuentas con un agente IA, software antidetect, +5,000 servicios SMM y cursos. Granjas llave en mano.",
   alternates: { canonical: "https://www.trustmind.online" },
   openGraph: {
     title: "TrustMind — IA que comanda 1,000 granjas de bots",
-    description: "IA que automatiza granjas de bots. Software antidetect, +5,000 servicios SMM, curso completo. Desde $20/mes.",
+    description: "IA que automatiza granjas de bots. Software antidetect, +5,000 servicios SMM y curso completo. Granjas llave en mano.",
     url: "https://www.trustmind.online",
     siteName: "TrustMind",
     type: "website",
@@ -49,7 +48,7 @@ const FEATURES = [
   {
     icon: Sparkles,
     title: "Curso completo incluido",
-    desc: "Aprende a operar granjas de bots, escalar redes y monetizar tu operación. Todo dentro de la membresía Pro.",
+    desc: "Aprende a operar granjas de bots, escalar redes y monetizar tu operación. Guía paso a paso.",
   },
   {
     icon: Cpu,
@@ -91,7 +90,7 @@ const TESTIMONIALS = [
   {
     name: "Ana R.",
     role: "Reseller · Colombia",
-    text: "Con el plan Pro automatizo 50 cuentas en simultáneo y revendo seguidores a clientes. La IA me sugiere campañas y precios en segundos.",
+    text: "Automatizo 50 cuentas en simultáneo y revendo seguidores a clientes. La IA me sugiere campañas y precios en segundos.",
   },
   {
     name: "Diego F.",
@@ -151,7 +150,7 @@ export default function HomePage() {
           {/* Badge */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 18px", borderRadius: "100px", background: "linear-gradient(135deg, rgba(0, 122, 191, 0.18), rgba(0, 180, 216, 0.15))", border: "1px solid rgba(0, 180, 216, 0.4)", marginBottom: "32px" }}>
             <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399", animation: "pulse-glow 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 700, letterSpacing: "0.3px" }}>TRUST MIND Pro — desde $20/mes · acceso completo</span>
+            <span style={{ fontSize: "13px", color: "#7dd3fc", fontWeight: 700, letterSpacing: "0.3px" }}>TRUST MIND — IA + granjas llave en mano</span>
           </div>
 
           {/* Headline */}
@@ -164,7 +163,7 @@ export default function HomePage() {
           </h1>
 
           <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#94a3b8", lineHeight: 1.7, maxWidth: "640px", margin: "0 auto 40px", fontWeight: 400 }}>
-            Un <strong style={{ color: "#7dd3fc" }}>agente IA</strong> que opera Instagram, TikTok y Facebook por ti. Software antidetect (TrustInsta + TrustFace + TrustFarm), proxies premium, +5,000 servicios SMM y curso completo de granjas de bots. <strong style={{ color: "#7dd3fc" }}>TRUST MIND Pro — desde $20/mes.</strong>
+            Un <strong style={{ color: "#7dd3fc" }}>agente IA</strong> que opera Instagram, TikTok y Facebook por ti. Software antidetect (TrustInsta + TrustFace + TrustFarm), proxies premium, +5,000 servicios SMM y curso completo de granjas de bots. <strong style={{ color: "#7dd3fc" }}>Granjas llave en mano, listas para escalar.</strong>
           </p>
 
           {/* CTA */}
@@ -177,7 +176,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "20px", flexWrap: "wrap" }}>
-            {["Cancela cuando quieras", "Stripe seguro", "Soporte WhatsApp"].map((t, i) => (
+            {["Sin mensualidades", "Pago seguro con Stripe", "Soporte WhatsApp"].map((t, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <Zap size={12} color="#34d399" />
                 <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>{t}</span>
@@ -296,29 +295,6 @@ export default function HomePage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRICING ── */}
-      <section className="home-section" style={{ padding: "60px 32px 80px" }}>
-        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: "48px" }}>
-            <p style={{ fontSize: "11px", fontWeight: 700, color: "#007ABF", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "10px" }}>Pricing</p>
-            <h2 style={{ fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 900, color: "white", letterSpacing: "-0.03em" }}>
-              Un solo plan. <span style={{ color: "#7dd3fc" }}>Todo incluido.</span>
-            </h2>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px", maxWidth: "560px", margin: "0 auto" }}>
-            <PricingProCard />
-
-            <div style={{ background: "linear-gradient(160deg, #0a0a14 0%, #06060c 100%)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "28px", textAlign: "center" }}>
-              <p style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "12px" }}>¿Quieres una granja física llave en mano?</p>
-              <Link href="/granjas" className="btn-ghost" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "12px 24px", borderRadius: "12px", color: "white", fontSize: "14px", fontWeight: 700, textDecoration: "none" }}>
-                <Smartphone size={14} /> Ver granjas disponibles
-              </Link>
-            </div>
           </div>
         </div>
       </section>
