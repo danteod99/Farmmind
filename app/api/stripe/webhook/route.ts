@@ -14,6 +14,136 @@ function getSupabaseAdmin() {
   );
 }
 
+/**
+ * Acredita una recarga única de saldo con tarjeta (Stripe Checkout mode=payment,
+ * purpose=smm_topup). Reemplaza el pago único con cripto. Idempotente por session.id:
+ * usa la fila de smm_transactions como lock — un único webhook "reclama" el crédito
+ * (flip atómico credited false→true) antes de incrementar el balance, evitando
+ * doble acreditación en reintentos/concurrencia de Stripe.
+ */
+async function creditCardTopup(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  sess: Stripe.Checkout.Session
+) {
+  const userId = sess.metadata?.supabase_user_id;
+  if (!userId) {
+    console.warn(`[topup] session ${sess.id} sin supabase_user_id, skip`);
+    return;
+  }
+
+  const amountUsd = sess.amount_total
+    ? sess.amount_total / 100
+    : parseFloat(sess.metadata?.amount_usd || "0");
+  if (amountUsd <= 0) {
+    console.warn(`[topup] session ${sess.id} con monto 0, skip`);
+    return;
+  }
+
+  const promoCode = sess.metadata?.promo_code || null;
+  const resellerId = sess.metadata?.reseller_id || null;
+
+  // Localizar (o crear) la transacción ligada a esta sesión. payment_id = session.id.
+  let txId: string | undefined;
+  let alreadyCredited = false;
+
+  const { data: existing } = await admin
+    .from("smm_transactions")
+    .select("id, credited")
+    .eq("payment_id", sess.id)
+    .maybeSingle();
+
+  if (existing) {
+    txId = existing.id;
+    alreadyCredited = existing.credited === true;
+  } else {
+    const { data: inserted, error: insErr } = await admin
+      .from("smm_transactions")
+      .insert({
+        user_id: userId,
+        payment_id: sess.id,
+        amount: amountUsd,
+        currency: "usd_card",
+        status: "finished",
+        credited: false,
+        payment_provider: "stripe",
+        tx_type: "card_topup",
+        description: "Recarga con tarjeta",
+        promo_code: promoCode,
+        promo_applied: false,
+        reseller_id: resellerId,
+      })
+      .select("id")
+      .single();
+
+    if (insErr) {
+      // Carrera: otro webhook insertó primero. Releer.
+      const { data: again } = await admin
+        .from("smm_transactions")
+        .select("id, credited")
+        .eq("payment_id", sess.id)
+        .maybeSingle();
+      if (!again) throw insErr;
+      txId = again.id;
+      alreadyCredited = again.credited === true;
+    } else {
+      txId = inserted.id;
+    }
+  }
+
+  if (alreadyCredited || !txId) return;
+
+  // Claim atómico: solo un proceso gana el flip false→true.
+  const { data: claim } = await admin
+    .from("smm_transactions")
+    .update({ credited: true })
+    .eq("id", txId)
+    .eq("credited", false)
+    .select("id")
+    .single();
+  if (!claim) return; // otro webhook ya lo reclamó
+
+  // Bono de código promo (best-effort, no bloquea la acreditación principal).
+  let bonusAmount = 0;
+  if (promoCode) {
+    const { data: promo } = await admin
+      .from("promo_codes")
+      .select("*")
+      .eq("code", promoCode)
+      .eq("active", true)
+      .single();
+    if (
+      promo &&
+      amountUsd >= promo.min_recharge &&
+      promo.current_uses < promo.max_uses &&
+      (!promo.expires_at || new Date(promo.expires_at) >= new Date())
+    ) {
+      const { error: incErr } = await admin.rpc("increment_promo_uses", {
+        p_promo_id: promo.id,
+        p_max_uses: promo.max_uses,
+      });
+      if (!incErr) {
+        bonusAmount = parseFloat(promo.bonus_usd) || 0;
+        await admin.from("smm_transactions").update({ promo_applied: true }).eq("id", txId);
+      }
+    }
+  }
+
+  const { error: rpcErr } = await admin.rpc("increment_balance", {
+    p_user_id: userId,
+    p_amount: amountUsd + bonusAmount,
+  });
+  if (rpcErr) {
+    // credited ya quedó en true: lanzamos para registrar en webhook_failures y
+    // reconciliar manualmente (igual filosofía que el resto del webhook).
+    console.error(`[topup] increment_balance falló para ${userId}:`, rpcErr);
+    throw new Error("topup balance credit failed");
+  }
+
+  console.log(
+    `[topup] acreditado user=${userId} +$${amountUsd}${bonusAmount ? ` +$${bonusAmount} bono` : ""} session=${sess.id}`
+  );
+}
+
 export async function POST(req: Request) {
   const body = await req.text();
   const signature = req.headers.get("stripe-signature")!;
@@ -101,6 +231,12 @@ export async function POST(req: Request) {
             stripe_customer_id: (sess.customer as string) || null,
             metadata: { mode: sess.mode },
           });
+
+          // ── Recarga única de saldo con tarjeta (reemplazo del cripto) ──
+          // Solo pagos únicos (mode=payment). Las suscripciones se acreditan en invoice.paid.
+          if (sess.mode === "payment" && sess.metadata?.purpose === "smm_topup") {
+            await creditCardTopup(supabaseAdmin, sess);
+          }
         }
         break;
       }

@@ -182,7 +182,7 @@ export default function ChildPanelPlans() {
                     transition: "all 0.15s",
                   }}
                 >
-                  Suscribirme
+                  Activar
                 </Link>
               </div>
             ))}

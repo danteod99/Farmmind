@@ -24,6 +24,16 @@ function normalize(num: string): string {
   return `whatsapp:+${cleaned}`;
 }
 
+// ─────────────────────────────────────────────────────────────
+// Activación de servicios por WhatsApp (modelo sin pagos online).
+// La cuenta es gratis; para usar los servicios el cliente escribe por WhatsApp.
+export const TRUSTMIND_WHATSAPP = "51931119176";
+
+export function whatsappUrl(message: string): string {
+  return `https://wa.me/${TRUSTMIND_WHATSAPP}?text=${encodeURIComponent(message)}`;
+}
+// ─────────────────────────────────────────────────────────────
+
 export async function sendWhatsApp(params: SendWhatsAppParams): Promise<SendWhatsAppResult | null> {
   const sid = process.env.TWILIO_ACCOUNT_SID;
   const token = process.env.TWILIO_AUTH_TOKEN;

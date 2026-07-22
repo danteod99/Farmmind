@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { Check, Crown } from "lucide-react";
+import { whatsappUrl } from "@/app/lib/whatsapp";
 
 const FEATURES = [
   "Agente IA ilimitado (sin límite de mensajes)",
@@ -15,14 +14,11 @@ const FEATURES = [
   "Soporte directo por WhatsApp",
 ];
 
-export function PricingProCard() {
-  const [cycle, setCycle] = useState<"monthly" | "yearly">("monthly");
-  const price = cycle === "monthly" ? "50" : "20";
-  const billingNote =
-    cycle === "monthly"
-      ? "Facturado mensualmente · cancela cuando quieras"
-      : "Facturado anual · $240/año (ahorra 60%)";
+const WA_LINK = whatsappUrl(
+  "Hola 👋 Quiero activar TRUST MIND Pro y usar los servicios. ¿Me ayudas?"
+);
 
+export function PricingProCard() {
   return (
     <div
       style={{
@@ -63,75 +59,6 @@ export function PricingProCard() {
         }}
       />
 
-      {/* Billing toggle */}
-      <div style={{ marginBottom: "20px" }}>
-        <div
-          style={{
-            display: "inline-flex",
-            padding: "4px",
-            borderRadius: "12px",
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
-        >
-          <button
-            onClick={() => setCycle("monthly")}
-            style={{
-              padding: "8px 18px",
-              borderRadius: "9px",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: 700,
-              transition: "all 0.2s",
-              background:
-                cycle === "monthly"
-                  ? "linear-gradient(135deg, #007ABF, #00B4D8)"
-                  : "transparent",
-              color: cycle === "monthly" ? "white" : "#94a3b8",
-            }}
-          >
-            Mensual
-          </button>
-          <button
-            onClick={() => setCycle("yearly")}
-            style={{
-              padding: "8px 18px",
-              borderRadius: "9px",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "13px",
-              fontWeight: 700,
-              transition: "all 0.2s",
-              position: "relative",
-              background:
-                cycle === "yearly"
-                  ? "linear-gradient(135deg, #007ABF, #00B4D8)"
-                  : "transparent",
-              color: cycle === "yearly" ? "white" : "#94a3b8",
-            }}
-          >
-            Anual
-            <span
-              style={{
-                position: "absolute",
-                top: "-7px",
-                right: "-8px",
-                padding: "2px 7px",
-                borderRadius: "8px",
-                background: "#34d399",
-                color: "#003020",
-                fontSize: "9px",
-                fontWeight: 800,
-                letterSpacing: "0.3px",
-              }}
-            >
-              -60%
-            </span>
-          </button>
-        </div>
-      </div>
-
       <p
         style={{
           fontSize: "13px",
@@ -147,16 +74,13 @@ export function PricingProCard() {
       <div style={{ marginBottom: "8px" }}>
         <span
           style={{
-            fontSize: "56px",
+            fontSize: "48px",
             fontWeight: 900,
             color: "white",
-            letterSpacing: "-0.04em",
+            letterSpacing: "-0.03em",
           }}
         >
-          ${price}
-        </span>
-        <span style={{ fontSize: "16px", color: "#475569", marginLeft: "6px" }}>
-          /mes
+          Cuenta gratis
         </span>
       </div>
       <p
@@ -167,7 +91,7 @@ export function PricingProCard() {
           fontWeight: 500,
         }}
       >
-        {billingNote}
+        Crea tu cuenta sin costo · Activa los servicios por WhatsApp
       </p>
 
       <div
@@ -206,8 +130,10 @@ export function PricingProCard() {
         ))}
       </div>
 
-      <Link
-        href={`/chat?subscribe=${cycle}`}
+      <a
+        href={WA_LINK}
+        target="_blank"
+        rel="noopener noreferrer"
         style={{
           display: "flex",
           alignItems: "center",
@@ -225,10 +151,8 @@ export function PricingProCard() {
         }}
       >
         <Crown size={16} />
-        {cycle === "monthly"
-          ? "Activar Pro — $50/mes"
-          : "Activar Pro Anual — $240/año"}
-      </Link>
+        Activar por WhatsApp
+      </a>
       <p
         style={{
           fontSize: "12px",
@@ -237,7 +161,7 @@ export function PricingProCard() {
           marginTop: "12px",
         }}
       >
-        Cancela cuando quieras · Pago seguro con Stripe
+        Crea tu cuenta gratis · Activación y soporte por WhatsApp
       </p>
     </div>
   );

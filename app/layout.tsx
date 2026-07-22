@@ -128,8 +128,8 @@ export default function RootLayout({
                 "@type": "AggregateOffer",
                 "priceCurrency": "USD",
                 "lowPrice": "0",
-                "highPrice": "899",
-                "offerCount": "6"
+                "highPrice": "0",
+                "offerCount": "1"
               }
             }),
           }}
@@ -163,7 +163,7 @@ export default function RootLayout({
                   "name": "¿Cuánto cuesta usar TrustMind?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Sistema pay-per-use sin contratos mensuales obligatorios. Acciones: like $0.01, follow $0.05, comment $0.10, DM $0.20. Recarga mínima $10 USD vía Stripe o crypto. También hay suscripción TrustMind Pro desde $20/mes y granjas físicas llave en mano desde $2,000 USD."
+                    "text": "Crear tu cuenta en TrustMind es gratis. Para activar y usar los servicios (panel SMM, software antidetección y cursos) te contactas por WhatsApp con un asesor, que te guía según lo que necesites. Las granjas físicas llave en mano se cotizan aparte."
                   }
                 },
                 {

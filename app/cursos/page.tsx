@@ -206,7 +206,7 @@ export default function CursosPage() {
                 className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-400 hover:from-blue-400 hover:to-cyan-300 text-black rounded-xl font-bold text-sm flex items-center gap-2 transition disabled:opacity-50"
               >
                 <Zap className="w-4 h-4" />
-                {checkoutLoading ? "Abriendo checkout…" : "Suscribirme al plan anual"}
+                {checkoutLoading ? "Abriendo WhatsApp…" : "Activar por WhatsApp"}
               </button>
               {user_state.is_subscribed && !user_state.is_annual && (
                 <span className="text-xs text-yellow-300/90 bg-yellow-500/10 border border-yellow-500/30 px-3 py-1.5 rounded-lg">
