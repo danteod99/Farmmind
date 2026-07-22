@@ -39,11 +39,37 @@ const PROFILES = [
 ];
 
 const MAX_FILE_MB = 200;
+const MAX_VARIATIONS = 50;
 const WA_MULTIEDITING = `https://wa.me/51931119176?text=${encodeURIComponent(
   "Hola! Quiero activar la herramienta Multiediting de TrustMind 🎬"
 )}`;
 
-interface ResultItem { name: string; url: string; sizeMB: string }
+// Variaciones 11+: perfiles generados determinísticamente (hash seno) dentro
+// de los mismos rangos seguros que los 10 perfiles base calibrados a mano.
+function hashRand(i: number, salt: number) {
+  const x = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
+function getProfile(i: number) {
+  if (i < PROFILES.length) return PROFILES[i];
+  const r = (salt: number, min: number, max: number, dec = 2) =>
+    parseFloat((min + hashRand(i, salt) * (max - min)).toFixed(dec));
+  return {
+    br: r(1, -0.06, 0.06),
+    co: r(2, 0.90, 1.10),
+    sa: r(3, 0.82, 1.18),
+    ga: r(4, 0.88, 1.12),
+    vo: r(5, 0.88, 1.12),
+    hue: r(6, -5, 5, 1),
+  };
+}
+
+// File System Access API (Chrome/Edge): guardar directo en una carpeta elegida
+interface DirWritable { write: (b: Blob) => Promise<void>; close: () => Promise<void> }
+interface DirFileHandle { createWritable: () => Promise<DirWritable> }
+interface DirHandle { name: string; getFileHandle: (name: string, opts: { create: boolean }) => Promise<DirFileHandle> }
+
+interface ResultItem { name: string; url: string; sizeMB: string; saved?: boolean }
 interface VideoResult { source: string; items: ResultItem[] }
 
 function fmtMB(bytes: number) { return (bytes / (1024 * 1024)).toFixed(1) + " MB"; }
@@ -69,6 +95,17 @@ export default function MultieditingPage() {
   const [results, setResults] = useState<VideoResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [dirHandle, setDirHandle] = useState<DirHandle | null>(null);
+  const fsSupported = typeof window !== "undefined" && "showDirectoryPicker" in window;
+
+  const pickFolder = async () => {
+    try {
+      const picker = (window as unknown as { showDirectoryPicker?: (opts?: { mode?: string }) => Promise<DirHandle> }).showDirectoryPicker;
+      if (!picker) return;
+      const handle = await picker({ mode: "readwrite" });
+      setDirHandle(handle);
+    } catch { /* usuario canceló el picker */ }
+  };
 
   const ffmpegRef = useRef<FFmpeg | null>(null);
   const cancelRef = useRef(false);
@@ -170,7 +207,7 @@ export default function MultieditingPage() {
 
         for (let vi = 0; vi < numVars; vi++) {
           if (cancelRef.current) break;
-          const p = PROFILES[vi];
+          const p = getProfile(vi);
           execRatioRef.current = 0;
           setStatusLine(`Video ${fi + 1}/${files.length} — variación ${vi + 1}/${numVars} (brillo ${p.br}, contraste ${p.co}, sat ${p.sa}, hue ${p.hue}°)`);
 
@@ -187,11 +224,17 @@ export default function MultieditingPage() {
           const data = (await ffmpeg.readFile("out.mp4")) as Uint8Array;
           const copy = new Uint8Array(data); // copia fuera del heap wasm
           const blob = new Blob([copy.buffer as ArrayBuffer], { type: "video/mp4" });
-          videoResult.items.push({
-            name: `${baseName}_v${vi + 1}.mp4`,
-            url: URL.createObjectURL(blob),
-            sizeMB: fmtMB(blob.size),
-          });
+          const outName = `${baseName}_v${vi + 1}.mp4`;
+          if (dirHandle) {
+            // Guardar directo en la carpeta elegida (no retener blob en RAM)
+            const fh = await dirHandle.getFileHandle(outName, { create: true });
+            const w = await fh.createWritable();
+            await w.write(blob);
+            await w.close();
+            videoResult.items.push({ name: outName, url: "", sizeMB: fmtMB(blob.size), saved: true });
+          } else {
+            videoResult.items.push({ name: outName, url: URL.createObjectURL(blob), sizeMB: fmtMB(blob.size) });
+          }
           try { await ffmpeg.deleteFile("out.mp4"); } catch { /* noop */ }
           jobsDone++;
           setResults((prev) => {
@@ -224,7 +267,7 @@ export default function MultieditingPage() {
   };
 
   const downloadAll = async () => {
-    const all = results.flatMap((v) => v.items);
+    const all = results.flatMap((v) => v.items).filter((i) => i.url);
     for (const item of all) {
       const a = document.createElement("a");
       a.href = item.url;
@@ -366,9 +409,14 @@ export default function MultieditingPage() {
                     <div style={{ fontSize: "11px", color: "#5a6480", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700, marginBottom: "8px" }}>
                       Variaciones por video: <span style={{ color: "#a78bfa" }}>{numVars}</span>
                     </div>
-                    <input type="range" min={1} max={10} value={numVars} disabled={running}
-                      onChange={(e) => setNumVars(parseInt(e.target.value))}
-                      style={{ width: "220px", accentColor: "#7c3aed" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <input type="range" min={1} max={MAX_VARIATIONS} value={numVars} disabled={running}
+                        onChange={(e) => setNumVars(parseInt(e.target.value))}
+                        style={{ width: "220px", accentColor: "#7c3aed" }} />
+                      <input type="number" min={1} max={MAX_VARIATIONS} value={numVars} disabled={running}
+                        onChange={(e) => setNumVars(Math.max(1, Math.min(MAX_VARIATIONS, parseInt(e.target.value) || 1)))}
+                        style={{ width: "58px", background: "#12121f", border: "1px solid #1e1e30", borderRadius: "8px", color: "white", padding: "6px 8px", fontSize: "13px", textAlign: "center" }} />
+                    </div>
                   </div>
                   {!running ? (
                     <button onClick={handleGenerate} style={btnPrimary}>
@@ -380,8 +428,34 @@ export default function MultieditingPage() {
                     </button>
                   )}
                 </div>
+                {/* carpeta de destino */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #14141f" }}>
+                  {fsSupported ? (
+                    <>
+                      <button onClick={pickFolder} disabled={running} style={{ ...btnGhost, color: "#a78bfa", borderColor: "#2a2a44" }}>
+                        📂 {dirHandle ? "Cambiar carpeta" : "Elegir carpeta de destino"}
+                      </button>
+                      <span style={{ fontSize: "12px", color: dirHandle ? "#22c55e" : "#5a6480" }}>
+                        {dirHandle
+                          ? `✓ Se guardarán automáticamente en "${dirHandle.name}"`
+                          : "Opcional — sin elegir, cada variación se descarga con su botón"}
+                      </span>
+                      {dirHandle && !running && (
+                        <button onClick={() => setDirHandle(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", display: "flex" }} title="Quitar carpeta">
+                          <X size={14} color="#ef4444" />
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <span style={{ fontSize: "12px", color: "#5a6480" }}>
+                      📂 Tu navegador no permite elegir carpeta (usa Chrome o Edge) — las variaciones se descargan a tu carpeta de Descargas.
+                    </span>
+                  )}
+                </div>
+
                 <div style={{ fontSize: "11px", color: "#3f475e", marginTop: "10px" }}>
                   ⏱️ El procesamiento corre en tu computadora (~1-3 min por variación según tu equipo y el largo del clip). Deja la pestaña abierta.
+                  {numVars > 15 && <span style={{ color: "#eab308" }}> Con {numVars} variaciones esto puede tardar bastante — considera dejarlo corriendo.</span>}
                 </div>
               </div>
             )}
@@ -419,9 +493,11 @@ export default function MultieditingPage() {
                     </span>
                   </div>
                   <div style={{ display: "flex", gap: "8px" }}>
-                    <button onClick={downloadAll} style={{ ...btnGhost, color: "#a78bfa", borderColor: "#2a2a44" }}>
-                      <Download size={14} /> Descargar todas
-                    </button>
+                    {results.some((v) => v.items.some((i) => i.url)) && (
+                      <button onClick={downloadAll} style={{ ...btnGhost, color: "#a78bfa", borderColor: "#2a2a44" }}>
+                        <Download size={14} /> Descargar todas
+                      </button>
+                    )}
                     {!running && (
                       <button onClick={clearResults} style={btnGhost}>
                         <Trash2 size={14} /> Limpiar
@@ -434,18 +510,24 @@ export default function MultieditingPage() {
                   <div key={v.source} style={{ marginBottom: "14px" }}>
                     <div style={{ fontSize: "12px", color: "#5a6480", fontWeight: 600, marginBottom: "8px" }}>📁 {v.source}</div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: "8px" }}>
-                      {v.items.map((item) => (
-                        <a key={item.name} href={item.url} download={item.name} className="me-var-card"
-                          style={{ background: "#12121f", border: "1px solid #1e1e30", borderRadius: "10px", padding: "10px 12px", textDecoration: "none", transition: "border-color 0.15s" }}>
-                          <div style={{ fontSize: "12px", fontWeight: 700, color: "#c4cadd", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {item.name.match(/_v\d+\.mp4$/)?.[0].replace(".mp4", "").replace("_", "") || item.name}
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                            <span style={{ fontSize: "11px", color: "#5a6480" }}>{item.sizeMB}</span>
-                            <Download size={13} color="#a78bfa" />
-                          </div>
-                        </a>
-                      ))}
+                      {v.items.map((item) => {
+                        const label = item.name.match(/_v\d+\.mp4$/)?.[0].replace(".mp4", "").replace("_", "") || item.name;
+                        const cardStyle: React.CSSProperties = { background: "#12121f", border: "1px solid #1e1e30", borderRadius: "10px", padding: "10px 12px", textDecoration: "none", transition: "border-color 0.15s" };
+                        const inner = (
+                          <>
+                            <div style={{ fontSize: "12px", fontWeight: 700, color: "#c4cadd", marginBottom: "2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</div>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                              <span style={{ fontSize: "11px", color: "#5a6480" }}>{item.sizeMB}</span>
+                              {item.saved ? <CheckCircle2 size={13} color="#22c55e" /> : <Download size={13} color="#a78bfa" />}
+                            </div>
+                          </>
+                        );
+                        return item.saved ? (
+                          <div key={item.name} title="Guardado en la carpeta elegida" style={cardStyle}>{inner}</div>
+                        ) : (
+                          <a key={item.name} href={item.url} download={item.name} className="me-var-card" style={cardStyle}>{inner}</a>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
