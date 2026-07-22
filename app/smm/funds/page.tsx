@@ -7,29 +7,18 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/app/lib/supabase";
 import {
-  LogOut, ArrowLeft, DollarSign, Zap,
-  Clock, ExternalLink, Copy, Check, ShoppingCart, TrendingUp, AlertCircle, Tag, Gift,
+  ArrowLeft, Check, ShoppingCart, TrendingUp, AlertCircle,
   CreditCard, RefreshCw, X as XIcon
 } from "lucide-react";
-import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import ChatPopup from "@/app/components/ChatPopup";
 import { TrustFooter } from "@/app/components/TrustFooter";
 import { SmmNav } from "@/app/components/SmmNav";
 
-const PRESET_AMOUNTS = [11, 20, 25, 50, 100, 200];
-const MIN_AMOUNT = 11;
-const AUTORECHARGE_AMOUNTS_MONTHLY = [50, 100, 250, 500];
-const AUTORECHARGE_MIN_MONTHLY = 50;
+const AUTORECHARGE_AMOUNTS_MONTHLY = [10, 20, 50, 100];
+const AUTORECHARGE_MIN_MONTHLY = 10;
 // Anual: pago único $240 = $20/mes facturado anualmente
 const AUTORECHARGE_YEARLY_PRICE = 240;
 const AUTORECHARGE_YEARLY_EQUIVALENT = 20;
-
-const CRYPTO_OPTIONS = [
-  { id: "usdttrc20", label: "USDT", network: "TRC20", icon: "₮", color: "#26a17b", recommended: true },
-  { id: "usdterc20", label: "USDT", network: "ERC20", icon: "₮", color: "#627eea", recommended: false },
-  { id: "btc",       label: "Bitcoin", network: "BTC",   icon: "₿", color: "#f7931a", recommended: false },
-  { id: "eth",       label: "Ethereum", network: "ETH",  icon: "Ξ", color: "#627eea", recommended: false },
-];
 
 interface Transaction {
   id: string;
@@ -38,18 +27,9 @@ interface Transaction {
   status: string;
   created_at: string;
   payment_id?: string;
-  tx_type?: string;        // 'crypto_topup' | 'commission' | 'manual_credit' | 'refund' | 'bonus'
+  tx_type?: string;        // 'crypto_topup' | 'card_topup' | 'commission' | 'manual_credit' | 'refund' | 'bonus'
   description?: string;
   source_commission_id?: string;
-}
-
-interface PaymentResult {
-  payment_url: string;
-  payment_id: string;
-  pay_address: string;
-  pay_amount: number;
-  pay_currency: string;
-  amount_usd: number;
 }
 
 interface AutorechargeState {
@@ -68,25 +48,11 @@ export default function FundsPage() {
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [userAvatar, setUserAvatar] = useState("");
-  const [amount, setAmount] = useState(11);
-  const [customAmount, setCustomAmount] = useState("");
-  const [useCustom, setUseCustom] = useState(false);
-  const [selectedCrypto, setSelectedCrypto] = useState("usdttrc20");
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
-  const [payment, setPayment] = useState<PaymentResult | null>(null);
-  const [copied, setCopied] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [verifying, setVerifying] = useState(false);
-  const [verifyMsg, setVerifyMsg] = useState<{ text: string; ok: boolean } | null>(null);
-  // Promo code state
-  const [promoCode, setPromoCode] = useState("");
-  const [promoValidating, setPromoValidating] = useState(false);
-  const [promoResult, setPromoResult] = useState<{ valid: boolean; bonus_usd?: number; message: string } | null>(null);
   // Autorecharge state
   const [autorecharge, setAutorecharge] = useState<AutorechargeState>({ active: false });
-  const [autorechargeAmount, setAutorechargeAmount] = useState(50);
+  const [autorechargeAmount, setAutorechargeAmount] = useState(20);
   const [autorechargeCycle, setAutorechargeCycle] = useState<"monthly" | "yearly">("monthly");
   const [autorechargeLoading, setAutorechargeLoading] = useState(false);
   const [autorechargeError, setAutorechargeError] = useState<string | null>(null);
@@ -100,11 +66,23 @@ export default function FundsPage() {
     const params = new URLSearchParams(window.location.search);
     const ar = params.get("autorecharge");
     if (ar === "success") {
-      setAutorechargeBanner({ text: "¡Auto-recarga activada! La primera carga se acreditará en unos segundos.", ok: true });
-      // Limpiar query string
+      setAutorechargeBanner({ text: "¡Listo! Tu recarga quedó activa. La primera carga se acreditará en unos segundos.", ok: true });
+      // Facebook Pixel: Purchase event
+      const w = window as unknown as { fbq?: (...args: unknown[]) => void };
+      if (typeof w.fbq === "function") {
+        w.fbq("track", "Subscribe", { currency: "USD" });
+      }
+      // Refrescar saldo/movimientos mientras el webhook acredita (async)
+      [2000, 5000, 9000].forEach((ms) => setTimeout(async () => {
+        try {
+          const [o, t] = await Promise.all([fetch("/api/smm/orders"), fetch("/api/smm/transactions")]);
+          if (o.ok) { const d = await o.json(); setBalance(d.balance || 0); }
+          if (t.ok) { const d = await t.json(); setTransactions(d.transactions || []); }
+        } catch { /* no-op */ }
+      }, ms));
       window.history.replaceState({}, "", "/smm/funds");
     } else if (ar === "cancel") {
-      setAutorechargeBanner({ text: "Cancelaste el proceso. Tu auto-recarga no fue activada.", ok: false });
+      setAutorechargeBanner({ text: "Cancelaste el proceso. Tu recarga no fue activada.", ok: false });
       window.history.replaceState({}, "", "/smm/funds");
     }
   }, []);
@@ -149,7 +127,7 @@ export default function FundsPage() {
       });
       const data = await res.json();
       if (!res.ok || !data.url) {
-        setAutorechargeError(data.error || "Error creando la auto-recarga");
+        setAutorechargeError(data.error || "Error creando la recarga");
         return;
       }
       window.location.href = data.url;
@@ -161,7 +139,7 @@ export default function FundsPage() {
   };
 
   const cancelAutorecharge = async () => {
-    if (!confirm("¿Cancelar la auto-recarga mensual? Tu tarjeta no se cobrará más.")) return;
+    if (!confirm("¿Cancelar la recarga automática mensual? Ya no se renovará.")) return;
     setAutorechargeLoading(true);
     setAutorechargeError(null);
     try {
@@ -172,93 +150,11 @@ export default function FundsPage() {
         return;
       }
       setAutorecharge({ active: false });
-      setAutorechargeBanner({ text: "Auto-recarga cancelada. No se harán más cobros.", ok: true });
+      setAutorechargeBanner({ text: "Recarga automática cancelada. No se harán más cobros.", ok: true });
     } catch {
       setAutorechargeError("Error de conexión");
     } finally {
       setAutorechargeLoading(false);
-    }
-  };
-
-  const finalAmount = useCustom ? parseFloat(customAmount) || 0 : amount;
-
-  const createPayment = async () => {
-    if (finalAmount < MIN_AMOUNT) { setError(`El monto mínimo es $${MIN_AMOUNT} USD (incluye comisión de red)`); return; }
-    if (finalAmount > 500) { setError("El monto máximo por recarga es $500 USD"); return; }
-    setCreating(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/smm/create-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: finalAmount,
-          currency: selectedCrypto,
-          promo_code: promoResult?.valid ? promoCode.trim().toUpperCase() : undefined,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) { setError(data.error || "Error creando el pago"); return; }
-      setPayment(data);
-    } catch { setError("Error de conexión. Intenta de nuevo."); }
-    finally { setCreating(false); }
-  };
-
-  const copyAddress = async () => {
-    if (!payment?.pay_address) return;
-    await navigator.clipboard.writeText(payment.pay_address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const verifyPayment = async () => {
-    if (!payment?.payment_id) return;
-    setVerifying(true);
-    setVerifyMsg(null);
-    try {
-      const res = await fetch("/api/smm/check-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ payment_id: payment.payment_id }),
-      });
-      const data = await res.json();
-      if (data.credited) {
-        setVerifyMsg({ text: data.message || "¡Saldo acreditado!", ok: true });
-        // Facebook Pixel: Purchase event
-        if (typeof window !== "undefined" && (window as /* eslint-disable-line @typescript-eslint/no-explicit-any */ any).fbq) {
-          (window as any).fbq("track", "Purchase", {
-            value: data.amount_credited || 0,
-            currency: "USD",
-          });
-        }
-        // Recargar balance y transacciones
-        await fetchData();
-      } else {
-        setVerifyMsg({ text: data.message || data.status, ok: false });
-      }
-    } catch {
-      setVerifyMsg({ text: "Error al verificar. Intenta de nuevo.", ok: false });
-    } finally {
-      setVerifying(false);
-    }
-  };
-
-  const validatePromo = async () => {
-    if (!promoCode.trim()) return;
-    setPromoValidating(true);
-    setPromoResult(null);
-    try {
-      const res = await fetch("/api/smm/validate-promo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: promoCode.trim(), amount: finalAmount }),
-      });
-      const data = await res.json();
-      setPromoResult(data);
-    } catch {
-      setPromoResult({ valid: false, message: "Error al validar el código" });
-    } finally {
-      setPromoValidating(false);
     }
   };
 
@@ -295,7 +191,6 @@ export default function FundsPage() {
           .funds-hero h1 { font-size: 28px !important; }
           .funds-layout { grid-template-columns: 1fr !important; }
           .funds-content { padding: 20px 16px !important; }
-          .funds-preset-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
       <div style={{ minHeight: "100vh", background: "#07070e" }}>
@@ -312,6 +207,7 @@ export default function FundsPage() {
             { href: "/cursos", label: "Mis Cursos" },
             { href: "/granjas", label: "Granjas" },
             { href: "/downloads", label: "Descargas" },
+            { href: "/smm/multiediting", label: "Multiediting" },
             { href: "/smm/ai", label: "Asistente IA" },
             { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
           ]}
@@ -337,7 +233,10 @@ export default function FundsPage() {
               Recargar saldo
             </h1>
             <p style={{ fontSize: "16px", color: "#94a3b8", maxWidth: "480px", lineHeight: 1.6 }}>
-              Recarga con tarjeta (auto-recarga mensual) o cripto (pago único) — acreditación automática.
+              Activa tu recarga automática por WhatsApp — tu saldo se renueva y nunca se te corta un pedido.
+            </p>
+            <p style={{ fontSize: "14px", color: "#56B4E0", marginTop: "10px", fontWeight: 600 }}>
+              Saldo disponible: <span style={{ color: "#34d399" }}>${balance.toFixed(2)} USD</span>
             </p>
           </div>
         </div>
@@ -346,7 +245,7 @@ export default function FundsPage() {
 
           <div className="funds-layout" style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "24px", alignItems: "start" }}>
 
-            {/* Left: Form or Payment */}
+            {/* Left: Auto-recarga */}
             <div>
               {/* ── Banner post-Stripe ── */}
               {autorechargeBanner && (
@@ -367,7 +266,7 @@ export default function FundsPage() {
                 </div>
               )}
 
-              {/* ── Auto-recarga con tarjeta ── */}
+              {/* ── Recarga automática con tarjeta ── */}
               <div style={{
                 background: autorecharge.active
                   ? "linear-gradient(135deg, #0f2027, #1a1040)"
@@ -383,12 +282,12 @@ export default function FundsPage() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <p style={{ fontSize: "15px", fontWeight: 700, color: "white" }}>
-                      {autorecharge.active ? "Auto-recarga activa" : "Auto-recarga mensual con tarjeta"}
+                      {autorecharge.active ? "Recarga automática activa" : "Recarga automática"}
                     </p>
                     <p style={{ fontSize: "12px", color: "#94a3b8" }}>
                       {autorecharge.active
                         ? `$${autorecharge.amount_usd?.toFixed(2)} cada mes · próximo cobro: ${autorecharge.next_charge_at ? new Date(autorecharge.next_charge_at).toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" }) : "—"}`
-                        : "Configura una vez con tu tarjeta y olvídate de recargar"}
+                        : "Actívala por WhatsApp y olvídate de recargar"}
                     </p>
                   </div>
                 </div>
@@ -402,7 +301,7 @@ export default function FundsPage() {
                       cursor: autorechargeLoading ? "not-allowed" : "pointer",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
                     }}>
-                    {autorechargeLoading ? "Cancelando..." : (<><XIcon size={14} /> Cancelar auto-recarga</>)}
+                    {autorechargeLoading ? "Cancelando..." : (<><XIcon size={14} /> Cancelar recarga automática</>)}
                   </button>
                 ) : (
                   <>
@@ -435,7 +334,7 @@ export default function FundsPage() {
                     {autorechargeCycle === "monthly" ? (
                       <>
                         <p style={{ fontSize: "12px", fontWeight: 600, color: "#94a3b8", marginBottom: "10px" }}>
-                          Monto a recargar cada mes (mínimo $50)
+                          Monto a recargar cada mes (mínimo $10)
                         </p>
                         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px", marginBottom: "14px" }}>
                           {AUTORECHARGE_AMOUNTS_MONTHLY.map((a) => {
@@ -490,252 +389,17 @@ export default function FundsPage() {
                         display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                       }}>
                       {autorechargeLoading ? (
-                        <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid white", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Redirigiendo a Stripe...</>
-                      ) : autorechargeCycle === "yearly" ? (
-                        <><CreditCard size={15} /> Activar plan anual — ${AUTORECHARGE_YEARLY_PRICE}/año</>
+                        <><div style={{ width: "14px", height: "14px", borderRadius: "50%", border: "2px solid white", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Abriendo WhatsApp...</>
                       ) : (
-                        <><CreditCard size={15} /> Activar auto-recarga ${autorechargeAmount}/mes</>
+                        <><CreditCard size={15} /> Activar por WhatsApp</>
                       )}
                     </button>
                     <p style={{ fontSize: "11px", color: "#64748b", textAlign: "center", marginTop: "8px" }}>
-                      Pago seguro con Stripe · Cancela cuando quieras
+                      Activación por WhatsApp · Cancela cuando quieras
                     </p>
                   </>
                 )}
               </div>
-
-              {/* ── Separador con "o pago único cripto" ── */}
-              {!autorecharge.active && (
-                <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "20px 0" }}>
-                  <div style={{ flex: 1, height: "1px", background: "#1e1e30" }} />
-                  <span style={{ fontSize: "11px", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                    o pago único con cripto
-                  </span>
-                  <div style={{ flex: 1, height: "1px", background: "#1e1e30" }} />
-                </div>
-              )}
-
-              {!payment ? (
-                <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "20px", padding: "28px" }}>
-
-                  {/* Balance actual */}
-                  <div style={{ background: "linear-gradient(135deg, #0f2027, #1a1040)", border: "1px solid #34d39930", borderRadius: "14px", padding: "20px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <p style={{ fontSize: "12px", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Saldo disponible</p>
-                      <p style={{ fontSize: "36px", fontWeight: 800, color: "white", marginTop: "4px" }}>${balance.toFixed(2)}</p>
-                      <p style={{ fontSize: "12px", color: "#64748b" }}>USD</p>
-                    </div>
-                    <div style={{ width: "56px", height: "56px", borderRadius: "16px", background: "#34d39920", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <DollarSign size={28} color="#34d399" />
-                    </div>
-                  </div>
-
-                  {/* Montos predefinidos */}
-                  <div style={{ marginBottom: "24px" }}>
-                    <p style={{ fontSize: "13px", fontWeight: 600, color: "#94a3b8", marginBottom: "12px" }}>Selecciona el monto a recargar</p>
-                    <div className="funds-preset-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", marginBottom: "12px" }}>
-                      {PRESET_AMOUNTS.map((a) => {
-                        const active = !useCustom && amount === a;
-                        return (
-                          <button key={a} onClick={() => { setAmount(a); setUseCustom(false); }}
-                            style={{ padding: "12px", borderRadius: "12px", border: "1px solid", borderColor: active ? "#007ABF" : "#2d2d44", background: active ? "#007ABF20" : "#0a0a0f", color: active ? "white" : "#94a3b8", fontWeight: active ? 700 : 500, fontSize: "16px", cursor: "pointer", transition: "all 0.15s" }}>
-                            ${a}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {/* Monto personalizado */}
-                    <div style={{ position: "relative" }}>
-                      <span style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#64748b", fontSize: "15px", fontWeight: 600 }}>$</span>
-                      <input
-                        type="number" min="1" max="500" placeholder="Monto personalizado..."
-                        aria-label="Monto de recarga en USD"
-                        value={customAmount}
-                        onChange={(e) => { setCustomAmount(e.target.value); setUseCustom(true); }}
-                        onFocus={() => setUseCustom(true)}
-                        style={{ width: "100%", background: useCustom ? "#007ABF10" : "#0a0a0f", border: "1px solid", borderColor: useCustom ? "#007ABF" : "#2d2d44", borderRadius: "12px", padding: "12px 14px 12px 28px", color: "white", fontSize: "14px", outline: "none" }} />
-                    </div>
-                  </div>
-
-                  {/* Método de pago */}
-                  <div style={{ marginBottom: "24px" }}>
-                    <p style={{ fontSize: "13px", fontWeight: 600, color: "#94a3b8", marginBottom: "12px" }}>Método de pago</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                      {CRYPTO_OPTIONS.map((crypto) => {
-                        const active = selectedCrypto === crypto.id;
-                        return (
-                          <button key={crypto.id} onClick={() => setSelectedCrypto(crypto.id)}
-                            aria-label={`Pagar con ${crypto.label} (${crypto.network})`}
-                            aria-pressed={active}
-                            style={{ padding: "14px", borderRadius: "12px", border: "1px solid", borderColor: active ? crypto.color : "#2d2d44", background: active ? crypto.color + "15" : "#0a0a0f", cursor: "pointer", display: "flex", alignItems: "center", gap: "10px", transition: "all 0.15s", position: "relative" }}>
-                            <span style={{ fontSize: "22px", fontWeight: 700, color: crypto.color }}>{crypto.icon}</span>
-                            <div style={{ textAlign: "left" }}>
-                              <p style={{ fontSize: "13px", fontWeight: 600, color: active ? "white" : "#94a3b8" }}>{crypto.label}</p>
-                              <p style={{ fontSize: "11px", color: "#64748b" }}>{crypto.network}</p>
-                            </div>
-                            {crypto.recommended && (
-                              <span style={{ position: "absolute", top: "6px", right: "8px", fontSize: "9px", fontWeight: 700, color: "#34d399", background: "#34d39920", padding: "2px 6px", borderRadius: "4px" }}>Recomendado</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* ── Promo Code ── */}
-                  <div style={{ marginBottom: "24px" }}>
-                    <p style={{ fontSize: "13px", fontWeight: 600, color: "#94a3b8", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
-                      <Tag size={13} /> ¿Tienes un código de lanzamiento?
-                    </p>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <input
-                        type="text"
-                        placeholder="Ej: LAUNCH25"
-                        value={promoCode}
-                        onChange={(e) => { setPromoCode(e.target.value.toUpperCase()); setPromoResult(null); }}
-                        onKeyDown={(e) => { if (e.key === "Enter") validatePromo(); }}
-                        style={{
-                          flex: 1, background: promoResult?.valid ? "#34d39910" : "#0a0a0f",
-                          border: "1px solid", borderColor: promoResult?.valid ? "#34d399" : promoResult?.valid === false ? "#f87171" : "#2d2d44",
-                          borderRadius: "12px", padding: "11px 14px", color: "white",
-                          fontSize: "14px", fontWeight: 700, letterSpacing: "1px", outline: "none",
-                          fontFamily: "monospace",
-                        }}
-                      />
-                      <button
-                        onClick={validatePromo}
-                        disabled={promoValidating || !promoCode.trim()}
-                        style={{
-                          padding: "11px 18px", borderRadius: "12px", border: "1px solid #2d2d44",
-                          background: promoValidating || !promoCode.trim() ? "#0a0a0f" : "#007ABF20",
-                          color: promoValidating || !promoCode.trim() ? "#64748b" : "#56B4E0",
-                          fontSize: "13px", fontWeight: 600, cursor: promoValidating || !promoCode.trim() ? "not-allowed" : "pointer",
-                          whiteSpace: "nowrap", transition: "all 0.15s",
-                        }}>
-                        {promoValidating ? "..." : "Aplicar"}
-                      </button>
-                    </div>
-                    {/* Promo result banner */}
-                    {promoResult && (
-                      <div style={{
-                        marginTop: "10px", padding: "10px 14px", borderRadius: "10px",
-                        background: promoResult.valid ? "#34d39912" : "#f8717112",
-                        border: `1px solid ${promoResult.valid ? "#34d39935" : "#f8717135"}`,
-                        color: promoResult.valid ? "#34d399" : "#f87171",
-                        fontSize: "13px", fontWeight: 600,
-                        display: "flex", alignItems: "center", gap: "8px",
-                      }}>
-                        {promoResult.valid ? <Gift size={14} /> : <AlertCircle size={14} />}
-                        {promoResult.message}
-                      </div>
-                    )}
-                  </div>
-
-                  {error && (
-                    <div style={{ background: "#f8717115", border: "1px solid #f8717140", borderRadius: "10px", padding: "10px 14px", marginBottom: "16px", fontSize: "13px", color: "#f87171", display: "flex", alignItems: "center", gap: "8px" }}>
-                      <AlertCircle size={14} /> {error}
-                    </div>
-                  )}
-
-                  {/* Resumen */}
-                  {finalAmount > 0 && (
-                    <div style={{ background: "#07070e", borderRadius: "10px", padding: "14px", marginBottom: "18px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <div>
-                          <p style={{ fontSize: "12px", color: "#64748b" }}>Vas a recargar</p>
-                          <p style={{ fontSize: "22px", fontWeight: 700, color: "white" }}>${finalAmount.toFixed(2)} <span style={{ fontSize: "13px", color: "#64748b" }}>USD</span></p>
-                        </div>
-                        <div style={{ textAlign: "right" }}>
-                          <p style={{ fontSize: "12px", color: "#64748b" }}>Nuevo saldo</p>
-                          <p style={{ fontSize: "16px", fontWeight: 600, color: "#34d399" }}>
-                            ${(balance + finalAmount + (promoResult?.valid ? (promoResult.bonus_usd || 0) : 0)).toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                      {promoResult?.valid && promoResult.bonus_usd && (
-                        <div style={{ marginTop: "10px", paddingTop: "10px", borderTop: "1px solid #1e1e30", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontSize: "12px", color: "#34d399", display: "flex", alignItems: "center", gap: "5px" }}>
-                            <Gift size={12} /> Bono código <strong>{promoCode.toUpperCase()}</strong>
-                          </span>
-                          <span style={{ fontSize: "14px", fontWeight: 700, color: "#34d399" }}>+${promoResult.bonus_usd.toFixed(2)}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <button onClick={createPayment} disabled={creating || finalAmount < MIN_AMOUNT}
-                    style={{ width: "100%", padding: "14px", borderRadius: "12px", border: "none", background: creating || finalAmount < MIN_AMOUNT ? "#3b2068" : "#007ABF", color: "white", fontSize: "15px", fontWeight: 700, cursor: creating || finalAmount < MIN_AMOUNT ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                    {creating ? (
-                      <><div style={{ width: "16px", height: "16px", borderRadius: "50%", border: "2px solid white", borderTopColor: "transparent", animation: "spin 0.6s linear infinite" }} /> Generando pago...</>
-                    ) : (
-                      <><Zap size={16} /> Generar dirección de pago</>
-                    )}
-                  </button>
-                  <p style={{ fontSize: "11px", color: "#64748b", textAlign: "center", marginTop: "10px" }}>
-                    Mínimo $11 USD · Saldo acreditado automáticamente · Procesado por NOWPayments
-                  </p>
-                </div>
-              ) : (
-                /* Payment created — show address */
-                <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "20px", padding: "28px" }}>
-                  <div style={{ textAlign: "center", marginBottom: "24px" }}>
-                    <div style={{ width: "56px", height: "56px", borderRadius: "16px", background: "#34d39920", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-                      <Clock size={26} color="#34d399" />
-                    </div>
-                    <h2 style={{ fontSize: "18px", fontWeight: 700, color: "white", marginBottom: "6px" }}>¡Pago creado!</h2>
-                    <p style={{ fontSize: "13px", color: "#64748b" }}>Envía exactamente el monto indicado a la dirección de abajo</p>
-                  </div>
-
-                  {/* Amount to send */}
-                  <div style={{ background: "#007ABF15", border: "1px solid #007ABF30", borderRadius: "12px", padding: "16px", marginBottom: "16px", textAlign: "center" }}>
-                    <p style={{ fontSize: "12px", color: "#56B4E0", marginBottom: "4px" }}>Enviar exactamente</p>
-                    <p style={{ fontSize: "28px", fontWeight: 800, color: "white" }}>{payment.pay_amount} <span style={{ fontSize: "16px", color: "#56B4E0" }}>{payment.pay_currency.toUpperCase()}</span></p>
-                    <p style={{ fontSize: "12px", color: "#64748b", marginTop: "4px" }}>≈ ${payment.amount_usd.toFixed(2)} USD</p>
-                  </div>
-
-                  {/* Address */}
-                  <div style={{ marginBottom: "16px" }}>
-                    <p style={{ fontSize: "12px", fontWeight: 600, color: "#64748b", marginBottom: "8px" }}>Dirección de pago</p>
-                    <div style={{ background: "#07070e", border: "1px solid #1e1e30", borderRadius: "10px", padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
-                      <p style={{ fontSize: "12px", color: "#e2e8f0", fontFamily: "monospace", wordBreak: "break-all", flex: 1 }}>{payment.pay_address}</p>
-                      <button onClick={copyAddress} style={{ flexShrink: 0, background: copied ? "#34d39920" : "#007ABF20", border: "none", borderRadius: "8px", padding: "8px", cursor: "pointer", color: copied ? "#34d399" : "#56B4E0" }}>
-                        {copied ? <Check size={14} /> : <Copy size={14} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Warning */}
-                  <div style={{ background: "#fbbf2415", border: "1px solid #fbbf2430", borderRadius: "10px", padding: "12px 14px", marginBottom: "20px", fontSize: "12px", color: "#fbbf24" }}>
-                    ⚠️ Envía solo {payment.pay_currency.toUpperCase()} a esta dirección. El saldo se acredita automáticamente en 1-3 confirmaciones de red.
-                  </div>
-
-                  {/* Open payment page */}
-                  {payment.payment_url && (
-                    <a href={payment.payment_url} target="_blank" rel="noreferrer"
-                      style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "12px", borderRadius: "12px", background: "#007ABF", color: "white", fontSize: "14px", fontWeight: 600, textDecoration: "none", marginBottom: "12px" }}>
-                      <ExternalLink size={14} /> Abrir página de pago
-                    </a>
-                  )}
-                  {/* Verify payment status */}
-                  <button onClick={verifyPayment} disabled={verifying}
-                    style={{ width: "100%", padding: "12px", borderRadius: "12px", background: verifying ? "#1a1a2e" : "#34d39915", border: "1px solid #34d39935", color: verifying ? "#64748b" : "#34d399", fontSize: "13px", fontWeight: 600, cursor: verifying ? "not-allowed" : "pointer", marginBottom: "10px", display: "flex", alignItems: "center", justifyContent: "center", gap: "7px" }}>
-                    {verifying ? (
-                      <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: "spin 1s linear infinite" }}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Verificando...</>
-                    ) : (
-                      <>✓ Ya pagué — verificar saldo</>
-                    )}
-                  </button>
-                  {verifyMsg && (
-                    <div style={{ background: verifyMsg.ok ? "#34d39915" : "#fbbf2415", border: `1px solid ${verifyMsg.ok ? "#34d39935" : "#fbbf2430"}`, borderRadius: "10px", padding: "10px 14px", marginBottom: "10px", fontSize: "12px", color: verifyMsg.ok ? "#34d399" : "#fbbf24", textAlign: "center" }}>
-                      {verifyMsg.ok ? "✅ " : "⏳ "}{verifyMsg.text}
-                    </div>
-                  )}
-                  <button onClick={() => { setPayment(null); setVerifyMsg(null); }}
-                    style={{ width: "100%", padding: "11px", borderRadius: "12px", border: "1px solid #1e1e30", background: "transparent", color: "#94a3b8", fontSize: "13px", cursor: "pointer" }}>
-                    ← Crear otro pago
-                  </button>
-                </div>
-              )}
             </div>
 
             {/* Right: Info + Transaction history */}
@@ -745,10 +409,10 @@ export default function FundsPage() {
               <div style={{ background: "#0d0d18", border: "1px solid #1e1e30", borderRadius: "16px", padding: "20px" }}>
                 <p style={{ fontSize: "13px", fontWeight: 700, color: "white", marginBottom: "14px" }}>¿Cómo funciona?</p>
                 {[
-                  { n: "1", text: "Elige el monto y el método de pago" },
-                  { n: "2", text: "Envía el crypto a la dirección generada" },
-                  { n: "3", text: "El saldo se acredita automáticamente en minutos" },
-                  { n: "4", text: "Úsalo para hacer pedidos en el panel Social Media" },
+                  { n: "1", text: "Elige el monto a recargar cada mes" },
+                  { n: "2", text: "Actívala una vez por WhatsApp con un asesor" },
+                  { n: "3", text: "Tu saldo se renueva automáticamente cada mes" },
+                  { n: "4", text: "Cancela cuando quieras, sin compromiso" },
                 ].map((s) => (
                   <div key={s.n} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
                     <div style={{ width: "22px", height: "22px", borderRadius: "6px", background: "#007ABF20", border: "1px solid #007ABF40", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -771,12 +435,8 @@ export default function FundsPage() {
                   <span style={{ fontSize: "13px", color: "white" }}>{transactions.filter(t => t.status === "finished").length}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "13px", color: "#64748b" }}>Total recargado (crypto)</span>
-                  <span style={{ fontSize: "13px", color: "white" }}>${transactions.filter(t => t.status === "finished" && (!t.tx_type || t.tx_type === "crypto_topup")).reduce((s, t) => s + Number(t.amount), 0).toFixed(2)}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "13px", color: "#64748b" }}>Comisiones de red</span>
-                  <span style={{ fontSize: "13px", color: "#10b981", fontWeight: 600 }}>${transactions.filter(t => t.tx_type === "commission").reduce((s, t) => s + Number(t.amount), 0).toFixed(2)}</span>
+                  <span style={{ fontSize: "13px", color: "#64748b" }}>Total recargado</span>
+                  <span style={{ fontSize: "13px", color: "white" }}>${transactions.filter(t => t.status === "finished" && t.tx_type !== "commission").reduce((s, t) => s + Number(t.amount), 0).toFixed(2)}</span>
                 </div>
                 <div style={{ height: "1px", background: "#2d2d44", margin: "14px 0" }} />
                 <Link href="/smm/services" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", padding: "9px", borderRadius: "10px", background: "#007ABF20", color: "#56B4E0", fontSize: "13px", fontWeight: 600 }}>
@@ -795,19 +455,17 @@ export default function FundsPage() {
                     {transactions.slice(0, 12).map((tx) => {
                       const s = STATUS_STYLE[tx.status] || STATUS_STYLE.waiting;
                       const isCommission = tx.tx_type === "commission";
-                      const isCryptoTopup = !tx.tx_type || tx.tx_type === "crypto_topup";
+                      const isTopup = !tx.tx_type || tx.tx_type === "crypto_topup" || tx.tx_type === "card_topup";
                       const labelLeft = isCommission
                         ? (tx.description || "Comisión de red")
-                        : isCryptoTopup
-                          ? (tx.currency?.toUpperCase() || "USD")
+                        : isTopup
+                          ? (tx.description || tx.currency?.toUpperCase() || "Recarga")
                           : (tx.description || tx.tx_type || "Movimiento");
                       const sublabel = new Date(tx.created_at).toLocaleDateString("es-CO", { day: "numeric", month: "short" });
                       const amountColor = isCommission ? "#10b981" : "white";
                       const badge = isCommission
                         ? { color: "#10b981", bg: "rgba(16,185,129,0.18)", label: "🎁 Comisión" }
-                        : isCryptoTopup
-                          ? s
-                          : s;
+                        : s;
                       return (
                         <div key={tx.id} style={{ padding: "12px 20px", borderBottom: "1px solid #1a1a2e", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div>

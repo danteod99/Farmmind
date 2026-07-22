@@ -42,6 +42,7 @@ const NAV_LINKS: { href: string; label: string; active?: boolean; external?: boo
   { href: "/smm/funds",    label: "Recargar" },
   { href: "/smm/reseller", label: "Revendedor", active: true },
   { href: "/downloads",    label: "Descargas" },
+  { href: "/smm/multiediting", label: "Multiediting" },
   { href: "/smm/ai",       label: "Asistente IA" },
   { href: "https://www.scalinglatam.site", label: "Granja de bots", external: true },
 ];

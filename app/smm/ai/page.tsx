@@ -280,6 +280,7 @@ export default function AIPage() {
     { href: "/cursos", label: "Mis Cursos" },
     { href: "/granjas", label: "Granjas" },
     { href: "/downloads", label: "Descargas" },
+    { href: "/smm/multiediting", label: "Multiediting" },
     { href: "/smm/ai", label: "Asistente IA", active: true },
     { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
   ];

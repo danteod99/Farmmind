@@ -148,6 +148,7 @@ export default function OrdersPage() {
             { href: "/cursos", label: "Mis Cursos" },
             { href: "/granjas", label: "Granjas" },
             { href: "/downloads", label: "Descargas" },
+            { href: "/smm/multiediting", label: "Multiediting" },
             { href: "/smm/ai", label: "Asistente IA" },
             { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
           ]}

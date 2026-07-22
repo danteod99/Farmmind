@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' connect.facebook.net",
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
       "img-src 'self' data: blob: www.facebook.com *.supabase.co *.googleusercontent.com",
+      "media-src 'self' blob:",
       "font-src 'self' fonts.gstatic.com",
       "connect-src 'self' *.supabase.co api.nowpayments.io connect.facebook.net api.stripe.com api.anthropic.com",
       "frame-src js.stripe.com www.loom.com",
@@ -31,6 +32,16 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
+        ],
+      },
+      {
+        // Multiediting: aislamiento cross-origin para habilitar SharedArrayBuffer
+        // (ffmpeg.wasm multihilo). "credentialless" mantiene funcionando las
+        // imágenes externas (avatars) en Chrome/Firefox; Safari cae al motor 1-hilo.
+        source: "/smm/multiediting",
+        headers: [
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
         ],
       },
     ];
