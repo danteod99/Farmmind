@@ -87,7 +87,7 @@ export default function MultieditingPage() {
 
   // ── tool state ──
   const [files, setFiles] = useState<File[]>([]);
-  const [numVars, setNumVars] = useState(10);
+  const [numVars, setNumVars] = useState(5);
   const [running, setRunning] = useState(false);
   const [engineStatus, setEngineStatus] = useState<"idle" | "loading" | "ready">("idle");
   const [statusLine, setStatusLine] = useState("");
