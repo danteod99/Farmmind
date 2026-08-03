@@ -114,29 +114,45 @@ export default function MultieditingPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push("/?required=1"); return; }
-      setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
-      setUserAvatar(user.user_metadata?.avatar_url || "");
-      setUserEmail(user.email || "");
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { router.push("/?required=1"); return; }
+        setUserName(user.user_metadata?.full_name || user.email?.split("@")[0] || "Usuario");
+        setUserAvatar(user.user_metadata?.avatar_url || "");
+        setUserEmail(user.email || "");
 
-      if (isAdmin(user.email)) {
-        setHasAccess(true);
-      } else {
-        const { data: subs } = await supabase
-          .from("tm_subscriptions")
-          .select("tier, expires_at")
-          .eq("user_id", user.id)
-          .eq("tier", "pro");
-        const active = (subs || []).some(
-          (s) => !s.expires_at || new Date(s.expires_at).getTime() > Date.now()
-        );
-        setHasAccess(active);
+        if (isAdmin(user.email)) {
+          setHasAccess(true);
+        } else {
+          try {
+            const { data: subs } = await supabase
+              .from("tm_subscriptions")
+              .select("tier, expires_at")
+              .eq("user_id", user.id)
+              .eq("tier", "pro");
+            const active = (subs || []).some(
+              (s) => !s.expires_at || new Date(s.expires_at).getTime() > Date.now()
+            );
+            setHasAccess(active);
+          } catch (e) {
+            console.error("[multiediting] error verificando suscripcion:", e);
+            setHasAccess(false);
+          }
+        }
+
+        // El saldo es secundario: si falla, no debe bloquear la pantalla.
+        try {
+          const res = await fetch("/api/smm/orders");
+          if (res.ok) { const d = await res.json(); setBalance(d.balance || 0); }
+        } catch (e) {
+          console.error("[multiediting] error obteniendo saldo:", e);
+        }
+      } catch (e) {
+        console.error("[multiediting] error de inicializacion:", e);
+      } finally {
+        // Pase lo que pase, dejamos de mostrar el spinner para no colgar la pantalla.
+        setChecking(false);
       }
-
-      const res = await fetch("/api/smm/orders");
-      if (res.ok) { const d = await res.json(); setBalance(d.balance || 0); }
-      setChecking(false);
     })();
   }, [router]);
 
@@ -163,15 +179,35 @@ export default function MultieditingPage() {
     setEngineStatus("loading");
     setStatusLine("Descargando motor de video (~31 MB, solo la primera vez)...");
     const { FFmpeg: FFmpegClass } = await import("@ffmpeg/ffmpeg");
-    const ffmpeg = new FFmpegClass();
-    ffmpeg.on("progress", ({ progress }) => { execRatioRef.current = Math.max(0, Math.min(1, progress)); });
+
     const mt = typeof SharedArrayBuffer !== "undefined" && typeof self !== "undefined" && self.crossOriginIsolated;
-    const base = mt ? "/ffmpeg/core-mt" : "/ffmpeg/core";
-    await ffmpeg.load({
-      coreURL: `${base}/ffmpeg-core.js`,
-      wasmURL: `${base}/ffmpeg-core.wasm`,
-      ...(mt ? { workerURL: `${base}/ffmpeg-core.worker.js` } : {}),
-    });
+
+    const tryLoad = async (multi: boolean): Promise<FFmpeg> => {
+      const ffmpeg = new FFmpegClass();
+      ffmpeg.on("progress", ({ progress }) => { execRatioRef.current = Math.max(0, Math.min(1, progress)); });
+      const base = multi ? "/ffmpeg/core-mt" : "/ffmpeg/core";
+      await ffmpeg.load({
+        coreURL: `${base}/ffmpeg-core.js`,
+        wasmURL: `${base}/ffmpeg-core.wasm`,
+        ...(multi ? { workerURL: `${base}/ffmpeg-core.worker.js` } : {}),
+      });
+      return ffmpeg;
+    };
+
+    let ffmpeg: FFmpeg;
+    try {
+      ffmpeg = await tryLoad(mt);
+    } catch (e) {
+      if (mt) {
+        // El motor multi-hilo puede fallar por headers COEP o el worker →
+        // caemos automaticamente al modo compatible (single-thread) en vez de romper.
+        console.warn("[multiediting] fallo el motor multi-hilo, usando modo compatible:", e);
+        setStatusLine("Cargando motor de video (modo compatible)...");
+        ffmpeg = await tryLoad(false);
+      } else {
+        throw e;
+      }
+    }
     ffmpegRef.current = ffmpeg;
     setEngineStatus("ready");
     return ffmpeg;
