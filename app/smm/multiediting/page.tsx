@@ -216,15 +216,17 @@ export default function MultieditingPage() {
       const base = multi ? "/ffmpeg/core-mt" : "/ffmpeg/core";
       await prefetchWasm(`${base}/ffmpeg-core.wasm`, "Descargando motor de video...");
       setStatusLine(`Iniciando motor de video (${multi ? "multihilo" : "modo compatible"})...`);
-      // classWorkerURL: worker self-hosteado CON sus imports (./const.js, ./errors.js).
-      // El worker que emite el bundler queda huérfano de esos archivos → muere al
-      // arrancar y load() se cuelga para siempre ("se queda en la primera parte").
-      // Timeout: si algo se cuelga igual, cortamos y probamos el siguiente modo.
+      // IMPORTANTE: usar URLs ABSOLUTAS con el origin. @ffmpeg/ffmpeg construye el
+      // worker con `new URL(classWorkerURL, import.meta.url)`, y en el bundle de Next
+      // `import.meta.url` resuelve a file:// → una ruta como "/ffmpeg/esm/worker.js"
+      // se convierte en "file:///ffmpeg/esm/worker.js" y el navegador la bloquea.
+      // Con el origin completo (https://...), new URL respeta la URL tal cual.
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
       const loadPromise = ffmpeg.load({
-        classWorkerURL: "/ffmpeg/esm/worker.js",
-        coreURL: `${base}/ffmpeg-core.js`,
-        wasmURL: `${base}/ffmpeg-core.wasm`,
-        ...(multi ? { workerURL: `${base}/ffmpeg-core.worker.js` } : {}),
+        classWorkerURL: `${origin}/ffmpeg/esm/worker.js`,
+        coreURL: `${origin}${base}/ffmpeg-core.js`,
+        wasmURL: `${origin}${base}/ffmpeg-core.wasm`,
+        ...(multi ? { workerURL: `${origin}${base}/ffmpeg-core.worker.js` } : {}),
       });
       const timeout = new Promise<never>((_, rej) =>
         setTimeout(() => rej(new Error("timeout cargando el motor")), 60000));
