@@ -20,7 +20,6 @@ import {
   Star,
   Crown,
   Lock,
-  Sparkles,
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { supabase } from "@/app/lib/supabase";
@@ -117,7 +116,6 @@ export default function DownloadsPage() {
   const [authChecking, setAuthChecking] = useState(true);
   const [isLogged, setIsLogged] = useState(false);
   const [isPro, setIsPro] = useState(false);
-  const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     const ua = navigator.userAgent.toLowerCase();
@@ -151,27 +149,6 @@ export default function DownloadsPage() {
       if (error) alert("Error iniciando sesión: " + error.message);
     } catch {
       alert("Error de conexión");
-    }
-  };
-
-  const handleUpgrade = async (cycle: "monthly" | "yearly" = "yearly") => {
-    setUpgrading(true);
-    try {
-      const priceId = cycle === "yearly"
-        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
-        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else alert("Error conectando con Stripe");
-    } catch {
-      alert("Error de conexión");
-    } finally {
-      setUpgrading(false);
     }
   };
 
@@ -245,24 +222,21 @@ export default function DownloadsPage() {
               ) : (
                 <>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", marginBottom: 16 }}>
-                    <button onClick={() => handleUpgrade("yearly")} disabled={upgrading}
+                    <a href="https://wa.me/51931119176?text=Hola%2C%20quiero%20activar%20mi%20plan%20Pro%20para%20descargar%20TrustInsta%20y%20TrustFace%20Desktop"
+                      target="_blank" rel="noopener noreferrer"
                       style={{ padding: "18px 36px", borderRadius: 14, border: "none",
-                        background: upgrading ? "#1a1a2e" : "linear-gradient(135deg, #fbbf24, #f59e0b)",
-                        color: upgrading ? "#64748b" : "#1a1a00",
-                        fontSize: 16, fontWeight: 900, cursor: upgrading ? "not-allowed" : "pointer",
-                        boxShadow: upgrading ? "none" : "0 8px 32px rgba(251, 191, 36, 0.4)",
+                        background: "linear-gradient(135deg, #25D366, #128C7E)",
+                        color: "white",
+                        fontSize: 16, fontWeight: 900, cursor: "pointer",
+                        boxShadow: "0 8px 32px rgba(37, 211, 102, 0.4)",
+                        textDecoration: "none",
                         display: "inline-flex", alignItems: "center", gap: 10, minWidth: 280, justifyContent: "center" }}>
-                      <Sparkles size={16} /> {upgrading ? "Procesando..." : "Activar Anual — $20/mes ($240/año)"}
-                    </button>
-                    <button onClick={() => handleUpgrade("monthly")} disabled={upgrading}
-                      style={{ padding: "14px 28px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.12)",
-                        background: "transparent", color: "#94a3b8", fontSize: 13, fontWeight: 600,
-                        cursor: upgrading ? "not-allowed" : "pointer" }}>
-                      O Mensual — $50/mes
-                    </button>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.359.101 11.944c0 2.096.547 4.142 1.588 5.945L0 24l6.305-1.654a11.94 11.94 0 005.71 1.455h.005c6.585 0 11.946-5.36 11.949-11.945A11.86 11.86 0 0020.52 3.449"/></svg>
+                      Activar Pro por WhatsApp
+                    </a>
                   </div>
                   <p style={{ fontSize: 12, color: "#64748b" }}>
-                    Cancela cuando quieras · 30 días de garantía · Pago seguro con Stripe
+                    Activación rápida · Te atendemos al instante · Soporte directo
                   </p>
                 </>
               )}
