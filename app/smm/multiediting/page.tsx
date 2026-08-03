@@ -174,8 +174,36 @@ export default function MultieditingPage() {
     });
   };
 
+  // Pre-descarga el .wasm mostrando % real — así el usuario VE avanzar la
+  // descarga (31 MB en internet lento parece congelado sin esto) y el load()
+  // posterior la toma del cache del navegador (revalidación 304, instantánea).
+  const prefetchWasm = async (url: string, label: string) => {
+    try {
+      const res = await fetch(url);
+      if (!res.ok || !res.body) return;
+      const total = parseInt(res.headers.get("content-length") || "0", 10);
+      const reader = res.body.getReader();
+      let recv = 0;
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        recv += value?.length || 0;
+        const mb = (recv / 1048576).toFixed(0);
+        if (total) {
+          setStatusLine(`${label} ${Math.min(100, Math.round((recv / total) * 100))}% (${mb}/${(total / 1048576).toFixed(0)} MB)`);
+        } else {
+          setStatusLine(`${label} ${mb} MB...`);
+        }
+      }
+    } catch (e) {
+      // si el prefetch falla, load() intentará bajarlo igual
+      console.warn("[multiediting] prefetch fallo:", e);
+    }
+  };
+
   const getFFmpeg = useCallback(async (): Promise<FFmpeg> => {
     if (ffmpegRef.current) return ffmpegRef.current;
+    console.log("[multiediting] engine loader v2");
     setEngineStatus("loading");
     setStatusLine("Descargando motor de video (~31 MB, solo la primera vez)...");
     const { FFmpeg: FFmpegClass } = await import("@ffmpeg/ffmpeg");
@@ -186,6 +214,8 @@ export default function MultieditingPage() {
       const ffmpeg = new FFmpegClass();
       ffmpeg.on("progress", ({ progress }) => { execRatioRef.current = Math.max(0, Math.min(1, progress)); });
       const base = multi ? "/ffmpeg/core-mt" : "/ffmpeg/core";
+      await prefetchWasm(`${base}/ffmpeg-core.wasm`, "Descargando motor de video...");
+      setStatusLine(`Iniciando motor de video (${multi ? "multihilo" : "modo compatible"})...`);
       // classWorkerURL: worker self-hosteado CON sus imports (./const.js, ./errors.js).
       // El worker que emite el bundler queda huérfano de esos archivos → muere al
       // arrancar y load() se cuelga para siempre ("se queda en la primera parte").
