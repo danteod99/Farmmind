@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import { isAdmin } from "@/app/lib/admin";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface NavLink {
   href: string;
@@ -14,17 +14,32 @@ interface NavLink {
   external?: boolean;
 }
 
+// Lista única de navegación (misma en TODAS las pestañas logueadas).
+const NAV_LINKS: NavLink[] = [
+  { href: "/smm/services", label: "Servicios" },
+  { href: "/smm/funds", label: "Recargar" },
+  { href: "/cursos", label: "Mis Cursos" },
+  { href: "/granjas", label: "Granjas" },
+  { href: "/downloads", label: "Descargas" },
+  { href: "/smm/multiediting", label: "Multiediting" },
+  { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
+];
+
 interface SmmNavProps {
   balance: number;
   userAvatar?: string;
   userName?: string;
   userEmail?: string;
-  links: NavLink[];
+  links?: NavLink[]; // ignorado: la navegación es la lista canónica NAV_LINKS
 }
 
-export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmNavProps) {
+export function SmmNav({ balance, userAvatar, userName, userEmail }: SmmNavProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isActive = (href: string, external?: boolean) =>
+    !external && !!pathname && (pathname === href || pathname.startsWith(href + "/"));
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -100,7 +115,9 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
 
         {/* Center: desktop nav links */}
         <div className="smm-nav-desktop-links" style={{ display: "flex", gap: "4px" }}>
-          {links.map(({ href, label, active, external }) => (
+          {NAV_LINKS.map(({ href, label, external }) => {
+            const active = isActive(href, external);
+            return (
             <Link key={href} href={href}
               {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               {...(active ? { "aria-current": "page" as const } : {})}
@@ -115,7 +132,8 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
               }}>
               {label}
             </Link>
-          ))}
+            );
+          })}
         </div>
 
         {/* Right: balance + admin + avatar */}
@@ -184,7 +202,9 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
             </div>
           </div>
 
-          {links.map(({ href, label, active, external }) => (
+          {NAV_LINKS.map(({ href, label, external }) => {
+            const active = isActive(href, external);
+            return (
             <Link key={href} href={href}
               {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
               {...(active ? { "aria-current": "page" as const } : {})}
@@ -200,7 +220,8 @@ export function SmmNav({ balance, userAvatar, userName, userEmail, links }: SmmN
               }}>
               {label}
             </Link>
-          ))}
+            );
+          })}
 
           {isAdmin(userEmail) && (
             <Link href="/admin" onClick={() => setMobileOpen(false)} style={{ padding: "13px 16px", borderRadius: "12px", fontSize: "15px", fontWeight: 500, color: "#a78bfa", background: "#0d0d18", border: "1px solid #1e1e30", textDecoration: "none", display: "block" }}>
