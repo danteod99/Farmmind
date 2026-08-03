@@ -186,11 +186,19 @@ export default function MultieditingPage() {
       const ffmpeg = new FFmpegClass();
       ffmpeg.on("progress", ({ progress }) => { execRatioRef.current = Math.max(0, Math.min(1, progress)); });
       const base = multi ? "/ffmpeg/core-mt" : "/ffmpeg/core";
-      await ffmpeg.load({
+      // classWorkerURL: worker self-hosteado CON sus imports (./const.js, ./errors.js).
+      // El worker que emite el bundler queda huérfano de esos archivos → muere al
+      // arrancar y load() se cuelga para siempre ("se queda en la primera parte").
+      // Timeout: si algo se cuelga igual, cortamos y probamos el siguiente modo.
+      const loadPromise = ffmpeg.load({
+        classWorkerURL: "/ffmpeg/esm/worker.js",
         coreURL: `${base}/ffmpeg-core.js`,
         wasmURL: `${base}/ffmpeg-core.wasm`,
         ...(multi ? { workerURL: `${base}/ffmpeg-core.worker.js` } : {}),
       });
+      const timeout = new Promise<never>((_, rej) =>
+        setTimeout(() => rej(new Error("timeout cargando el motor")), 60000));
+      await Promise.race([loadPromise, timeout]);
       return ffmpeg;
     };
 
@@ -205,7 +213,8 @@ export default function MultieditingPage() {
         setStatusLine("Cargando motor de video (modo compatible)...");
         ffmpeg = await tryLoad(false);
       } else {
-        throw e;
+        setEngineStatus("idle");
+        throw new Error("No se pudo cargar el motor de video. Recarga la página (Cmd+Shift+R) e intenta de nuevo.");
       }
     }
     ffmpegRef.current = ffmpeg;
