@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 // TrustFarm latest version config
 // Update these values when releasing a new version
-const LATEST_VERSION = "1.1.1";
-const RELEASE_NOTES = "Fix pantallas en blanco, scrcpy video streaming, agent estable";
+const LATEST_VERSION = "2.22.0";
+const RELEASE_NOTES = "AI Comment corregido (comenta en el video correcto) y 5x mas rapido; Detener confiable; Scrape Users";
 const RELEASE_DATE = new Date().toISOString();
 
 const DOWNLOAD_BASE = "https://github.com/danteod99/trustfarm-releases/releases/download";
@@ -12,7 +12,7 @@ const DOWNLOAD_BASE = "https://github.com/danteod99/trustfarm-releases/releases/
 const PLATFORMS: Record<string, { url: string; signature: string }> = {
   "windows-x86_64": {
     url: `${DOWNLOAD_BASE}/v${LATEST_VERSION}/TrustFarm_${LATEST_VERSION}_x64-setup.nsis.zip`,
-    signature: "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZGJoZFo0QjhreHF3NTBOdmJFcmxxREsxbFJ3QS9tZ1hUUXBvL2I0b3JPTWJ3Ymg1aExNRGx5TFJNVjUwUGlrM0UxRWxlWC9XTUUyV2JYem9ZN3dobW5iNDU1MksvRFFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc1NjE3MTk3CWZpbGU6VHJ1c3RGYXJtXzEuMS4xX3g2NC1zZXR1cC5uc2lzLnppcApDVVlEVlUxUmJMVVg3WXdWQ1p3a1h0emd4SGNDSnpEZWFidThQREhjdjcrdmM4bElFOG5nbis1ZUZBY2NZam5WNWptSllld0Q3RFpZUlFlRGtUWkREQT09Cg==",
+    signature: "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSUzhvNWFVVW00WlJoU1JFNkNObzkrTGY5anJmQnRLR21hZmVHcmVRUlgyZitjc3pIQ1JJcTQwNmVvN0pIcEdYbVh5MDNKalc4WERDUSs4TkpYMzEzSzdWemk2dkVhNVE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg1ODY1MzM2CWZpbGU6VHJ1c3RGYXJtXzIuMjIuMF94NjQtc2V0dXAubnNpcy56aXAKMytiM3JtTnpmWEZpZCtoSVFTS3RpTG1Zd2J3YnpNekR2RFE5bnZ3clJBQkY2WWR0cGlGbWIrcHpXUWdIT1dFR2IvTU9DdVhPTU9pcS9ua3pqN1VFQWc9PQo=",
   },
   "darwin-aarch64": {
     url: `${DOWNLOAD_BASE}/v${LATEST_VERSION}/TrustFarm.app.tar.gz`,
