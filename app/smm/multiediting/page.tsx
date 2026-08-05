@@ -229,20 +229,32 @@ export default function MultieditingPage() {
     //    headers COEP se colgaba hasta el timeout ("timeout cargando el motor").
     //  - classWorkerURL debe ser una URL REAL (no blob) para que sus imports
     //    relativos (./const.js, ./classes.js) resuelvan; con origin evita el file://.
+    // Instrumentado por PASOS para localizar exactamente dónde muere.
     const tryLoad = async (base: string, multi: boolean): Promise<FFmpeg> => {
       const ffmpeg = new FFmpegClass();
       ffmpeg.on("progress", ({ progress }) => { execRatioRef.current = Math.max(0, Math.min(1, progress)); });
-      setStatusLine(`Iniciando motor de video (${multi ? "multihilo" : "modo compatible"})...`);
-      const cfg: Record<string, string> = {
-        classWorkerURL: `${origin}/ffmpeg/esm/worker.js`,
-        coreURL: await toBlobURL(`${origin}${base}/ffmpeg-core.js`, "text/javascript"),
-        wasmURL: await toBlobURL(`${origin}${base}/ffmpeg-core.wasm`, "application/wasm"),
-      };
+      ffmpeg.on("log", ({ message }) => console.log("[ffmpeg]", message));
+
+      setStatusLine("Paso 1/4: descargando core del motor...");
+      console.log("[multiediting] paso 1: toBlobURL core");
+      const coreURL = await toBlobURL(`${origin}${base}/ffmpeg-core.js`, "text/javascript");
+
+      setStatusLine("Paso 2/4: descargando wasm (~31 MB)...");
+      console.log("[multiediting] paso 2: toBlobURL wasm");
+      const wasmURL = await toBlobURL(`${origin}${base}/ffmpeg-core.wasm`, "application/wasm");
+
+      const cfg: Record<string, string> = { classWorkerURL: `${origin}/ffmpeg/esm/worker.js`, coreURL, wasmURL };
       if (multi) cfg.workerURL = await toBlobURL(`${origin}${base}/ffmpeg-core.worker.js`, "text/javascript");
+
+      setStatusLine("Paso 3/4: iniciando worker del motor...");
+      console.log("[multiediting] paso 3: ffmpeg.load()", cfg);
       const loadPromise = ffmpeg.load(cfg);
       const timeout = new Promise<never>((_, rej) =>
-        setTimeout(() => rej(new Error("timeout cargando el motor")), 45000));
+        setTimeout(() => rej(new Error("timeout en paso 3 (worker no respondió). Prueba en Chrome, o dime qué navegador usas.")), 45000));
       await Promise.race([loadPromise, timeout]);
+
+      setStatusLine("Paso 4/4: motor listo.");
+      console.log("[multiediting] paso 4: motor listo");
       return ffmpeg;
     };
 
@@ -251,9 +263,10 @@ export default function MultieditingPage() {
     try {
       ffmpeg = await tryLoad("/ffmpeg/core", false);
     } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
       console.error("[multiediting] fallo cargando el motor:", e);
       setEngineStatus("idle");
-      throw new Error("No se pudo cargar el motor de video. Recarga la página (Cmd+Shift+R) e intenta de nuevo.");
+      throw new Error(`No se pudo cargar el motor — ${msg}`);
     }
     ffmpegRef.current = ffmpeg;
     setEngineStatus("ready");
