@@ -9,12 +9,16 @@ const nextConfig: NextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' connect.facebook.net",
+      // blob: y worker-src son necesarios para el motor de video (ffmpeg.wasm),
+      // que corre en un Web Worker y carga el core como blob:.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: connect.facebook.net",
+      "worker-src 'self' blob:",
+      "child-src 'self' blob:",
       "style-src 'self' 'unsafe-inline' fonts.googleapis.com",
       "img-src 'self' data: blob: www.facebook.com *.supabase.co *.googleusercontent.com",
       "media-src 'self' blob:",
       "font-src 'self' fonts.gstatic.com",
-      "connect-src 'self' *.supabase.co api.nowpayments.io connect.facebook.net api.stripe.com api.anthropic.com",
+      "connect-src 'self' blob: data: *.supabase.co api.nowpayments.io connect.facebook.net api.stripe.com api.anthropic.com",
       "frame-src js.stripe.com www.loom.com",
     ].join("; ");
 
