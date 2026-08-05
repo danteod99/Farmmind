@@ -40,6 +40,14 @@ const PROFILES = [
 
 const MAX_FILE_MB = 200;
 const MAX_VARIATIONS = 50;
+
+// Posiciones del logo (overlay) — coords de ffmpeg con margen de 30px.
+const LOGO_POSITIONS: Record<string, { label: string; expr: string }> = {
+  tr: { label: "Arriba derecha", expr: "main_w-overlay_w-30:30" },
+  tl: { label: "Arriba izquierda", expr: "30:30" },
+  br: { label: "Abajo derecha", expr: "main_w-overlay_w-30:main_h-overlay_h-30" },
+  bl: { label: "Abajo izquierda", expr: "30:main_h-overlay_h-30" },
+};
 const WA_MULTIEDITING = `https://wa.me/51931119176?text=${encodeURIComponent(
   "Hola! Quiero activar la herramienta Multiediting de TrustMind 🎬"
 )}`;
@@ -88,6 +96,9 @@ export default function MultieditingPage() {
   // ── tool state ──
   const [files, setFiles] = useState<File[]>([]);
   const [numVars, setNumVars] = useState(5);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPos, setLogoPos] = useState("tr");
+  const [logoDragOver, setLogoDragOver] = useState(false);
   const [running, setRunning] = useState(false);
   const [engineStatus, setEngineStatus] = useState<"idle" | "loading" | "ready">("idle");
   const [statusLine, setStatusLine] = useState("");
@@ -111,6 +122,7 @@ export default function MultieditingPage() {
   const cancelRef = useRef(false);
   const execRatioRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     (async () => {
@@ -203,51 +215,45 @@ export default function MultieditingPage() {
 
   const getFFmpeg = useCallback(async (): Promise<FFmpeg> => {
     if (ffmpegRef.current) return ffmpegRef.current;
-    console.log("[multiediting] engine loader v2");
+    console.log("[multiediting] engine loader v3 (blob single-thread)");
     setEngineStatus("loading");
     setStatusLine("Descargando motor de video (~31 MB, solo la primera vez)...");
     const { FFmpeg: FFmpegClass } = await import("@ffmpeg/ffmpeg");
+    const { toBlobURL } = await import("@ffmpeg/util");
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
 
-    const mt = typeof SharedArrayBuffer !== "undefined" && typeof self !== "undefined" && self.crossOriginIsolated;
-
-    const tryLoad = async (multi: boolean): Promise<FFmpeg> => {
+    // Enfoque robusto (recomendado por @ffmpeg para bundlers):
+    //  - toBlobURL descarga core/wasm y los sirve como blob: → evita problemas de
+    //    COEP/CORP y de resolución de rutas dentro del worker.
+    //  - single-thread (/ffmpeg/core): NO usa el sub-worker del core-mt, que con los
+    //    headers COEP se colgaba hasta el timeout ("timeout cargando el motor").
+    //  - classWorkerURL debe ser una URL REAL (no blob) para que sus imports
+    //    relativos (./const.js, ./classes.js) resuelvan; con origin evita el file://.
+    const tryLoad = async (base: string, multi: boolean): Promise<FFmpeg> => {
       const ffmpeg = new FFmpegClass();
       ffmpeg.on("progress", ({ progress }) => { execRatioRef.current = Math.max(0, Math.min(1, progress)); });
-      const base = multi ? "/ffmpeg/core-mt" : "/ffmpeg/core";
-      await prefetchWasm(`${base}/ffmpeg-core.wasm`, "Descargando motor de video...");
       setStatusLine(`Iniciando motor de video (${multi ? "multihilo" : "modo compatible"})...`);
-      // IMPORTANTE: usar URLs ABSOLUTAS con el origin. @ffmpeg/ffmpeg construye el
-      // worker con `new URL(classWorkerURL, import.meta.url)`, y en el bundle de Next
-      // `import.meta.url` resuelve a file:// → una ruta como "/ffmpeg/esm/worker.js"
-      // se convierte en "file:///ffmpeg/esm/worker.js" y el navegador la bloquea.
-      // Con el origin completo (https://...), new URL respeta la URL tal cual.
-      const origin = typeof window !== "undefined" ? window.location.origin : "";
-      const loadPromise = ffmpeg.load({
+      const cfg: Record<string, string> = {
         classWorkerURL: `${origin}/ffmpeg/esm/worker.js`,
-        coreURL: `${origin}${base}/ffmpeg-core.js`,
-        wasmURL: `${origin}${base}/ffmpeg-core.wasm`,
-        ...(multi ? { workerURL: `${origin}${base}/ffmpeg-core.worker.js` } : {}),
-      });
+        coreURL: await toBlobURL(`${origin}${base}/ffmpeg-core.js`, "text/javascript"),
+        wasmURL: await toBlobURL(`${origin}${base}/ffmpeg-core.wasm`, "application/wasm"),
+      };
+      if (multi) cfg.workerURL = await toBlobURL(`${origin}${base}/ffmpeg-core.worker.js`, "text/javascript");
+      const loadPromise = ffmpeg.load(cfg);
       const timeout = new Promise<never>((_, rej) =>
-        setTimeout(() => rej(new Error("timeout cargando el motor")), 60000));
+        setTimeout(() => rej(new Error("timeout cargando el motor")), 45000));
       await Promise.race([loadPromise, timeout]);
       return ffmpeg;
     };
 
+    // Single-thread primero: más compatible. Si por lo que sea falla, se informa claro.
     let ffmpeg: FFmpeg;
     try {
-      ffmpeg = await tryLoad(mt);
+      ffmpeg = await tryLoad("/ffmpeg/core", false);
     } catch (e) {
-      if (mt) {
-        // El motor multi-hilo puede fallar por headers COEP o el worker →
-        // caemos automaticamente al modo compatible (single-thread) en vez de romper.
-        console.warn("[multiediting] fallo el motor multi-hilo, usando modo compatible:", e);
-        setStatusLine("Cargando motor de video (modo compatible)...");
-        ffmpeg = await tryLoad(false);
-      } else {
-        setEngineStatus("idle");
-        throw new Error("No se pudo cargar el motor de video. Recarga la página (Cmd+Shift+R) e intenta de nuevo.");
-      }
+      console.error("[multiediting] fallo cargando el motor:", e);
+      setEngineStatus("idle");
+      throw new Error("No se pudo cargar el motor de video. Recarga la página (Cmd+Shift+R) e intenta de nuevo.");
     }
     ffmpegRef.current = ffmpeg;
     setEngineStatus("ready");
@@ -272,6 +278,13 @@ export default function MultieditingPage() {
     try {
       const ffmpeg = await getFFmpeg();
 
+      // Logo (marca de agua): se escribe una sola vez y se reutiliza en todas las variaciones.
+      const hasLogo = !!logoFile;
+      if (hasLogo && logoFile) {
+        const lbuf = new Uint8Array(await logoFile.arrayBuffer());
+        await ffmpeg.writeFile("logo.png", lbuf);
+      }
+
       for (let fi = 0; fi < files.length; fi++) {
         if (cancelRef.current) break;
         const file = files[fi];
@@ -290,10 +303,23 @@ export default function MultieditingPage() {
 
           const vf = `eq=brightness=${p.br}:contrast=${p.co}:saturation=${p.sa}:gamma=${p.ga},hue=h=${p.hue}`;
           const common = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-movflags", "+faststart", "-y", "out.mp4"];
-          let code = await ffmpeg.exec(["-i", "in.mp4", "-vf", vf, "-af", `volume=${p.vo}`, "-c:a", "aac", "-b:a", "128k", ...common]);
-          if (code !== 0) {
-            // Reintento sin filtro de audio (videos sin pista de audio)
-            code = await ffmpeg.exec(["-i", "in.mp4", "-vf", vf, "-an", ...common]);
+          let code: number;
+          if (hasLogo) {
+            // Aplica la variación de color y encima el logo (overlay). Re-codifica.
+            const pos = (LOGO_POSITIONS[logoPos] || LOGO_POSITIONS.tr).expr;
+            const fc = `[0:v]${vf}[bg];[1:v]scale=200:-1[wm];[bg][wm]overlay=${pos}[v]`;
+            const inputs = ["-i", "in.mp4", "-i", "logo.png", "-filter_complex", fc, "-map", "[v]"];
+            code = await ffmpeg.exec([...inputs, "-map", "0:a?", "-af", `volume=${p.vo}`, "-c:a", "aac", "-b:a", "128k", ...common]);
+            if (code !== 0) {
+              // Reintento sin audio (videos sin pista de audio)
+              code = await ffmpeg.exec([...inputs, "-an", ...common]);
+            }
+          } else {
+            code = await ffmpeg.exec(["-i", "in.mp4", "-vf", vf, "-af", `volume=${p.vo}`, "-c:a", "aac", "-b:a", "128k", ...common]);
+            if (code !== 0) {
+              // Reintento sin filtro de audio (videos sin pista de audio)
+              code = await ffmpeg.exec(["-i", "in.mp4", "-vf", vf, "-an", ...common]);
+            }
           }
           if (cancelRef.current) break;
           if (code !== 0) throw new Error(`ffmpeg falló en la variación ${vi + 1} de "${file.name}"`);
@@ -505,6 +531,42 @@ export default function MultieditingPage() {
                     </button>
                   )}
                 </div>
+                {/* logo / marca de agua */}
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setLogoDragOver(true); }}
+                  onDragLeave={() => setLogoDragOver(false)}
+                  onDrop={(e) => { e.preventDefault(); setLogoDragOver(false); const f = Array.from(e.dataTransfer.files).find((x) => x.type.startsWith("image/")); if (f) setLogoFile(f); }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap",
+                    marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #14141f",
+                    borderRadius: "10px",
+                    ...(logoDragOver ? { outline: "2px dashed #a78bfa", outlineOffset: "4px", background: "#12102a" } : {}),
+                  }}
+                >
+                  <input ref={logoInputRef} type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" style={{ display: "none" }}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) setLogoFile(f); e.target.value = ""; }} />
+                  {!logoFile ? (
+                    <button onClick={() => logoInputRef.current?.click()} disabled={running}
+                      style={{ ...btnGhost, color: "#a78bfa", borderColor: logoDragOver ? "#a78bfa" : "#2a2a44" }}>
+                      🖼️ Poner marca de agua — arrastra una imagen o haz click
+                    </button>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: "13px", color: "#22c55e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "220px" }}>✓ Logo: {logoFile.name}</span>
+                      {!running && (
+                        <button onClick={() => setLogoFile(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: "2px", display: "flex" }} title="Quitar logo">
+                          <X size={14} color="#ef4444" />
+                        </button>
+                      )}
+                      <select value={logoPos} disabled={running} onChange={(e) => setLogoPos(e.target.value)}
+                        style={{ background: "#12121f", border: "1px solid #1e1e30", borderRadius: "8px", color: "white", padding: "7px 10px", fontSize: "13px" }}>
+                        {Object.entries(LOGO_POSITIONS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                      </select>
+                    </>
+                  )}
+                  <span style={{ fontSize: "12px", color: "#5a6480" }}>PNG transparente recomendado</span>
+                </div>
+
                 {/* carpeta de destino */}
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #14141f" }}>
                   {fsSupported ? (
