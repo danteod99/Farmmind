@@ -38,16 +38,10 @@ const nextConfig: NextConfig = {
           },
         ],
       },
-      {
-        // Multiediting: aislamiento cross-origin para habilitar SharedArrayBuffer
-        // (ffmpeg.wasm multihilo). "credentialless" mantiene funcionando las
-        // imágenes externas (avatars) en Chrome/Firefox; Safari cae al motor 1-hilo.
-        source: "/smm/multiediting",
-        headers: [
-          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-          { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
-        ],
-      },
+      // NOTA: se quitaron los headers COOP/COEP de /smm/multiediting. Se usaban para
+      // habilitar SharedArrayBuffer (ffmpeg.wasm multihilo), pero el motor ahora corre
+      // en single-thread. El COEP "credentialless" rompía el Web Worker + blob del
+      // motor ("timeout cargando el motor"). Sin ese aislamiento, el worker carga bien.
     ];
   },
 };
