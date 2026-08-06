@@ -229,32 +229,36 @@ export default function MultieditingPage() {
     //    headers COEP se colgaba hasta el timeout ("timeout cargando el motor").
     //  - classWorkerURL debe ser una URL REAL (no blob) para que sus imports
     //    relativos (./const.js, ./classes.js) resuelvan; con origin evita el file://.
-    // Instrumentado por PASOS para localizar exactamente dónde muere.
+    // URLs DIRECTAS del propio dominio (NO blob). El worker es un contexto aparte y
+    // no puede importar de forma fiable un blob: creado en el hilo principal
+    // ("Failed to fetch dynamically imported module: blob:..."). Las URLs same-origin
+    // sí las importa sin problema (script-src 'self'). Ya no hace falta blob porque
+    // se quitaron los headers COEP.
     const tryLoad = async (base: string, multi: boolean): Promise<FFmpeg> => {
       const ffmpeg = new FFmpegClass();
       ffmpeg.on("progress", ({ progress }) => { execRatioRef.current = Math.max(0, Math.min(1, progress)); });
       ffmpeg.on("log", ({ message }) => console.log("[ffmpeg]", message));
 
-      setStatusLine("Paso 1/4: descargando core del motor...");
-      console.log("[multiediting] paso 1: toBlobURL core");
-      const coreURL = await toBlobURL(`${origin}${base}/ffmpeg-core.js`, "text/javascript");
+      setStatusLine("Paso 1/2: preparando motor de video...");
+      console.log("[multiediting] paso 1: prefetch wasm");
+      await prefetchWasm(`${origin}${base}/ffmpeg-core.wasm`, "Descargando motor de video");
 
-      setStatusLine("Paso 2/4: descargando wasm (~31 MB)...");
-      console.log("[multiediting] paso 2: toBlobURL wasm");
-      const wasmURL = await toBlobURL(`${origin}${base}/ffmpeg-core.wasm`, "application/wasm");
+      const cfg: Record<string, string> = {
+        classWorkerURL: `${origin}/ffmpeg/esm/worker.js`,
+        coreURL: `${origin}${base}/ffmpeg-core.js`,
+        wasmURL: `${origin}${base}/ffmpeg-core.wasm`,
+      };
+      if (multi) cfg.workerURL = `${origin}${base}/ffmpeg-core.worker.js`;
 
-      const cfg: Record<string, string> = { classWorkerURL: `${origin}/ffmpeg/esm/worker.js`, coreURL, wasmURL };
-      if (multi) cfg.workerURL = await toBlobURL(`${origin}${base}/ffmpeg-core.worker.js`, "text/javascript");
-
-      setStatusLine("Paso 3/4: iniciando worker del motor...");
-      console.log("[multiediting] paso 3: ffmpeg.load()", cfg);
+      setStatusLine("Paso 2/2: iniciando worker del motor...");
+      console.log("[multiediting] paso 2: ffmpeg.load()", cfg);
       const loadPromise = ffmpeg.load(cfg);
       const timeout = new Promise<never>((_, rej) =>
-        setTimeout(() => rej(new Error("timeout en paso 3 (worker no respondió). Prueba en Chrome, o dime qué navegador usas.")), 45000));
+        setTimeout(() => rej(new Error("timeout en paso 2 (worker no respondió). Prueba en Chrome, o dime qué navegador usas.")), 45000));
       await Promise.race([loadPromise, timeout]);
 
-      setStatusLine("Paso 4/4: motor listo.");
-      console.log("[multiediting] paso 4: motor listo");
+      setStatusLine("Motor listo.");
+      console.log("[multiediting] motor listo");
       return ffmpeg;
     };
 
