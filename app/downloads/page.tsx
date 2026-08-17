@@ -110,6 +110,15 @@ const APPS = [
   },
 ];
 
+// Apps que se descargan SIN cuenta ni suscripcion (decision 2026-08-17).
+// TrustFarm se entrega libre: el limite gratis/pro vive DENTRO del software
+// (tope de 4 equipos salvo correo de la allowlist), asi que no hace falta
+// candado en la web. TrustInsta y TrustFace siguen siendo Pro hasta que se
+// defina su modelo.
+const IDS_LIBRES = ["trustfarm"];
+const APPS_LIBRES = APPS.filter((a) => IDS_LIBRES.includes(a.id));
+const APPS_PRO = APPS.filter((a) => !IDS_LIBRES.includes(a.id));
+
 export default function DownloadsPage() {
   const router = useRouter();
   const [os, setOs] = useState<"mac" | "windows" | "unknown">("unknown");
@@ -184,7 +193,16 @@ export default function DownloadsPage() {
           />
         </div>
 
-        {/* PAYWALL: solo Pro puede descargar */}
+        {/* DESCARGA LIBRE: no espera al chequeo de sesion, se ve al instante. */}
+        <div style={{ marginBottom: 24, padding: "12px 18px", borderRadius: 12, background: "rgba(0, 229, 255, 0.08)", border: "1px solid rgba(0, 229, 255, 0.25)", display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <Download size={16} color="#00e5ff" />
+          <span style={{ fontSize: 13, color: "#00e5ff", fontWeight: 600 }}>Descarga libre · sin cuenta ni suscripción</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 48, marginBottom: 48 }}>
+          {APPS_LIBRES.map((app) => <AppCard key={app.id} app={app} detectedOs={os} />)}
+        </div>
+
+        {/* PAYWALL: TrustInsta y TrustFace siguen siendo solo para Pro */}
         {authChecking ? (
           <div style={{ padding: "60px", textAlign: "center" }}>
             <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid var(--accent)", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
@@ -264,7 +282,7 @@ export default function DownloadsPage() {
               <span style={{ fontSize: 13, color: "#34d399", fontWeight: 600 }}>Pro activo · Descargas desbloqueadas</span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
-              {APPS.map((app) => <AppCard key={app.id} app={app} detectedOs={os} />)}
+              {APPS_PRO.map((app) => <AppCard key={app.id} app={app} detectedOs={os} />)}
             </div>
           </>
         )}
