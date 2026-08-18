@@ -22,6 +22,7 @@ const NAV_LINKS: NavLink[] = [
   { href: "/granjas", label: "Granjas" },
   { href: "/downloads", label: "Descargas" },
   { href: "/smm/multiediting", label: "Multiediting" },
+  { href: "/smm/multiclipping", label: "Multiclipping" },
   { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
 ];
 
