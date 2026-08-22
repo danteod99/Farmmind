@@ -23,7 +23,7 @@ import {
   CheckCircle2, AlertTriangle, MessageCircle, Sparkles,
 } from "lucide-react";
 
-const MAX_FILE_MB = 200;
+const MAX_FILE_MB = 800;
 const MIN_CLIP = 5;
 const MAX_CLIP = 300;
 
