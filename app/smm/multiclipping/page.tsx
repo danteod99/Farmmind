@@ -48,9 +48,25 @@ interface VideoResult { source: string; items: ResultItem[] }
 
 // ── Modo IA ──
 type ClipMode = "ai" | "uniform";
-interface AiMoment { start: number; end: number; title: string; hook: string; reason: string; score: number; selected: boolean }
+interface AiSeg { start: number; end: number }
+interface AiMoment { start: number; end: number; segments?: AiSeg[]; title: string; hook: string; reason: string; score: number; selected: boolean }
 interface AiWord { word: string; start: number; end: number }
 interface AiSegment { start: number; end: number; text: string }
+
+// Tramos que componen un clip: varios (unir cortando relleno) o uno solo.
+function clipSegs(m: AiMoment): AiSeg[] {
+  return (m.segments && m.segments.length) ? m.segments : [{ start: m.start, end: m.end }];
+}
+// Mapea un tiempo del video ORIGINAL al tiempo dentro del clip ya unido (o null si cae en relleno).
+function mapToClip(t: number, segs: AiSeg[]): number | null {
+  let acc = 0;
+  for (const s of segs) {
+    if (t < s.start) return null;
+    if (t <= s.end) return acc + (t - s.start);
+    acc += s.end - s.start;
+  }
+  return null;
+}
 
 const AI_MAX_MINUTES = 25;
 
@@ -76,16 +92,24 @@ function assEscape(s: string) {
   return s.replace(/\\/g, "").replace(/[{}]/g, "").replace(/\r?\n/g, " ").trim();
 }
 
-// Genera el archivo ASS con el título sobreimpreso + subtítulos estilo TikTok.
+// Altura de la franja superior donde va el título (fuera de la imagen del video).
+// El video se escala para ocupar el área debajo de la franja (ver baseChain).
+const TITLE_BAND_V = 280; // vertical 1080x1920
+const TITLE_BAND_H = 140; // horizontal 1920x1080
+
+// Genera el archivo ASS con el título en la franja superior + subtítulos estilo TikTok.
 // Los tiempos son relativos al inicio del clip (el corte con -ss resetea a 0).
 function buildAss(m: AiMoment, words: AiWord[], segments: AiSegment[], isVertical: boolean, withSubs: boolean): string {
   const W = isVertical ? 1080 : 1920;
   const H = isVertical ? 1920 : 1080;
-  const clipDur = m.end - m.start;
+  const segs = clipSegs(m);
+  const clipDur = segs.reduce((a, s) => a + (s.end - s.start), 0);
   const titleSize = isVertical ? 78 : 64;
   const capSize = isVertical ? 64 : 52;
   const capMarginV = isVertical ? 430 : 90;
-  const titleMarginV = isVertical ? 190 : 60;
+  // El título se centra dentro de la franja negra superior, no sobre el video.
+  const band = isVertical ? TITLE_BAND_V : TITLE_BAND_H;
+  const titleMarginV = Math.round((band - titleSize * 1.25) / 2);
 
   const header = `[Script Info]
 ScriptType: v4.00+
@@ -110,15 +134,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
   if (withSubs) {
     // Agrupa palabras en frases cortas (máx 4 palabras o ~1.8s) para el estilo TikTok.
-    const inRange = words.filter((w) => w.end > m.start && w.start < m.end);
+    // Los tiempos se remapean por los tramos unidos (mapToClip): las palabras que
+    // caen en el relleno saltado se descartan.
+    const inRange = words.filter((w) => mapToClip(w.start, segs) !== null);
     if (inRange.length > 0) {
       let chunk: AiWord[] = [];
       const flush = () => {
         if (chunk.length === 0) return;
-        const st = Math.max(0, chunk[0].start - m.start);
-        const en = Math.min(clipDur, chunk[chunk.length - 1].end - m.start);
+        const st = mapToClip(chunk[0].start, segs);
+        const en = mapToClip(chunk[chunk.length - 1].end, segs);
         const text = assEscape(chunk.map((w) => w.word).join(" ").toUpperCase());
-        if (text && en > st) lines.push(`Dialogue: 0,${assTime(st)},${assTime(en)},Caption,,0,0,0,,${text}`);
+        if (st !== null && en !== null && en > st) lines.push(`Dialogue: 0,${assTime(st)},${assTime(en)},Caption,,0,0,0,,${text}`);
         chunk = [];
       };
       for (const w of inRange) {
@@ -129,11 +155,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
       flush();
     } else {
       // Sin timestamps por palabra: usa los segmentos completos como subtítulo.
-      for (const s of segments.filter((s) => s.end > m.start && s.start < m.end)) {
-        const st = Math.max(0, s.start - m.start);
-        const en = Math.min(clipDur, s.end - m.start);
+      for (const s of segments) {
+        const st = mapToClip(s.start, segs);
+        const en = mapToClip(s.end, segs);
         const text = assEscape(s.text.toUpperCase());
-        if (text && en > st) lines.push(`Dialogue: 0,${assTime(st)},${assTime(en)},Caption,,0,0,0,,${text}`);
+        if (st !== null && en !== null && en > st) lines.push(`Dialogue: 0,${assTime(st)},${assTime(en)},Caption,,0,0,0,,${text}`);
       }
     }
   }
@@ -570,32 +596,68 @@ export default function MulticlippingPage() {
         if (cancelRef.current) break;
         const m = selected[i];
         execRatioRef.current = 0;
-        setStatusLine(`Clip ${i + 1}/${selected.length}: "${m.title}" (${fmtTime(m.start)}–${fmtTime(m.end)})...`);
+        const nParts = clipSegs(m).length;
+        setStatusLine(`Clip ${i + 1}/${selected.length}: "${m.title}"${nParts > 1 ? ` (uniendo ${nParts} partes)` : ` (${fmtTime(m.start)}–${fmtTime(m.end)})`}...`);
 
         const assMoment = titleOn ? m : { ...m, title: "" };
         if (needsAss) {
           await ffmpeg.writeFile("sub.ass", new TextEncoder().encode(buildAss(assMoment, aiWords, aiSegments, vertical, subsOn)));
         }
 
-        const baseChain = vertical ? "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920" : "null";
+        // Con título activo, el video se encoge para dejar una franja negra arriba
+        // donde vive el título (fuera de la imagen). Sin título, ocupa todo el frame.
+        const baseChain = vertical
+          ? (titleOn
+              ? `scale=1080:${1920 - TITLE_BAND_V}:force_original_aspect_ratio=increase,crop=1080:${1920 - TITLE_BAND_V},pad=1080:1920:0:${TITLE_BAND_V}:black`
+              : "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920")
+          : (titleOn
+              ? `scale=1920:${1080 - TITLE_BAND_H}:force_original_aspect_ratio=decrease,pad=1920:${1080 - TITLE_BAND_H}:(ow-iw)/2:(oh-ih)/2:black,pad=1920:1080:0:${TITLE_BAND_H}:black`
+              : "null");
         const assFilter = needsAss ? "ass=sub.ass:fontsdir=/customfonts" : "null";
+        const segs = clipSegs(m);
+        const multi = segs.length > 1;
+        const pos = (LOGO_POSITIONS[logoPos] || LOGO_POSITIONS.tr).expr;
         let fc: string;
-        const inputs = ["-ss", m.start.toFixed(2), "-to", m.end.toFixed(2), "-i", "in.mp4"];
-        if (hasLogo) {
-          const pos = (LOGO_POSITIONS[logoPos] || LOGO_POSITIONS.tr).expr;
-          fc = `[0:v]${baseChain}[bg];[1:v]scale=200:-1[wm];[bg][wm]overlay=${pos}[v1];[v1]${assFilter}[v]`;
-          inputs.push("-i", "logo.png");
+        let inputs: string[];
+        let audioMap: string[];
+
+        if (multi) {
+          // Clip COMPUESTO: une varios tramos (select/aselect) saltándose el relleno.
+          const vr = segs.map((s) => `between(t,${s.start.toFixed(2)},${s.end.toFixed(2)})`).join("+");
+          const cutV = `[0:v]select='${vr}',setpts=N/FRAME_RATE/TB[cv]`;
+          const aChain = `[0:a]aselect='${vr}',asetpts=N/SR/TB[a]`;
+          inputs = ["-i", "in.mp4"];
+          if (hasLogo) {
+            fc = `${cutV};[cv]${baseChain}[bg];[1:v]scale=200:-1[wm];[bg][wm]overlay=${pos}[v1];[v1]${assFilter}[v];${aChain}`;
+            inputs.push("-i", "logo.png");
+          } else {
+            fc = `${cutV};[cv]${baseChain}[v1];[v1]${assFilter}[v];${aChain}`;
+          }
+          audioMap = ["-map", "[a]"];
         } else {
-          fc = `[0:v]${baseChain}[v1];[v1]${assFilter}[v]`;
+          // Clip de un solo tramo: corte rápido con seek.
+          inputs = ["-ss", segs[0].start.toFixed(2), "-to", segs[0].end.toFixed(2), "-i", "in.mp4"];
+          if (hasLogo) {
+            fc = `[0:v]${baseChain}[bg];[1:v]scale=200:-1[wm];[bg][wm]overlay=${pos}[v1];[v1]${assFilter}[v]`;
+            inputs.push("-i", "logo.png");
+          } else {
+            fc = `[0:v]${baseChain}[v1];[v1]${assFilter}[v]`;
+          }
+          audioMap = ["-map", "0:a?"];
         }
 
-        const code = await ffmpeg.exec([
-          ...inputs,
-          "-filter_complex", fc, "-map", "[v]", "-map", "0:a?",
-          "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
-          "-c:a", "aac", "-b:a", "128k",
-          "-y", "out.mp4",
-        ]);
+        const common = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "aac", "-b:a", "128k", "-y", "out.mp4"];
+        let code = await ffmpeg.exec([...inputs, "-filter_complex", fc, "-map", "[v]", ...audioMap, ...common]);
+        if (code !== 0 && multi) {
+          // Reintento sin audio (video sin pista de audio → aselect falla)
+          const vr = segs.map((s) => `between(t,${s.start.toFixed(2)},${s.end.toFixed(2)})`).join("+");
+          const cutV = `[0:v]select='${vr}',setpts=N/FRAME_RATE/TB[cv]`;
+          const fcNoA = hasLogo
+            ? `${cutV};[cv]${baseChain}[bg];[1:v]scale=200:-1[wm];[bg][wm]overlay=${pos}[v1];[v1]${assFilter}[v]`
+            : `${cutV};[cv]${baseChain}[v1];[v1]${assFilter}[v]`;
+          code = await ffmpeg.exec([...inputs, "-filter_complex", fcNoA, "-map", "[v]", "-an",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-y", "out.mp4"]);
+        }
         if (cancelRef.current) break;
         if (code !== 0) throw new Error(`ffmpeg falló generando el clip "${m.title}"`);
 
@@ -803,12 +865,20 @@ export default function MulticlippingPage() {
                           onChange={(e) => setClipSeconds(Math.max(MIN_CLIP, Math.min(MAX_CLIP, parseInt(e.target.value) || MIN_CLIP)))}
                           style={{ width: "62px", background: "#12121f", border: "1px solid #1e1e30", borderRadius: "8px", color: "white", padding: "6px 8px", fontSize: "13px", textAlign: "center" }} />
                       </div>
-                      <label style={{ display: "inline-flex", alignItems: "center", gap: "8px", marginTop: "14px", fontSize: "13px", color: "#c4cadd", cursor: running ? "default" : "pointer" }}>
-                        <input type="checkbox" checked={vertical} disabled={running}
-                          onChange={(e) => setVertical(e.target.checked)}
-                          style={{ width: "16px", height: "16px", accentColor: "#0ea5e9" }} />
-                        Formato vertical 9:16 (TikTok / Reels / Shorts)
-                      </label>
+                      <div style={{ marginTop: "16px" }}>
+                        <div style={{ fontSize: "11px", color: "#5a6480", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700, marginBottom: "8px" }}>Formato de salida</div>
+                        <div style={{ display: "inline-flex", background: "#12121f", border: "1px solid #1e1e30", borderRadius: "10px", padding: "3px", gap: "3px" }}>
+                          {[{ v: true, label: "📱 Vertical 9:16" }, { v: false, label: "🖥️ Horizontal 16:9" }].map((o) => (
+                            <button key={String(o.v)} disabled={running} onClick={() => setVertical(o.v)}
+                              style={{ padding: "8px 15px", borderRadius: "8px", border: "none", cursor: running ? "default" : "pointer", fontSize: "13px", fontWeight: vertical === o.v ? 700 : 500, fontFamily: "inherit", background: vertical === o.v ? "linear-gradient(135deg,#0ea5e9,#22d3ee)" : "transparent", color: vertical === o.v ? "#001018" : "#8a92ad", transition: "all .15s" }}>
+                              {o.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#5a6480", marginTop: "6px" }}>
+                          {vertical ? "Recorta a 9:16 para TikTok/Reels/Shorts (recorta los costados)." : "Mantiene el video como está — no recorta los costados."}
+                        </div>
+                      </div>
                     </div>
                     {!running ? (
                       <button onClick={handleGenerate} style={btnPrimary}>
@@ -842,12 +912,20 @@ export default function MulticlippingPage() {
                             style={{ width: "16px", height: "16px", accentColor: "#0ea5e9" }} />
                           Subtítulos quemados
                         </label>
-                        <label style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#c4cadd", cursor: "pointer" }}>
-                          <input type="checkbox" checked={vertical} disabled={running || analyzing}
-                            onChange={(e) => setVertical(e.target.checked)}
-                            style={{ width: "16px", height: "16px", accentColor: "#0ea5e9" }} />
-                          Vertical 9:16
-                        </label>
+                      </div>
+                      <div style={{ marginTop: "12px" }}>
+                        <div style={{ fontSize: "11px", color: "#5a6480", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700, marginBottom: "8px" }}>Formato de salida</div>
+                        <div style={{ display: "inline-flex", background: "#12121f", border: "1px solid #1e1e30", borderRadius: "10px", padding: "3px", gap: "3px" }}>
+                          {[{ v: true, label: "📱 Vertical 9:16" }, { v: false, label: "🖥️ Horizontal 16:9" }].map((o) => (
+                            <button key={String(o.v)} disabled={running || analyzing} onClick={() => setVertical(o.v)}
+                              style={{ padding: "8px 15px", borderRadius: "8px", border: "none", cursor: running || analyzing ? "default" : "pointer", fontSize: "13px", fontWeight: vertical === o.v ? 700 : 500, fontFamily: "inherit", background: vertical === o.v ? "linear-gradient(135deg,#0ea5e9,#22d3ee)" : "transparent", color: vertical === o.v ? "#001018" : "#8a92ad", transition: "all .15s" }}>
+                              {o.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "#5a6480", marginTop: "6px" }}>
+                          {vertical ? "Recorta a 9:16 (recorta los costados)." : "Horizontal — mantiene el video como está, sin recortar."}
+                        </div>
                       </div>
                     </div>
                     {!analyzing && !running ? (
@@ -962,8 +1040,16 @@ export default function MulticlippingPage() {
                           🔥 {m.score}
                         </span>
                         <span style={{ fontSize: "12px", color: "#22d3ee", fontWeight: 700 }}>
-                          {fmtTime(m.start)} → {fmtTime(m.end)} ({Math.round(m.end - m.start)}s)
+                          {clipSegs(m).length > 1
+                            ? `${clipSegs(m).reduce((a, s) => a + (s.end - s.start), 0).toFixed(0)}s · ${clipSegs(m).length} partes`
+                            : `${fmtTime(m.start)} → ${fmtTime(m.end)} (${Math.round(m.end - m.start)}s)`}
                         </span>
+                        {clipSegs(m).length > 1 && (
+                          <span title={clipSegs(m).map((s) => `${fmtTime(s.start)}–${fmtTime(s.end)}`).join("  +  ")}
+                            style={{ fontSize: "10.5px", fontWeight: 700, color: "#a78bfa", background: "#1a0a2e", border: "1px solid #3a1a5e", borderRadius: "6px", padding: "2px 7px" }}>
+                            ✂ {clipSegs(m).map((s) => `${fmtTime(s.start)}–${fmtTime(s.end)}`).join(" + ")}
+                          </span>
+                        )}
                       </div>
                       <input value={m.title} disabled={running}
                         onChange={(e) => setMoments((prev) => prev!.map((x, i) => i === idx ? { ...x, title: e.target.value } : x))}

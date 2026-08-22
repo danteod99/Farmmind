@@ -145,19 +145,63 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   return header + lines.join("\n") + "\n";
 }
 
-// Lee las dimensiones reales del video desde un elemento <video> (sin ffmpeg).
-function getVideoDimensions(file: File): Promise<{ w: number; h: number }> {
+// Lee las dimensiones reales y la duración del video desde un elemento <video> (sin ffmpeg).
+function getVideoDimensions(file: File): Promise<{ w: number; h: number; dur: number }> {
   return new Promise((resolve) => {
     const v = document.createElement("video");
     v.preload = "metadata";
     v.onloadedmetadata = () => {
-      const d = { w: v.videoWidth || 1080, h: v.videoHeight || 1920 };
+      const d = { w: v.videoWidth || 1080, h: v.videoHeight || 1920, dur: v.duration || 0 };
       URL.revokeObjectURL(v.src);
       resolve(d);
     };
-    v.onerror = () => resolve({ w: 1080, h: 1920 });
+    v.onerror = () => resolve({ w: 1080, h: 1920, dur: 0 });
     v.src = URL.createObjectURL(file);
   });
+}
+
+// Detecta si el video YA tiene subtítulos, para no ponerle doble subtitulado:
+// 1) pista de subtítulos embebida en el contenedor (se lee del log de `ffmpeg -i`)
+// 2) subtítulos quemados en la imagen (3 fotogramas de la mitad inferior → IA)
+// Best-effort: si la detección falla, devuelve null y los subtítulos se generan igual.
+async function detectExistingSubs(ffmpeg: FFmpeg, durSec: number): Promise<"embedded" | "burned" | null> {
+  // 1) Pista embebida: `-i` sin output "falla" pero imprime los streams en el log.
+  const logs: string[] = [];
+  const cap = ({ message }: { message: string }) => { logs.push(message); };
+  ffmpeg.on("log", cap);
+  try { await ffmpeg.exec(["-i", "in.mp4"]); } catch { /* esperado sin output */ }
+  ffmpeg.off("log", cap);
+  if (logs.some((l) => /Stream #\d+:\d+.*:\s*Subtitle/i.test(l))) return "embedded";
+
+  // 2) Quemados: muestrea al 25/50/75% del video, solo la mitad inferior (donde viven
+  // los subtítulos), y pregunta a la IA si hay captions sobreimpresos.
+  try {
+    const frames: string[] = [];
+    for (const pct of [0.25, 0.5, 0.75]) {
+      const t = Math.max(0.5, durSec * pct);
+      const code = await ffmpeg.exec(["-ss", t.toFixed(2), "-i", "in.mp4", "-frames:v", "1",
+        "-vf", "crop=iw:ih*0.45:0:ih*0.55,scale=480:-2", "-q:v", "6", "-y", "probe.jpg"]);
+      if (code !== 0) continue;
+      const data = (await ffmpeg.readFile("probe.jpg")) as Uint8Array;
+      let bin = "";
+      for (let i = 0; i < data.length; i += 0x8000) {
+        bin += String.fromCharCode(...data.subarray(i, i + 0x8000));
+      }
+      frames.push(btoa(bin));
+      try { await ffmpeg.deleteFile("probe.jpg"); } catch { /* noop */ }
+    }
+    if (frames.length === 0) return null;
+    const res = await fetch("/api/smm/multiediting/detect-subs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ frames }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.hasSubtitles ? "burned" : null;
+  } catch {
+    return null;
+  }
 }
 
 export default function MultieditingPage() {
@@ -404,6 +448,16 @@ export default function MultieditingPage() {
         // Se hace UNA vez por video (el audio es el mismo en todas las variaciones).
         let subsReady = false;
         if (subsOn) {
+          // No duplicar: si el video ya trae subtítulos (pista embebida o quemados
+          // en la imagen), las variaciones se generan sin subtitular de nuevo.
+          setStatusLine(`Verificando si "${file.name}" ya tiene subtítulos...`);
+          const dims = await getVideoDimensions(file);
+          const existing = await detectExistingSubs(ffmpeg, dims.dur);
+          if (existing) {
+            const why = existing === "embedded" ? "pista de subtítulos embebida" : "subtítulos quemados en la imagen";
+            console.log(`[multiediting] "${file.name}" ya tiene ${why} — no se agregan subtítulos.`);
+            setStatusLine(`"${file.name}" ya tiene subtítulos (${why}) — no se duplican.`);
+          } else {
           try {
             setStatusLine(`Generando subtítulos de "${file.name}" (transcribiendo con IA)...`);
             await ffmpeg.exec(["-i", "in.mp4", "-vn", "-ar", "16000", "-ac", "1", "-b:a", "64k", "-y", "audio.mp3"]);
@@ -418,7 +472,6 @@ export default function MultieditingPage() {
               const words: SubWord[] = data.words || [];
               const segments: SubSegment[] = data.segments || [];
               if (words.length || segments.length) {
-                const dims = await getVideoDimensions(file);
                 const ass = buildSubtitleAss(words, segments, dims.w, dims.h);
                 await ffmpeg.writeFile("sub.ass", new TextEncoder().encode(ass));
                 subsReady = true;
@@ -431,6 +484,7 @@ export default function MultieditingPage() {
             try { await ffmpeg.deleteFile("audio.mp3"); } catch { /* noop */ }
           } catch (e) {
             console.warn("[multiediting] error generando subtítulos:", e);
+          }
           }
         }
 
