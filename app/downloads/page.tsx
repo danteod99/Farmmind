@@ -44,11 +44,11 @@ const APPS = [
       { icon: Zap, text: "CapSolver integrado para captchas" },
     ],
     downloads: {
-      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.6.6/TrustInsta-Desktop-1.6.6-arm64.dmg" },
+      mac: { label: "macOS (Apple Silicon)", size: "110 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.6.8/TrustInsta-Desktop-1.6.8-arm64.dmg" },
       macIntel: { label: "macOS (Intel)", size: "Proximamente", url: "#" },
-      windows: { label: "Windows x64", size: "95 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.6.6/TrustInsta-Desktop-Setup-1.6.6.exe" },
+      windows: { label: "Windows x64", size: "89 MB", url: "https://github.com/danteod99/trustmind-releases/releases/download/v1.6.8/TrustInsta-Desktop-Setup-1.6.8.exe" },
     },
-    version: "1.6.6",
+    version: "1.6.8",
     requirements: ["macOS 12+ o Windows 10+", "4 GB RAM minimo", "500 MB espacio en disco"],
   },
   {
@@ -70,11 +70,11 @@ const APPS = [
       { icon: Shield, text: "Warm-up y programador de tareas" },
     ],
     downloads: {
-      mac: { label: "macOS (Apple Silicon)", size: "113 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.6.6/TrustFace-Desktop-1.6.6-arm64.dmg" },
+      mac: { label: "macOS (Apple Silicon)", size: "110 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.6.7/TrustFace-Desktop-1.6.7-arm64.dmg" },
       macIntel: { label: "macOS (Intel)", size: "Proximamente", url: "#" },
-      windows: { label: "Windows x64", size: "95 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.6.6/TrustFace-Desktop-Setup-1.6.6.exe" },
+      windows: { label: "Windows x64", size: "89 MB", url: "https://github.com/danteod99/trustface-releases/releases/download/v1.6.7/TrustFace-Desktop-Setup-1.6.7.exe" },
     },
-    version: "1.6.6",
+    version: "1.6.7",
     requirements: ["macOS 12+ o Windows 10+", "4 GB RAM minimo", "500 MB espacio en disco"],
   },
   {
@@ -110,12 +110,15 @@ const APPS = [
   },
 ];
 
-// Apps que se descargan SIN cuenta ni suscripcion (decision 2026-08-17).
-// TrustFarm se entrega libre: el limite gratis/pro vive DENTRO del software
-// (tope de 4 equipos salvo correo de la allowlist), asi que no hace falta
-// candado en la web. TrustInsta y TrustFace siguen siendo Pro hasta que se
-// defina su modelo.
-const IDS_LIBRES = ["trustfarm"];
+// Apps que se descargan SIN cuenta ni suscripcion.
+// 2026-08-17: TrustFarm se entrego libre (su limite gratis/pro vive DENTRO del
+// software: tope de 4 equipos salvo correo de la allowlist, asi que el candado
+// en la web era redundante).
+// 2026-08-22: TrustInsta y TrustFace tambien pasan a descarga libre.
+// Con la lista completa, APPS_PRO queda vacio y el bloque de paywall no se
+// renderiza (ver APPS_PRO.length abajo). Para volver a poner una app tras el
+// muro, basta con sacarla de esta lista.
+const IDS_LIBRES = ["trustfarm", "trustinsta", "trustface"];
 const APPS_LIBRES = APPS.filter((a) => IDS_LIBRES.includes(a.id));
 const APPS_PRO = APPS.filter((a) => !IDS_LIBRES.includes(a.id));
 
@@ -202,8 +205,8 @@ export default function DownloadsPage() {
           {APPS_LIBRES.map((app) => <AppCard key={app.id} app={app} detectedOs={os} />)}
         </div>
 
-        {/* PAYWALL: TrustInsta y TrustFace siguen siendo solo para Pro */}
-        {authChecking ? (
+        {/* PAYWALL: solo se renderiza si alguna app sigue siendo Pro (hoy: ninguna) */}
+        {APPS_PRO.length === 0 ? null : authChecking ? (
           <div style={{ padding: "60px", textAlign: "center" }}>
             <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid var(--accent)", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
