@@ -22,3 +22,9 @@ alter table public.editor_allowlist enable row level security;
 insert into storage.buckets (id, name, public)
   values ('editor-privado', 'editor-privado', false)
   on conflict (id) do nothing;
+
+-- Accesos autorizados (pedido de Dante 2026-08-21)
+insert into public.editor_allowlist (email) values
+  ('danteod18@gmail.com'),
+  ('danteod99@gmail.com')
+on conflict (email) do nothing;
