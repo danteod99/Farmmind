@@ -82,6 +82,84 @@ interface VideoResult { source: string; items: ResultItem[] }
 
 function fmtMB(bytes: number) { return (bytes / (1024 * 1024)).toFixed(1) + " MB"; }
 
+// ── Subtítulos automáticos ──
+interface SubWord { word: string; start: number; end: number }
+interface SubSegment { start: number; end: number; text: string }
+
+// Timestamp ASS: H:MM:SS.CC
+function assTime(t: number) {
+  const cl = Math.max(0, t);
+  const h = Math.floor(cl / 3600), m = Math.floor((cl % 3600) / 60), s = Math.floor(cl % 60);
+  const cs = Math.floor((cl - Math.floor(cl)) * 100);
+  return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}.${String(cs).padStart(2, "0")}`;
+}
+function assEscape(s: string) {
+  return s.replace(/\\/g, "").replace(/[{}]/g, "").replace(/\r?\n/g, " ").trim();
+}
+
+// Genera el ASS de subtítulos estilo TikTok para TODO el video (sin corte, tiempos
+// absolutos). W/H son las dimensiones reales del video para que el subtítulo se
+// posicione y escale bien sin importar si es vertical u horizontal.
+function buildSubtitleAss(words: SubWord[], segments: SubSegment[], W: number, H: number): string {
+  const capSize = Math.max(26, Math.round(H * 0.045));
+  const capMarginV = Math.round(H * 0.10);
+  const outline = Math.max(2, Math.round(H * 0.0035));
+  const header = `[Script Info]
+ScriptType: v4.00+
+PlayResX: ${W}
+PlayResY: ${H}
+WrapStyle: 0
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Caption,Anton,${capSize},&H00FFFFFF,&H00FFD3E2,&H00000000,&H96000000,0,0,0,0,100,100,1,0,1,${outline},2,2,80,80,${capMarginV},1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+`;
+  const lines: string[] = [];
+  if (words.length > 0) {
+    // Agrupa palabras en frases cortas (máx 4 palabras o ~1.8s) — estilo TikTok.
+    let chunk: SubWord[] = [];
+    const flush = () => {
+      if (chunk.length === 0) return;
+      const st = Math.max(0, chunk[0].start);
+      const en = chunk[chunk.length - 1].end;
+      const text = assEscape(chunk.map((w) => w.word).join(" ").toUpperCase());
+      if (text && en > st) lines.push(`Dialogue: 0,${assTime(st)},${assTime(en)},Caption,,0,0,0,,${text}`);
+      chunk = [];
+    };
+    for (const w of words) {
+      chunk.push(w);
+      const span = w.end - chunk[0].start;
+      if (chunk.length >= 4 || span >= 1.8 || /[.!?…]$/.test(w.word)) flush();
+    }
+    flush();
+  } else {
+    for (const s of segments) {
+      const text = assEscape(s.text.toUpperCase());
+      if (text && s.end > s.start) lines.push(`Dialogue: 0,${assTime(s.start)},${assTime(s.end)},Caption,,0,0,0,,${text}`);
+    }
+  }
+  return header + lines.join("\n") + "\n";
+}
+
+// Lee las dimensiones reales del video desde un elemento <video> (sin ffmpeg).
+function getVideoDimensions(file: File): Promise<{ w: number; h: number }> {
+  return new Promise((resolve) => {
+    const v = document.createElement("video");
+    v.preload = "metadata";
+    v.onloadedmetadata = () => {
+      const d = { w: v.videoWidth || 1080, h: v.videoHeight || 1920 };
+      URL.revokeObjectURL(v.src);
+      resolve(d);
+    };
+    v.onerror = () => resolve({ w: 1080, h: 1920 });
+    v.src = URL.createObjectURL(file);
+  });
+}
+
 export default function MultieditingPage() {
   const router = useRouter();
 
@@ -98,6 +176,7 @@ export default function MultieditingPage() {
   const [numVars, setNumVars] = useState(5);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPos, setLogoPos] = useState("tr");
+  const [subsOn, setSubsOn] = useState(false); // subtítulos automáticos (IA)
   const [logoDragOver, setLogoDragOver] = useState(false);
   const [running, setRunning] = useState(false);
   const [engineStatus, setEngineStatus] = useState<"idle" | "loading" | "ready">("idle");
@@ -302,6 +381,15 @@ export default function MultieditingPage() {
         await ffmpeg.writeFile("logo.png", lbuf);
       }
 
+      // Subtítulos: monta la fuente una sola vez (se reutiliza en todos los videos).
+      if (subsOn) {
+        try {
+          const fontBuf = new Uint8Array(await (await fetch("/fonts/Anton-Regular.ttf")).arrayBuffer());
+          try { await ffmpeg.createDir("/customfonts"); } catch { /* ya existe */ }
+          await ffmpeg.writeFile("/customfonts/Anton-Regular.ttf", fontBuf);
+        } catch (e) { console.warn("[multiediting] no se pudo montar la fuente de subtítulos:", e); }
+      }
+
       for (let fi = 0; fi < files.length; fi++) {
         if (cancelRef.current) break;
         const file = files[fi];
@@ -312,13 +400,48 @@ export default function MultieditingPage() {
         const buf = new Uint8Array(await file.arrayBuffer());
         await ffmpeg.writeFile("in.mp4", buf);
 
+        // Subtítulos automáticos: extrae audio → transcribe (Groq Whisper) → arma el ASS.
+        // Se hace UNA vez por video (el audio es el mismo en todas las variaciones).
+        let subsReady = false;
+        if (subsOn) {
+          try {
+            setStatusLine(`Generando subtítulos de "${file.name}" (transcribiendo con IA)...`);
+            await ffmpeg.exec(["-i", "in.mp4", "-vn", "-ar", "16000", "-ac", "1", "-b:a", "64k", "-y", "audio.mp3"]);
+            const audioData = (await ffmpeg.readFile("audio.mp3")) as Uint8Array;
+            const audioCopy = new Uint8Array(audioData);
+            const audioFile = new File([audioCopy.buffer as ArrayBuffer], "audio.mp3", { type: "audio/mpeg" });
+            const fd = new FormData();
+            fd.append("audio", audioFile);
+            const res = await fetch("/api/smm/multiediting/transcribe", { method: "POST", body: fd });
+            if (res.ok) {
+              const data = await res.json();
+              const words: SubWord[] = data.words || [];
+              const segments: SubSegment[] = data.segments || [];
+              if (words.length || segments.length) {
+                const dims = await getVideoDimensions(file);
+                const ass = buildSubtitleAss(words, segments, dims.w, dims.h);
+                await ffmpeg.writeFile("sub.ass", new TextEncoder().encode(ass));
+                subsReady = true;
+              }
+            } else {
+              const err = await res.json().catch(() => ({}));
+              console.warn("[multiediting] subtítulos fallaron:", err.error || res.status);
+              setError(`Subtítulos: ${err.error || "no se pudo transcribir"} — las variaciones se generan sin subtítulos.`);
+            }
+            try { await ffmpeg.deleteFile("audio.mp3"); } catch { /* noop */ }
+          } catch (e) {
+            console.warn("[multiediting] error generando subtítulos:", e);
+          }
+        }
+
         for (let vi = 0; vi < numVars; vi++) {
           if (cancelRef.current) break;
           const p = getProfile(vi);
           execRatioRef.current = 0;
           setStatusLine(`Video ${fi + 1}/${files.length} — variación ${vi + 1}/${numVars} (brillo ${p.br}, contraste ${p.co}, sat ${p.sa}, hue ${p.hue}°)`);
 
-          const vf = `eq=brightness=${p.br}:contrast=${p.co}:saturation=${p.sa}:gamma=${p.ga},hue=h=${p.hue}`;
+          const subF = subsReady ? ",ass=sub.ass:fontsdir=/customfonts" : "";
+          const vf = `eq=brightness=${p.br}:contrast=${p.co}:saturation=${p.sa}:gamma=${p.ga},hue=h=${p.hue}${subF}`;
           const common = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-movflags", "+faststart", "-y", "out.mp4"];
           let code: number;
           if (hasLogo) {
@@ -363,6 +486,7 @@ export default function MultieditingPage() {
           });
         }
         try { await ffmpeg.deleteFile("in.mp4"); } catch { /* noop */ }
+        if (subsReady) { try { await ffmpeg.deleteFile("sub.ass"); } catch { /* noop */ } }
       }
 
       setStatusLine(cancelRef.current ? "Cancelado — se conservan las variaciones ya generadas." : "¡Listo! Todas las variaciones fueron generadas.");
@@ -582,6 +706,21 @@ export default function MultieditingPage() {
                     </>
                   )}
                   <span style={{ fontSize: "12px", color: "#5a6480" }}>PNG transparente recomendado</span>
+                </div>
+
+                {/* subtítulos automáticos */}
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap", marginTop: "14px", paddingTop: "14px", borderTop: "1px solid #14141f" }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: running ? "default" : "pointer" }}>
+                    <input type="checkbox" checked={subsOn} disabled={running}
+                      onChange={(e) => setSubsOn(e.target.checked)}
+                      style={{ width: "16px", height: "16px", accentColor: "#7c3aed", cursor: "inherit" }} />
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: subsOn ? "#a78bfa" : "#c4cadd" }}>💬 Subtítulos automáticos (IA)</span>
+                  </label>
+                  <span style={{ fontSize: "12px", color: "#5a6480" }}>
+                    {subsOn
+                      ? "Transcribe el audio y quema subtítulos estilo TikTok en cada variación. Agrega ~30s por video."
+                      : "Genera y quema subtítulos automáticos a partir del audio del video."}
+                  </span>
                 </div>
 
                 {/* carpeta de destino */}
