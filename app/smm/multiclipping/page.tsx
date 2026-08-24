@@ -17,6 +17,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import { isAdmin } from "@/app/lib/admin";
 import { SmmNav } from "@/app/components/SmmNav";
+import { ApiKeysCard } from "@/app/components/ApiKeysCard";
+import { apiKeyHeaders } from "@/app/lib/apiKeys";
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import {
   Scissors, Lock, Upload, X, Download, Trash2, Loader2,
@@ -406,7 +408,7 @@ export default function MulticlippingPage() {
           code = await ffmpeg.exec([
             "-i", "in.mp4", "-i", "logo.png",
             "-filter_complex", fc, "-map", "[v]", "-map", "0:a?",
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
             "-c:a", "aac", "-b:a", "128k",
             "-f", "segment", "-segment_time", segTime, "-reset_timestamps", "1",
             "-y", "clip_%03d.mp4",
@@ -416,7 +418,7 @@ export default function MulticlippingPage() {
           const vf = "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920";
           code = await ffmpeg.exec([
             "-i", "in.mp4", "-vf", vf,
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
             "-c:a", "aac", "-b:a", "128k",
             "-f", "segment", "-segment_time", segTime, "-reset_timestamps", "1",
             "-y", "clip_%03d.mp4",
@@ -433,7 +435,7 @@ export default function MulticlippingPage() {
             await cleanSegments(ffmpeg);
             code = await ffmpeg.exec([
               "-i", "in.mp4",
-              "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+              "-c:v", "libx264", "-preset", "veryfast", "-crf", "18",
               "-c:a", "aac", "-b:a", "128k",
               "-f", "segment", "-segment_time", segTime, "-reset_timestamps", "1",
               "-y", "clip_%03d.mp4",
@@ -537,7 +539,7 @@ export default function MulticlippingPage() {
       const fd = new FormData();
       fd.append("audio", new Blob([audioCopy.buffer as ArrayBuffer], { type: "audio/mpeg" }), "audio.mp3");
       fd.append("duration", String(Math.round(dur)));
-      const res = await fetch("/api/smm/multiclipping/analyze", { method: "POST", body: fd });
+      const res = await fetch("/api/smm/multiclipping/analyze", { method: "POST", body: fd, headers: apiKeyHeaders() });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || `El análisis falló (${res.status})`);
 
@@ -646,7 +648,7 @@ export default function MulticlippingPage() {
           audioMap = ["-map", "0:a?"];
         }
 
-        const common = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-c:a", "aac", "-b:a", "128k", "-y", "out.mp4"];
+        const common = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-c:a", "aac", "-b:a", "128k", "-y", "out.mp4"];
         let code = await ffmpeg.exec([...inputs, "-filter_complex", fc, "-map", "[v]", ...audioMap, ...common]);
         if (code !== 0 && multi) {
           // Reintento sin audio (video sin pista de audio → aselect falla)
@@ -656,7 +658,7 @@ export default function MulticlippingPage() {
             ? `${cutV};[cv]${baseChain}[bg];[1:v]scale=200:-1[wm];[bg][wm]overlay=${pos}[v1];[v1]${assFilter}[v]`
             : `${cutV};[cv]${baseChain}[v1];[v1]${assFilter}[v]`;
           code = await ffmpeg.exec([...inputs, "-filter_complex", fcNoA, "-map", "[v]", "-an",
-            "-c:v", "libx264", "-preset", "veryfast", "-crf", "23", "-y", "out.mp4"]);
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-y", "out.mp4"]);
         }
         if (cancelRef.current) break;
         if (code !== 0) throw new Error(`ffmpeg falló generando el clip "${m.title}"`);
@@ -999,6 +1001,9 @@ export default function MulticlippingPage() {
                     ? "El formato vertical re-codifica (más lento, pero listo para publicar)."
                     : "El corte simple es rápido (copia sin re-codificar)."} Deja la pestaña abierta.
                 </div>
+
+                {/* BYOK — usar tu propia API Key (modo IA usa Groq + Anthropic) */}
+                {mode === "ai" && <ApiKeysCard need="both" />}
               </div>
             )}
 

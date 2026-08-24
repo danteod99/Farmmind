@@ -9,8 +9,6 @@ import { isAdmin } from "@/app/lib/admin";
 // no ponerle doble subtitulado. Usa Haiku (visión) — binario y barato.
 export const maxDuration = 60;
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 function getSupabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,7 +38,8 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autenticado" }, { status: 401 });
 
-    if (!isAdmin(user.email)) {
+    const isAdminUser = isAdmin(user.email);
+    if (!isAdminUser) {
       const admin = getSupabaseAdmin();
       const { data: subs } = await admin
         .from("tm_subscriptions")
@@ -53,9 +52,13 @@ export async function POST(req: Request) {
       if (!active) return Response.json({ error: "Requiere plan Pro" }, { status: 403 });
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return Response.json({ error: "Detección no configurada (falta ANTHROPIC_API_KEY)" }, { status: 503 });
+    // BYOK: la key del usuario o (solo admin) la del sistema. Sin key → se OMITE
+    // la detección (no bloquea el flujo): se asume que no hay subtítulos.
+    const anthropicKey = req.headers.get("x-anthropic-key")?.trim() || (isAdminUser ? process.env.ANTHROPIC_API_KEY : undefined);
+    if (!anthropicKey) {
+      return Response.json({ hasSubtitles: false, skipped: true });
     }
+    const anthropic = new Anthropic({ apiKey: anthropicKey });
 
     const { frames } = (await req.json()) as { frames?: string[] };
     if (!Array.isArray(frames) || frames.length === 0) {

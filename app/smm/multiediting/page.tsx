@@ -18,6 +18,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
 import { isAdmin } from "@/app/lib/admin";
 import { SmmNav } from "@/app/components/SmmNav";
+import { ApiKeysCard } from "@/app/components/ApiKeysCard";
+import { apiKeyHeaders } from "@/app/lib/apiKeys";
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
 import {
   Clapperboard, Lock, Upload, X, Download, Trash2, Loader2,
@@ -193,7 +195,7 @@ async function detectExistingSubs(ffmpeg: FFmpeg, durSec: number): Promise<"embe
     if (frames.length === 0) return null;
     const res = await fetch("/api/smm/multiediting/detect-subs", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...apiKeyHeaders() },
       body: JSON.stringify({ frames }),
     });
     if (!res.ok) return null;
@@ -466,7 +468,7 @@ export default function MultieditingPage() {
             const audioFile = new File([audioCopy.buffer as ArrayBuffer], "audio.mp3", { type: "audio/mpeg" });
             const fd = new FormData();
             fd.append("audio", audioFile);
-            const res = await fetch("/api/smm/multiediting/transcribe", { method: "POST", body: fd });
+            const res = await fetch("/api/smm/multiediting/transcribe", { method: "POST", body: fd, headers: apiKeyHeaders() });
             if (res.ok) {
               const data = await res.json();
               const words: SubWord[] = data.words || [];
@@ -775,6 +777,8 @@ export default function MultieditingPage() {
                       ? "Transcribe el audio y quema subtítulos estilo TikTok en cada variación. Agrega ~30s por video."
                       : "Genera y quema subtítulos automáticos a partir del audio del video."}
                   </span>
+                  {/* BYOK — los subtítulos usan Groq (transcripción) */}
+                  {subsOn && <ApiKeysCard need="groq" />}
                 </div>
 
                 {/* carpeta de destino */}

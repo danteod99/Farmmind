@@ -40,7 +40,8 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autenticado" }, { status: 401 });
 
-    if (!isAdmin(user.email)) {
+    const isAdminUser = isAdmin(user.email);
+    if (!isAdminUser) {
       const admin = getSupabaseAdmin();
       const { data: subs } = await admin
         .from("tm_subscriptions")
@@ -53,8 +54,10 @@ export async function POST(req: Request) {
       if (!active) return Response.json({ error: "Requiere plan Pro" }, { status: 403 });
     }
 
-    if (!process.env.GROQ_API_KEY) {
-      return Response.json({ error: "Subtítulos no configurados (falta GROQ_API_KEY)" }, { status: 503 });
+    // BYOK: la key de Groq del usuario si la trae; solo el admin cae a la del sistema.
+    const groqKey = req.headers.get("x-groq-key")?.trim() || (isAdminUser ? process.env.GROQ_API_KEY : undefined);
+    if (!groqKey) {
+      return Response.json({ error: "Pon tu propia API Key de Groq (transcripción) en «Usar mi propia API Key»." }, { status: 400 });
     }
 
     const form = await req.formData();
@@ -76,7 +79,7 @@ export async function POST(req: Request) {
 
     const groqRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
+      headers: { Authorization: `Bearer ${groqKey}` },
       body: groqForm,
     });
     if (!groqRes.ok) {

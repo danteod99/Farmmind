@@ -8,8 +8,6 @@ import { isAdmin } from "@/app/lib/admin";
 // 15 min puede tardar ~1-2 min en total.
 export const maxDuration = 300;
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
 function getSupabaseAdmin() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -20,9 +18,11 @@ function getSupabaseAdmin() {
 interface WhisperWord { word: string; start: number; end: number }
 interface WhisperSegment { start: number; end: number; text: string }
 
+interface Seg { start: number; end: number }
 interface Moment {
   start: number;
   end: number;
+  segments: Seg[];
   title: string;
   hook: string;
   reason: string;
@@ -37,14 +37,25 @@ const MOMENTS_SCHEMA = {
       items: {
         type: "object" as const,
         properties: {
-          start: { type: "number" as const, description: "Segundo de inicio del clip en el video original" },
-          end: { type: "number" as const, description: "Segundo de fin del clip en el video original" },
+          segments: {
+            type: "array" as const,
+            description: "1 a 3 tramos del video original que, UNIDOS EN ORDEN, forman este clip. Usa varios tramos SOLO para saltarte relleno y dejar el clip coherente.",
+            items: {
+              type: "object" as const,
+              properties: {
+                start: { type: "number" as const, description: "Segundo de inicio del tramo en el video original" },
+                end: { type: "number" as const, description: "Segundo de fin del tramo en el video original" },
+              },
+              required: ["start", "end"],
+              additionalProperties: false,
+            },
+          },
           title: { type: "string" as const, description: "Título viral corto para sobreimprimir en el clip, máx 6 palabras, en MAYÚSCULAS" },
           hook: { type: "string" as const, description: "La frase textual del video que engancha en los primeros segundos del clip" },
           reason: { type: "string" as const, description: "Por qué este momento funciona como clip, en 1 frase" },
           score: { type: "integer" as const, description: "Potencial viral de 1 a 100" },
         },
-        required: ["start", "end", "title", "hook", "reason", "score"],
+        required: ["segments", "title", "hook", "reason", "score"],
         additionalProperties: false,
       },
     },
@@ -75,7 +86,8 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autenticado" }, { status: 401 });
 
-    if (!isAdmin(user.email)) {
+    const isAdminUser = isAdmin(user.email);
+    if (!isAdminUser) {
       const admin = getSupabaseAdmin();
       const { data: subs } = await admin
         .from("tm_subscriptions")
@@ -88,9 +100,19 @@ export async function POST(req: Request) {
       if (!active) return Response.json({ error: "Requiere plan Pro" }, { status: 403 });
     }
 
-    if (!process.env.GROQ_API_KEY) {
-      return Response.json({ error: "Transcripción no configurada (falta GROQ_API_KEY)" }, { status: 503 });
+    // ── BYOK: cada usuario usa su propia API Key. Solo el admin (dueño) cae a la
+    // key del sistema; los demás DEBEN poner la suya (así no gastan tu saldo). ──
+    const userAnthropicKey = req.headers.get("x-anthropic-key")?.trim();
+    const userGroqKey = req.headers.get("x-groq-key")?.trim();
+    const anthropicKey = userAnthropicKey || (isAdminUser ? process.env.ANTHROPIC_API_KEY : undefined);
+    const groqKey = userGroqKey || (isAdminUser ? process.env.GROQ_API_KEY : undefined);
+    if (!groqKey) {
+      return Response.json({ error: "Pon tu propia API Key de Groq (transcripción) en «Usar mi propia API Key»." }, { status: 400 });
     }
+    if (!anthropicKey) {
+      return Response.json({ error: "Pon tu propia API Key de Anthropic (análisis) en «Usar mi propia API Key»." }, { status: 400 });
+    }
+    const anthropic = new Anthropic({ apiKey: anthropicKey });
 
     const form = await req.formData();
     const audio = form.get("audio");
@@ -112,7 +134,7 @@ export async function POST(req: Request) {
 
     const groqRes = await fetch("https://api.groq.com/openai/v1/audio/transcriptions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
+      headers: { Authorization: `Bearer ${groqKey}` },
       body: groqForm,
     });
     if (!groqRes.ok) {
@@ -147,7 +169,7 @@ export async function POST(req: Request) {
       .map((s) => `[${s.start.toFixed(1)}-${s.end.toFixed(1)}] ${s.text}`)
       .join("\n");
 
-    const prompt = `Eres un editor experto en clips virales para TikTok, Reels y YouTube Shorts (audiencia hispanohablante).
+    const prompt = `Eres un editor experto en clips VIRALES y DISRUPTIVOS para TikTok, Reels y YouTube Shorts (audiencia hispanohablante). Tu obsesión es el "scroll-stopping": clips que en los primeros 2 segundos FRENAN el dedo del usuario.
 
 Te doy la transcripción de un video de ${Math.round(duration)} segundos, con timestamps en segundos:
 
@@ -155,31 +177,71 @@ Te doy la transcripción de un video de ${Math.round(duration)} segundos, con ti
 ${transcriptLines}
 </transcripcion>
 
-Elige los MEJORES momentos para convertir en clips virales independientes. Reglas:
-- Entre 4 y 8 clips, de 20 a 60 segundos cada uno.
-- Cada clip debe entenderse por sí solo: empieza donde arranca la idea (idealmente en una frase gancho) y termina donde cierra, sin cortar a nadie a media frase — ajusta start/end a los límites de los segmentos.
-- Prioriza: historias con giro, datos sorprendentes, opiniones fuertes, instrucciones accionables, momentos emocionales o polémicos.
-- Los clips no deben solaparse.
-- El "title" es para sobreimprimir en el video: máx 6 palabras, MAYÚSCULAS, estilo titular viral en español.
-- Ordena los momentos del mejor al peor score.`;
+Elige los momentos MÁS DISRUPTIVOS para convertir en clips independientes. Un clip disruptivo tiene alguna de estas señales:
+- FRASE GANCHO BRUTAL al inicio: una afirmación fuerte, contraria a la creencia común, chocante o polémica ("nadie te dice esto", "esto está mal", "la verdad que te ocultan").
+- CURIOSITY GAP: abre una pregunta o promesa que obliga a quedarse ("lo que pasó después me voló la cabeza").
+- DATO/CIFRA IMPACTANTE: números grandes, resultados sorprendentes, comparaciones extremas.
+- GIRO o revelación inesperada, confesión, opinión valiente, o momento emocional/tenso.
+- PATRÓN INTERRUMPIDO: algo que rompe lo esperado y genera "¿espera, qué?".
 
-    const response = await anthropic.messages.create({
-      model: "claude-opus-4-8",
-      max_tokens: 16000,
-      output_config: {
-        format: { type: "json_schema", schema: MOMENTS_SCHEMA },
-      },
-      messages: [{ role: "user", content: prompt }],
-    });
+Reglas:
+- Entre 5 y 8 clips, de 20 a 60 segundos cada uno.
+- CADA CLIP DEBE EMPEZAR EN SU FRASE MÁS FUERTE (el gancho), NO en una intro lenta ni en "bueno, entonces...". Si el gancho está a mitad de un segmento, empieza justo ahí.
+- Cada clip se entiende solo y cierra la idea sin cortar a media frase. No se solapan.
+- DESCARTA momentos aburridos, explicativos sin gancho, o de relleno — mejor pocos clips brutales que muchos tibios.
+- "hook" = la frase textual exacta con la que arranca el clip (debe ser disruptiva).
+- "title" = titular viral para sobreimprimir, máx 6 palabras, MAYÚSCULAS, que genere curiosidad o choque.
+- "score" (1-100) = qué tan disruptivo/scroll-stopping es. Ordena del mejor al peor.
+- Explora ángulos frescos: elige los momentos más audaces aunque no sean los más obvios.
+
+MUY IMPORTANTE — CLIPS COMPUESTOS (unir tramos y cortar relleno):
+- Cada clip se define con "segments": una lista de 1 a 3 tramos [{start,end}] del video original que, UNIDOS EN ORDEN, forman el clip.
+- Usa VARIOS tramos cuando entre el gancho y el remate hay RELLENO, divagación o algo fuera de tema que no aporta: por ejemplo tramo 60-90s + tramo 120-150s, saltándote el 90-120s aburrido. Así el clip queda más potente y directo.
+- Los tramos unidos DEBEN SER COHERENTES: al pegarlos, la idea tiene que fluir y entenderse (no unas frases sueltas inconexas). Si al saltar relleno se rompe el sentido, NO lo saltes.
+- Si el clip es bueno de corrido, usa 1 solo tramo. No fuerces cortes.
+- Dentro de un clip, ordena los tramos por tiempo y que no se solapen.`;
+
+    let response;
+    try {
+      response = await anthropic.messages.create({
+        model: "claude-opus-4-8",
+        max_tokens: 16000,
+        // Temperatura alta → en cada "Volver a analizar" surgen clips frescos/distintos
+        temperature: 1,
+        output_config: {
+          format: { type: "json_schema", schema: MOMENTS_SCHEMA },
+        },
+        messages: [{ role: "user", content: prompt }],
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const which = userAnthropicKey ? "tu API Key de Anthropic" : "la API Key de Anthropic del sistema";
+      if (/credit balance|insufficient|billing/i.test(msg)) {
+        return Response.json({ error: `Sin saldo en ${which}. Recarga créditos en console.anthropic.com o pon tu propia key en Ajustes de API.` }, { status: 402 });
+      }
+      if (/authentication|invalid.*api.*key|x-api-key|401/i.test(msg)) {
+        return Response.json({ error: `La API Key de Anthropic no es válida. Revísala en Ajustes de API.` }, { status: 401 });
+      }
+      return Response.json({ error: "La IA no pudo analizar el video (Anthropic)." }, { status: 502 });
+    }
 
     const textBlock = response.content.find((b) => b.type === "text");
     if (response.stop_reason === "refusal" || !textBlock) {
       return Response.json({ error: "La IA no pudo analizar este video" }, { status: 502 });
     }
     const parsed = JSON.parse(textBlock.text) as { moments: Moment[] };
+    // Normaliza los segmentos de cada clip: acota al video, ordena, descarta basura,
+    // y calcula el span total (start/end) del clip para compatibilidad y UI.
     const moments = (parsed.moments || [])
-      .filter((m) => m.end > m.start && m.start >= 0 && m.end <= duration + 2)
-      .map((m) => ({ ...m, start: Math.max(0, m.start), end: Math.min(duration, m.end) }));
+      .map((m) => {
+        const segs = (m.segments || [])
+          .map((s) => ({ start: Math.max(0, s.start), end: Math.min(duration, s.end) }))
+          .filter((s) => s.end - s.start >= 0.5)
+          .sort((a, b) => a.start - b.start);
+        if (segs.length === 0) return null;
+        return { ...m, segments: segs, start: segs[0].start, end: segs[segs.length - 1].end };
+      })
+      .filter((m): m is Moment => m !== null);
 
     if (moments.length === 0) {
       return Response.json({ error: "La IA no encontró momentos destacables" }, { status: 422 });

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import { isAdmin } from "@/app/lib/admin";
 import { usePathname, useRouter } from "next/navigation";
@@ -14,15 +14,23 @@ interface NavLink {
   external?: boolean;
 }
 
-// Lista única de navegación (misma en TODAS las pestañas logueadas).
+// Navegación principal (las 3 herramientas de edición van agrupadas en TOOLS).
 const NAV_LINKS: NavLink[] = [
   { href: "/smm/services", label: "Servicios" },
   { href: "/smm/funds", label: "Recargar" },
   { href: "/cursos", label: "Mis Cursos" },
   { href: "/granjas", label: "Granjas" },
   { href: "/downloads", label: "Descargas" },
+];
+
+// Herramientas de edición — se muestran en un menú desplegable "Herramientas".
+const TOOLS: NavLink[] = [
+  { href: "/smm/editor", label: "Editor de cortos" },
   { href: "/smm/multiediting", label: "Multiediting" },
   { href: "/smm/multiclipping", label: "Multiclipping" },
+];
+
+const POST_LINKS: NavLink[] = [
   { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
 ];
 
@@ -38,9 +46,11 @@ export function SmmNav({ balance, userAvatar, userName, userEmail }: SmmNavProps
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
 
   const isActive = (href: string, external?: boolean) =>
     !external && !!pathname && (pathname === href || pathname.startsWith(href + "/"));
+  const toolsActive = TOOLS.some((t) => isActive(t.href));
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -115,7 +125,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail }: SmmNavProps
         </div>
 
         {/* Center: desktop nav links */}
-        <div className="smm-nav-desktop-links" style={{ display: "flex", gap: "4px" }}>
+        <div className="smm-nav-desktop-links" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
           {NAV_LINKS.map(({ href, label, external }) => {
             const active = isActive(href, external);
             return (
@@ -135,6 +145,69 @@ export function SmmNav({ balance, userAvatar, userName, userEmail }: SmmNavProps
             </Link>
             );
           })}
+
+          {/* Herramientas — menú desplegable con las 3 herramientas de edición */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={() => setToolsOpen((v) => !v)}
+              aria-haspopup="menu" aria-expanded={toolsOpen}
+              className="smm-nav-link"
+              style={{
+                display: "flex", alignItems: "center", gap: "5px",
+                padding: "6px 13px", borderRadius: "10px", fontSize: "13px",
+                fontWeight: toolsActive ? 700 : 500,
+                color: toolsActive ? "#56B4E0" : "#ffffff",
+                background: toolsActive ? "#007ABF15" : "transparent",
+                border: `1px solid ${toolsActive ? "#007ABF30" : "transparent"}`,
+                cursor: "pointer", transition: "all 0.15s", whiteSpace: "nowrap",
+                fontFamily: "inherit",
+              }}>
+              Herramientas
+              <ChevronDown size={14} style={{ transform: toolsOpen ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
+            </button>
+            {toolsOpen && (
+              <>
+                <div onClick={() => setToolsOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
+                <div role="menu" style={{
+                  position: "absolute", top: "calc(100% + 8px)", left: 0, zIndex: 41, minWidth: "190px",
+                  background: "rgba(10,10,18,0.98)", backdropFilter: "blur(20px)",
+                  border: "1px solid #1e1e30", borderRadius: "12px", padding: "6px",
+                  boxShadow: "0 12px 32px rgba(0,0,0,0.5)",
+                  display: "flex", flexDirection: "column", gap: "2px",
+                }}>
+                  {TOOLS.map(({ href, label }) => {
+                    const active = isActive(href);
+                    return (
+                      <Link key={href} href={href} role="menuitem" onClick={() => setToolsOpen(false)}
+                        className="smm-nav-link"
+                        style={{
+                          padding: "9px 12px", borderRadius: "8px", fontSize: "13.5px",
+                          fontWeight: active ? 700 : 500,
+                          color: active ? "#56B4E0" : "#e2e8f0",
+                          background: active ? "#007ABF18" : "transparent",
+                          textDecoration: "none", whiteSpace: "nowrap",
+                        }}>
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+
+          {POST_LINKS.map(({ href, label, external }) => (
+            <Link key={href} href={href}
+              {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+              className="smm-nav-link"
+              style={{
+                padding: "6px 13px", borderRadius: "10px", fontSize: "13px", fontWeight: 500,
+                color: "#ffffff", background: "transparent", border: "1px solid transparent",
+                textDecoration: "none", transition: "all 0.15s", whiteSpace: "nowrap",
+              }}>
+              {label}
+            </Link>
+          ))}
         </div>
 
         {/* Right: balance + admin + avatar */}
@@ -203,7 +276,7 @@ export function SmmNav({ balance, userAvatar, userName, userEmail }: SmmNavProps
             </div>
           </div>
 
-          {NAV_LINKS.map(({ href, label, external }) => {
+          {[...NAV_LINKS, ...POST_LINKS].map(({ href, label, external }) => {
             const active = isActive(href, external);
             return (
             <Link key={href} href={href}
@@ -221,6 +294,27 @@ export function SmmNav({ balance, userAvatar, userName, userEmail }: SmmNavProps
               }}>
               {label}
             </Link>
+            );
+          })}
+
+          {/* Herramientas — sección agrupada */}
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#5a6480", textTransform: "uppercase", letterSpacing: "1px", padding: "12px 16px 4px" }}>
+            Herramientas
+          </div>
+          {TOOLS.map(({ href, label }) => {
+            const active = isActive(href);
+            return (
+              <Link key={href} href={href} role="menuitem" onClick={() => setMobileOpen(false)}
+                style={{
+                  padding: "13px 16px", borderRadius: "12px", fontSize: "15px",
+                  fontWeight: active ? 700 : 500,
+                  color: active ? "#56B4E0" : "#ffffff",
+                  background: active ? "#007ABF18" : "#0d0d18",
+                  border: `1px solid ${active ? "#007ABF40" : "#1e1e30"}`,
+                  textDecoration: "none", display: "block", transition: "all 0.15s",
+                }}>
+                {label}
+              </Link>
             );
           })}
 
