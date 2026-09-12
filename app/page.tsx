@@ -6,11 +6,11 @@ import { LoginButton } from "@/app/components/LoginButton";
 
 export const metadata = {
   title: "TrustMind — IA que comanda 1,000 granjas de bots",
-  description: "Plataforma de IA que automatiza granjas de bots. Controla 1,000 cuentas con un agente IA, software antidetect, +5,000 servicios SMM y cursos. Granjas llave en mano.",
+  description: "Plataforma de IA que automatiza granjas de bots. Controla 1,000 cuentas con un agente IA, software antidetect y marketplace de cuentas. Granjas llave en mano.",
   alternates: { canonical: "https://www.trustmind.online" },
   openGraph: {
     title: "TrustMind — IA que comanda 1,000 granjas de bots",
-    description: "IA que automatiza granjas de bots. Software antidetect, +5,000 servicios SMM y curso completo. Granjas llave en mano.",
+    description: "IA que automatiza granjas de bots. Software antidetect y marketplace de cuentas. Granjas llave en mano.",
     url: "https://www.trustmind.online",
     siteName: "TrustMind",
     type: "website",
@@ -42,13 +42,13 @@ const FEATURES = [
   },
   {
     icon: ShoppingCart,
-    title: "+5,000 servicios SMM",
-    desc: "Seguidores, likes, views, comentarios en Instagram, TikTok, Facebook, YouTube y más. Precios mayoristas.",
+    title: "Marketplace de cuentas",
+    desc: "Cuentas de Instagram, TikTok, Facebook y YouTube listas para usar. Entrega automática y pago con saldo.",
   },
   {
     icon: Sparkles,
-    title: "Curso completo incluido",
-    desc: "Aprende a operar granjas de bots, escalar redes y monetizar tu operación. Guía paso a paso.",
+    title: "Herramientas de video con IA",
+    desc: "Editor de cortos, multiclipping y multiediting para producir contenido masivo desde el navegador.",
   },
   {
     icon: Cpu,
@@ -129,14 +129,13 @@ export default function HomePage() {
         </Link>
         <div className="nav-links" style={{ display: "flex", alignItems: "center", gap: "28px" }}>
           <Link href="/granjas" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Granjas</Link>
-          <Link href="/smm" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Servicios SMM</Link>
+          <Link href="/smm/services" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Cuentas</Link>
           <Link href="/downloads" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Software</Link>
-          <Link href="/cursos" style={{ fontSize: "14px", color: "#94a3b8", textDecoration: "none", fontWeight: 600 }}>Cursos</Link>
         </div>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
           <LoginButton variant="nav" />
-          <Link href="/chat" className="btn-primary" style={{ padding: "10px 18px", borderRadius: "12px", color: "white", fontSize: "13px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
-            <Bot size={14} /> Hablar con la IA
+          <Link href="/downloads" className="btn-primary" style={{ padding: "10px 18px", borderRadius: "12px", color: "white", fontSize: "13px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            <Cpu size={14} /> Descargar software
           </Link>
         </div>
       </nav>
@@ -163,7 +162,7 @@ export default function HomePage() {
           </h1>
 
           <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#94a3b8", lineHeight: 1.7, maxWidth: "640px", margin: "0 auto 40px", fontWeight: 400 }}>
-            Un <strong style={{ color: "#7dd3fc" }}>agente IA</strong> que opera Instagram, TikTok y Facebook por ti. Software antidetect (TrustInsta + TrustFace + TrustFarm), proxies premium, +5,000 servicios SMM y curso completo de granjas de bots. <strong style={{ color: "#7dd3fc" }}>Granjas llave en mano, listas para escalar.</strong>
+            Un <strong style={{ color: "#7dd3fc" }}>agente IA</strong> que opera Instagram, TikTok y Facebook por ti. Software antidetect (TrustInsta + TrustFace + TrustFarm), proxies premium, marketplace de cuentas y herramientas de video con IA. <strong style={{ color: "#7dd3fc" }}>Granjas llave en mano, listas para escalar.</strong>
           </p>
 
           {/* CTA */}
@@ -171,12 +170,12 @@ export default function HomePage() {
             <Link href="/granjas" className="btn-primary" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
               <Smartphone size={16} /> Quiero una granja
             </Link>
-            <Link href="/chat" className="btn-ghost" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-              <Bot size={16} /> Probar la IA gratis
+            <Link href="/downloads" className="btn-ghost" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <Cpu size={16} /> Descargar software gratis
             </Link>
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "20px", flexWrap: "wrap" }}>
-            {["Sin mensualidades", "Pago seguro con Stripe", "Soporte WhatsApp"].map((t, i) => (
+            {["Sin mensualidades", "Software gratis", "Soporte WhatsApp"].map((t, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <Zap size={12} color="#34d399" />
                 <span style={{ fontSize: "13px", color: "#64748b", fontWeight: 500 }}>{t}</span>
@@ -307,12 +306,12 @@ export default function HomePage() {
             Listo para escalar<br />tu operación?
           </h2>
           <p style={{ color: "#64748b", fontSize: "16px", marginBottom: "36px", lineHeight: 1.6 }}>
-            Únete a los operadores que ya facturan vendiendo granjas y servicios SMM con TRUST MIND.
+            Únete a los operadores que ya facturan operando granjas con TRUST MIND.
           </p>
           <div className="hero-cta" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
-            <Link href="/chat" className="btn-primary" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-              <MessageSquare size={16} /> Hablar con la IA
-            </Link>
+            <a href="https://wa.me/51931119176?text=Hola%20%F0%9F%91%8B%20Quiero%20informaci%C3%B3n%20sobre%20TRUST%20MIND" target="_blank" rel="noreferrer" className="btn-primary" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              <MessageSquare size={16} /> Hablar por WhatsApp
+            </a>
             <Link href="/granjas" className="btn-ghost" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
               <Globe size={16} /> Ver granjas
             </Link>

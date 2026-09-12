@@ -32,7 +32,7 @@ export function LoginButton({ variant = "nav", redirectTo = "/smm/services" }: L
     let cancelled = false;
     const fetchBalance = async () => {
       try {
-        const r = await fetch("/api/smm/orders", { credentials: "include" });
+        const r = await fetch("/api/smm/balance", { credentials: "include" });
         if (!r.ok) return;
         const j = await r.json();
         if (!cancelled && typeof j.balance === "number") setBalance(j.balance);

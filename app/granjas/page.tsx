@@ -94,7 +94,7 @@ export default function GranjasPage() {
         setUserEmail(u.user.email || "");
         setUserAvatar(u.user.user_metadata?.avatar_url || "");
         try {
-          const r = await fetch("/api/smm/orders", { credentials: "include" });
+          const r = await fetch("/api/smm/balance", { credentials: "include" });
           if (r.ok) {
             const b = await r.json();
             setBalance(b.balance || 0);
@@ -123,9 +123,7 @@ export default function GranjasPage() {
         links={[
           { href: "/smm/services", label: "Servicios" },
           { href: "/smm/funds", label: "Recargar" },
-          { href: "/cursos", label: "Mis Cursos" },
           { href: "/granjas", label: "Granjas", active: true },
-          { href: "/smm/ai", label: "Asistente IA" },
         ]}
       />
 

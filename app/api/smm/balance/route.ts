@@ -1,7 +1,9 @@
-import { getBalance } from "@/app/lib/jap";
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
+// Saldo del usuario autenticado. Lo consume el header (SmmNav/LoginButton)
+// y las páginas de cuentas, recarga y herramientas.
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -24,8 +26,17 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return Response.json({ error: "No autenticado" }, { status: 401 });
 
-    const balance = await getBalance();
-    return Response.json(balance);
+    const admin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { data } = await admin
+      .from("smm_balances")
+      .select("balance")
+      .eq("user_id", user.id)
+      .single();
+
+    return Response.json({ balance: Number(data?.balance || 0) });
   } catch (error) {
     console.error("SMM balance error:", error);
     return Response.json({ error: "Error obteniendo balance" }, { status: 500 });

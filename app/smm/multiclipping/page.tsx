@@ -252,7 +252,7 @@ export default function MulticlippingPage() {
         }
 
         try {
-          const res = await fetch("/api/smm/orders");
+          const res = await fetch("/api/smm/balance");
           if (res.ok) { const d = await res.json(); setBalance(d.balance || 0); }
         } catch (e) {
           console.error("[multiclipping] error obteniendo saldo:", e);
@@ -721,7 +721,6 @@ export default function MulticlippingPage() {
   const NAV_LINKS = [
     { href: "/smm/services", label: "Servicios" },
     { href: "/smm/funds", label: "Recargar" },
-    { href: "/cursos", label: "Mis Cursos" },
     { href: "/granjas", label: "Granjas" },
     { href: "/downloads", label: "Descargas" },
     { href: "/smm/multiclipping", label: "Multiclipping", active: true },

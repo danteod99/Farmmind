@@ -64,7 +64,7 @@ function buildContext(user: UserForDrip, profile: ProfileForDrip): TemplateCtx {
     panelUrl: `${ORIGIN}/smm/services`,
     fundsUrl: `${ORIGIN}/smm/funds`,
     ofertaUrl: `${ORIGIN}/oferta`,
-    cursosUrl: `${ORIGIN}/cursos`,
+    cursosUrl: `${ORIGIN}/downloads`,
     unsubscribeUrl: buildUnsubscribeUrl(user.id),
   };
 }

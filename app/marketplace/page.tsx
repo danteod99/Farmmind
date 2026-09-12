@@ -4,8 +4,9 @@ export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/app/lib/supabase";
+import { whatsappUrl } from "@/app/lib/whatsapp";
 import {
-  Check, X as XIcon, Zap, Clock, Bot, ChevronDown, Sparkles, ShoppingBag, DollarSign, Repeat
+  Check, X as XIcon, Zap, Bot, ChevronDown, Sparkles, ShoppingBag, DollarSign, Repeat
 } from "lucide-react";
 
 const FB_BLUE = "#1877F2";
@@ -17,29 +18,13 @@ export default function MarketplacePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
 
-  const handleCheckout = async (planOverride?: "yearly" | "monthly") => {
+  // Activación por WhatsApp (modelo sin pagos online desde 2026-07).
+  const handleCheckout = (planOverride?: "yearly" | "monthly") => {
     const plan = planOverride || selectedPlan;
-    setLoading(true);
-    try {
-      const priceId = plan === "yearly"
-        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
-        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId }),
-      });
-      const data = await res.json();
-      if (data.url) { window.location.href = data.url; return; }
-      alert(data.error || "Error conectando con Stripe");
-    } catch (err) {
-      alert("Error: " + (err instanceof Error ? err.message : "desconocido"));
-    } finally {
-      setLoading(false);
-    }
+    window.location.href = whatsappUrl(
+      `Hola 👋 Quiero activar Acceso VIP Multiposting (${plan === "yearly" ? "plan anual $240" : "plan mensual $50"} USD). ¿Me ayudas?`
+    );
   };
-
-  const scrollToCta = () => ctaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
 
   // Signup gratis via OAuth Google. El drip arranca desde /auth/callback.
   const startSignup = async () => {

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { PromoBanner } from "@/app/components/PromoBanner";
 import { AttributionTracker } from "@/app/components/AttributionTracker";
+import { Analytics } from "@vercel/analytics/next";
 
 const jakartaSans = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -197,14 +198,6 @@ export default function RootLayout({
                     "@type": "Answer",
                     "text": "Las apps desktop están disponibles gratis en https://www.trustmind.online/downloads para macOS (Apple Silicon) y Windows 10+. Después de instalar te logueas con tu cuenta de TrustMind, y las acciones que ejecutas se cobran de tu saldo USD."
                   }
-                },
-                {
-                  "@type": "Question",
-                  "name": "¿Hay cursos o capacitación?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Sí. La academia está en https://www.trustmind.online/cursos con módulos gratuitos sobre operación de granjas, escalado a 1,000 cuentas, monetización en Spotify, TikTok, Instagram y YouTube. Solo requiere cuenta gratuita."
-                  }
                 }
               ]
             }),
@@ -233,6 +226,7 @@ export default function RootLayout({
         )}
         <PromoBanner />
         <AttributionTracker />
+        <Analytics />
         {children}
       </body>
     </html>

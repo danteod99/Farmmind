@@ -3,8 +3,8 @@
 export const dynamic = "force-dynamic";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/app/lib/supabase";
+import { whatsappUrl } from "@/app/lib/whatsapp";
 import {
   Check, X as XIcon, Crown, Shield, Zap, Clock,
   TrendingUp, Users, Award, ChevronDown, Sparkles
@@ -25,7 +25,6 @@ const PLATFORMS = [
 ];
 
 export default function OfertaPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(COUNTDOWN_HOURS * 3600);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -59,43 +58,24 @@ export default function OfertaPage() {
     return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   };
 
-  const handleCheckout = async (planOverride?: "yearly" | "monthly") => {
+  // Activación por WhatsApp (modelo sin pagos online desde 2026-07).
+  const handleCheckout = (planOverride?: "yearly" | "monthly") => {
     const plan = planOverride || selectedPlan;
-    setLoading(true);
-    try {
-      const priceId = plan === "yearly"
-        ? process.env.NEXT_PUBLIC_STRIPE_PRO_YEARLY_PRICE_ID
-        : process.env.NEXT_PUBLIC_STRIPE_PRO_PRICE_ID;
-      // Generamos un eventId para deduplicar Pixel y CAPI
-      const eventId = `ic_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-      const value = plan === "yearly" ? 240 : 50;
-      // FB Pixel — InitiateCheckout client-side
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const w = window as any;
-      if (w.fbq) {
-        w.fbq("track", "InitiateCheckout", {
-          value, currency: "USD",
-          content_name: plan === "yearly" ? "TRUST MIND Pro Anual" : "TRUST MIND Pro Mensual",
-          content_type: "subscription",
-        }, { eventID: eventId });
-      }
-      // Llamar directo al server. Si no hay sesión devuelve 401 → entonces OAuth.
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId, fbEventId: eventId, fbPlan: plan, fbValue: value }),
+    const value = plan === "yearly" ? 240 : 50;
+    // FB Pixel — InitiateCheckout client-side
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (w.fbq) {
+      w.fbq("track", "InitiateCheckout", {
+        value, currency: "USD",
+        content_name: plan === "yearly" ? "TRUST MIND Pro Anual" : "TRUST MIND Pro Mensual",
+        content_type: "subscription",
       });
-      const data = await res.json();
-      if (data.url) { window.location.href = data.url; return; }
-      alert(data.error || "Error conectando con Stripe. Intenta más tarde.");
-    } catch (err) {
-      alert("Error: " + (err instanceof Error ? err.message : "desconocido"));
-    } finally {
-      setLoading(false);
     }
+    window.location.href = whatsappUrl(
+      `Hola 👋 Quiero activar TRUST MIND Pro (${plan === "yearly" ? "plan anual $240" : "plan mensual $50"} USD). ¿Me ayudas?`
+    );
   };
-
-  const scrollToCta = () => ctaRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
 
   // Signup gratis via OAuth Google.
   // El drip campaign arranca solo desde /auth/callback al detectar new user.
@@ -343,7 +323,7 @@ export default function OfertaPage() {
               color: "#cbd5e1",
             }}>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600 }}>
-                <Shield size={14} style={{ color: "#34d399" }} /> Pago seguro Stripe
+                <Shield size={14} style={{ color: "#34d399" }} /> Activación por WhatsApp
               </span>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontWeight: 600 }}>
                 <Clock size={14} style={{ color: "#7dd3fc" }} /> Cancela cuando quieras
@@ -811,7 +791,7 @@ export default function OfertaPage() {
 
                 {/* Trust signals */}
                 <div style={{ display: "flex", justifyContent: "center", gap: "16px", marginTop: "16px", flexWrap: "wrap" }}>
-                  {["🔒 Pago seguro Stripe", "✓ 30 días de garantía", "⚡ Acceso inmediato"].map((t) => (
+                  {["🔒 Activación por WhatsApp", "✓ 30 días de garantía", "⚡ Acceso inmediato"].map((t) => (
                     <span key={t} style={{ fontSize: "11px", color: "#64748b", fontWeight: 600 }}>{t}</span>
                   ))}
                 </div>
@@ -928,7 +908,7 @@ export default function OfertaPage() {
             </div>
 
             <p style={{ fontSize: "12px", color: "#475569", marginTop: "20px" }}>
-              30 días de garantía · Pago seguro con Stripe · Cancela cuando quieras
+              30 días de garantía · Activación por WhatsApp · Cancela cuando quieras
             </p>
           </div>
         </section>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { supabase } from "@/app/lib/supabase";
 import { isAdmin } from "@/app/lib/admin";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 interface NavLink {
   href: string;
@@ -16,9 +16,8 @@ interface NavLink {
 
 // Navegación principal (las 3 herramientas de edición van agrupadas en TOOLS).
 const NAV_LINKS: NavLink[] = [
-  { href: "/smm/services", label: "Servicios" },
+  { href: "/smm/services", label: "Cuentas" },
   { href: "/smm/funds", label: "Recargar" },
-  { href: "/cursos", label: "Mis Cursos" },
   { href: "/granjas", label: "Granjas" },
   { href: "/downloads", label: "Descargas" },
 ];
@@ -43,7 +42,6 @@ interface SmmNavProps {
 }
 
 export function SmmNav({ balance, userAvatar, userName, userEmail }: SmmNavProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);

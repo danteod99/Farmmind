@@ -279,7 +279,7 @@ export default function MultieditingPage() {
 
         // El saldo es secundario: si falla, no debe bloquear la pantalla.
         try {
-          const res = await fetch("/api/smm/orders");
+          const res = await fetch("/api/smm/balance");
           if (res.ok) { const d = await res.json(); setBalance(d.balance || 0); }
         } catch (e) {
           console.error("[multiediting] error obteniendo saldo:", e);
@@ -589,11 +589,9 @@ export default function MultieditingPage() {
   const NAV_LINKS = [
     { href: "/smm/services", label: "Servicios" },
     { href: "/smm/funds", label: "Recargar" },
-    { href: "/cursos", label: "Mis Cursos" },
     { href: "/granjas", label: "Granjas" },
     { href: "/downloads", label: "Descargas" },
     { href: "/smm/multiediting", label: "Multiediting", active: true },
-    { href: "/smm/ai", label: "Asistente IA" },
     { href: "https://www.scalinglatam.site", label: "Scaling Latam", external: true },
   ];
 
