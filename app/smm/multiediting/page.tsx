@@ -50,7 +50,7 @@ const LOGO_POSITIONS: Record<string, { label: string; expr: string }> = {
   br: { label: "Abajo derecha", expr: "main_w-overlay_w-30:main_h-overlay_h-30" },
   bl: { label: "Abajo izquierda", expr: "30:main_h-overlay_h-30" },
 };
-const WA_MULTIEDITING = `https://wa.me/51931119176?text=${encodeURIComponent(
+const WA_MULTIEDITING = `https://wa.me/51927560268?text=${encodeURIComponent(
   "Hola! Quiero activar la herramienta Multiediting de TrustMind 🎬"
 )}`;
 

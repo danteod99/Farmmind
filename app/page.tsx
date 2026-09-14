@@ -309,7 +309,7 @@ export default function HomePage() {
             Únete a los operadores que ya facturan operando granjas con TRUST MIND.
           </p>
           <div className="hero-cta" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
-            <a href="https://wa.me/51931119176?text=Hola%20%F0%9F%91%8B%20Quiero%20informaci%C3%B3n%20sobre%20TRUST%20MIND" target="_blank" rel="noreferrer" className="btn-primary" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+            <a href="https://wa.me/51927560268?text=Hola%20%F0%9F%91%8B%20Quiero%20informaci%C3%B3n%20sobre%20TRUST%20MIND" target="_blank" rel="noreferrer" className="btn-primary" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
               <MessageSquare size={16} /> Hablar por WhatsApp
             </a>
             <Link href="/granjas" className="btn-ghost" style={{ padding: "16px 28px", borderRadius: "14px", color: "white", fontSize: "15px", fontWeight: 700, textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>

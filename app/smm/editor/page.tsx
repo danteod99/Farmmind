@@ -416,7 +416,7 @@ export default function EditorPage() {
         <Lock size={40} color="#7c3aed" style={{ marginBottom: 14 }} />
         <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Editor de cortos</h2>
         <p style={{ color: "#8a92ad", marginBottom: 20 }}>Requiere plan <b style={{ color: "#a78bfa" }}>Pro</b>. Corta retomas y silencios, agrega subtítulos y deja tu corto listo — todo en tu navegador.</p>
-        <a href="https://wa.me/51931119176?text=Hola!%20Quiero%20activar%20el%20Editor%20de%20cortos%20de%20TrustMind" style={{ ...btnPrimary, textDecoration: "none" }}>Activar Pro</a>
+        <a href="https://wa.me/51927560268?text=Hola!%20Quiero%20activar%20el%20Editor%20de%20cortos%20de%20TrustMind" style={{ ...btnPrimary, textDecoration: "none" }}>Activar Pro</a>
       </div>
     </div>;
   }

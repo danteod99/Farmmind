@@ -27,7 +27,7 @@ function normalize(num: string): string {
 // ─────────────────────────────────────────────────────────────
 // Activación de servicios por WhatsApp (modelo sin pagos online).
 // La cuenta es gratis; para usar los servicios el cliente escribe por WhatsApp.
-export const TRUSTMIND_WHATSAPP = "51931119176";
+export const TRUSTMIND_WHATSAPP = "51927560268";
 
 export function whatsappUrl(message: string): string {
   return `https://wa.me/${TRUSTMIND_WHATSAPP}?text=${encodeURIComponent(message)}`;

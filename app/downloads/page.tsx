@@ -243,7 +243,7 @@ export default function DownloadsPage() {
               ) : (
                 <>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", marginBottom: 16 }}>
-                    <a href="https://wa.me/51931119176?text=Hola%2C%20quiero%20activar%20mi%20plan%20Pro%20para%20descargar%20TrustInsta%20y%20TrustFace%20Desktop"
+                    <a href="https://wa.me/51927560268?text=Hola%2C%20quiero%20activar%20mi%20plan%20Pro%20para%20descargar%20TrustInsta%20y%20TrustFace%20Desktop"
                       target="_blank" rel="noopener noreferrer"
                       style={{ padding: "18px 36px", borderRadius: 14, border: "none",
                         background: "linear-gradient(135deg, #25D366, #128C7E)",

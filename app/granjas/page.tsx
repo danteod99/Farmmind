@@ -12,7 +12,7 @@ import {
 import { SmmNav } from "@/app/components/SmmNav";
 import { supabase } from "@/app/lib/supabase";
 
-const WHATSAPP_NUMBER = "51931119176";
+const WHATSAPP_NUMBER = "51927560268";
 const CALENDLY_URL = "https://www.scalinglatam.site/agendar";
 
 interface PlanCard {
