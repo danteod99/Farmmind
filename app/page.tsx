@@ -5,11 +5,11 @@ import { TrustFooter } from "@/app/components/TrustFooter";
 import { LoginButton } from "@/app/components/LoginButton";
 
 export const metadata = {
-  title: "TrustMind — IA que comanda 1,000 granjas de bots",
+  title: "TrustMind — El software de Granjas de Bots Número 1",
   description: "Plataforma de IA que automatiza granjas de bots. Controla 1,000 cuentas con un agente IA, software antidetect y marketplace de cuentas. Granjas llave en mano.",
   alternates: { canonical: "https://www.trustmind.online" },
   openGraph: {
-    title: "TrustMind — IA que comanda 1,000 granjas de bots",
+    title: "TrustMind — El software de Granjas de Bots Número 1",
     description: "IA que automatiza granjas de bots. Software antidetect y marketplace de cuentas. Granjas llave en mano.",
     url: "https://www.trustmind.online",
     siteName: "TrustMind",
@@ -154,11 +154,11 @@ export default function HomePage() {
 
           {/* Headline */}
           <h1 className="hero-h1" style={{ fontSize: "clamp(40px, 7vw, 72px)", fontWeight: 900, lineHeight: 1.05, letterSpacing: "-0.045em", marginBottom: "24px" }}>
-            <span style={{ color: "#ffffff" }}>La IA que</span>
+            <span style={{ color: "#ffffff" }}>El software de</span>
             <br />
-            <span style={{ background: "linear-gradient(135deg, #00B4D8 0%, #007ABF 50%, #0050A0 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>comanda 1,000 granjas</span>
+            <span style={{ background: "linear-gradient(135deg, #00B4D8 0%, #007ABF 50%, #0050A0 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Granjas de Bots</span>
             <br />
-            <span style={{ color: "#ffffff" }}>de bots por ti</span>
+            <span style={{ color: "#ffffff" }}>Número 1</span>
           </h1>
 
           <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#94a3b8", lineHeight: 1.7, maxWidth: "640px", margin: "0 auto 40px", fontWeight: 400 }}>
