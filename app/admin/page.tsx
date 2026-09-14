@@ -10,6 +10,7 @@ import { Users, DollarSign, TrendingUp, LogOut, RefreshCw, Search, UserCheck, Us
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 
 import { isAdmin } from "@/app/lib/admin";
+import TrustFarmPanel from "@/app/components/admin/TrustFarmPanel";
 
 interface Stats {
   totalUsers: number; buyers: number; nonBuyers: number;
@@ -91,7 +92,7 @@ export default function AdminPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalFiltered, setTotalFiltered] = useState(0);
   // Tabs
-  const [activeTab, setActiveTab] = useState<"users" | "downloads" | "attribution">("users");
+  const [activeTab, setActiveTab] = useState<"users" | "downloads" | "attribution" | "trustfarm">("users");
   // Paid attribution
   const [paidAttrUsers, setPaidAttrUsers] = useState<Array<{ id: string; email: string; name: string; balance: number; revenue: number; source: string; subscription_period_end: string | null; attribution: { utm_campaign: string | null; utm_source: string | null; landing_page: string | null; fbclid: string | null } | null }>>([]);
   const [paidAttrStats, setPaidAttrStats] = useState<{ totalPaid: number; totalRevenue: number; bySource: Record<string, { count: number; revenue: number }> } | null>(null);
@@ -265,7 +266,7 @@ export default function AdminPage() {
 
         {/* TABS */}
         <div style={{ display:"flex", gap:"8px", marginBottom:"24px", borderBottom:"1px solid #1a1a2e", paddingBottom:"0" }}>
-          {([["users","👥 Usuarios"],["downloads","📥 Descargas"],["attribution","📊 De dónde vinieron"]] as const).map(([tab, label]) => (
+          {([["users","👥 Usuarios"],["downloads","📥 Descargas"],["attribution","📊 De dónde vinieron"],["trustfarm","🔐 TrustFarm"]] as const).map(([tab, label]) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               style={{ padding:"10px 18px", borderRadius:"10px 10px 0 0", border:"1px solid", borderBottom:"none", borderColor: activeTab===tab ? "#007ABF" : "transparent", background: activeTab===tab ? "#007ABF18" : "transparent", color: activeTab===tab ? "#56B4E0" : "#5a6480", fontSize:"13px", fontWeight: activeTab===tab ? 700 : 500, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" }}>
               {label}
@@ -589,6 +590,9 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        {/* ── TRUSTFARM TAB ── */}
+        {activeTab === "trustfarm" && <TrustFarmPanel />}
 
         {/* ── PAID ATTRIBUTION TAB ── */}
         {activeTab === "attribution" && (
