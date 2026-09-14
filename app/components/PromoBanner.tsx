@@ -1,20 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { X, Gift, Copy, Check } from "lucide-react";
+import { useEffect, useState } from "react";
+import { X, Gift, ArrowRight } from "lucide-react";
+import { supabase } from "@/app/lib/supabase";
 
 export function PromoBanner() {
   const [visible, setVisible] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const [loggedIn, setLoggedIn] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Hide on child panels
-  if (typeof window !== "undefined" && window.location.pathname.startsWith("/panel/")) return null;
-  if (!visible) return null;
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setLoggedIn(!!data.user));
+    const { data: sub } = supabase.auth.onAuthStateChange((_, session) => setLoggedIn(!!session?.user));
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText("10DANTE");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  // Solo para visitantes sin cuenta
+  if (!visible || loggedIn !== false) return null;
+
+  const handleRegister = async () => {
+    setLoading(true);
+    const origin = window.location.origin;
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/downloads")}` },
+    });
   };
 
   return (
@@ -25,7 +35,7 @@ export function PromoBanner() {
         background: "linear-gradient(135deg, #007ABF 0%, #00B4D8 50%, #007ABF 100%)",
         backgroundSize: "200% 200%",
         animation: "bannerShimmer 3s ease infinite",
-        padding: "12px 20px",
+        padding: "12px 44px 12px 20px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -45,45 +55,37 @@ export function PromoBanner() {
 
       <Gift size={18} color="white" style={{ flexShrink: 0 }} />
 
-      <span
-        style={{
-          color: "white",
-          fontSize: "14px",
-          fontWeight: 600,
-          letterSpacing: "-0.2px",
-          textAlign: "center",
-        }}
-      >
-        Con el codigo{" "}
-        <button
-          onClick={handleCopy}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "5px",
-            background: "rgba(255,255,255,0.2)",
-            border: "1px solid rgba(255,255,255,0.4)",
-            borderRadius: "6px",
-            padding: "3px 10px",
-            color: "white",
-            fontWeight: 800,
-            fontSize: "14px",
-            cursor: "pointer",
-            letterSpacing: "0.5px",
-            transition: "all 0.2s",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.35)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; }}
-          title="Copiar codigo"
-        >
-          10DANTE
-          {copied ? <Check size={13} /> : <Copy size={13} />}
-        </button>{" "}
-        obtienes <strong>$10 USD GRATIS</strong> para conseguir seguidores
+      <span style={{ color: "white", fontSize: "14px", fontWeight: 600, letterSpacing: "-0.2px", textAlign: "center" }}>
+        <strong style={{ fontWeight: 800 }}>Regístrate</strong> para usar el software de manera <strong style={{ fontWeight: 800 }}>gratuita</strong>
       </span>
 
       <button
+        onClick={handleRegister}
+        disabled={loading}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "6px",
+          background: "white",
+          border: "none",
+          borderRadius: "8px",
+          padding: "6px 14px",
+          color: "#007ABF",
+          fontWeight: 800,
+          fontSize: "13px",
+          cursor: loading ? "wait" : "pointer",
+          opacity: loading ? 0.7 : 1,
+          transition: "all 0.2s",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.background = "#e0f2fe"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.background = "white"; }}
+      >
+        {loading ? "Conectando..." : "Crear cuenta gratis"} <ArrowRight size={13} />
+      </button>
+
+      <button
         onClick={() => setVisible(false)}
+        aria-label="Cerrar"
         style={{
           position: "absolute",
           right: "12px",

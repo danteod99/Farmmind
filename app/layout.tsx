@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { PromoBanner } from "@/app/components/PromoBanner";
+import { AuthNotice } from "@/app/components/AuthNotice";
 import { AttributionTracker } from "@/app/components/AttributionTracker";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -225,6 +226,7 @@ export default function RootLayout({
           </>
         )}
         <PromoBanner />
+        <AuthNotice />
         <AttributionTracker />
         <Analytics />
         {children}
