@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { PromoBanner } from "@/app/components/PromoBanner";
 import { AuthNotice } from "@/app/components/AuthNotice";
+import { WhatsAppFloat } from "@/app/components/WhatsAppFloat";
 import { AttributionTracker } from "@/app/components/AttributionTracker";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -227,6 +228,7 @@ export default function RootLayout({
         )}
         <PromoBanner />
         <AuthNotice />
+        <WhatsAppFloat />
         <AttributionTracker />
         <Analytics />
         {children}

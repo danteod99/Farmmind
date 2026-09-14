@@ -32,7 +32,7 @@ function AuthNoticeInner() {
       style={{
         position: "fixed",
         left: "50%",
-        bottom: "24px",
+        bottom: "92px",
         transform: "translateX(-50%)",
         zIndex: 1000,
         maxWidth: "min(92vw, 560px)",
