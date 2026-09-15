@@ -27,6 +27,8 @@ const TOOLS: NavLink[] = [
   { href: "/smm/editor", label: "Editor de cortos" },
   { href: "/smm/multiediting", label: "Multiediting" },
   { href: "/smm/multiclipping", label: "Multiclipping" },
+  { href: "/cobros", label: "WA TRUST (cobros WhatsApp)" },
+  { href: "/numeros", label: "TrustNum (números SMS)" },
 ];
 
 const POST_LINKS: NavLink[] = [

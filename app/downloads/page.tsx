@@ -20,6 +20,9 @@ import {
   Star,
   Crown,
   Lock,
+  MessageCircle,
+  Hash,
+  ExternalLink,
 } from "lucide-react";
 import { FarmMindLogo } from "@/app/components/FarmMindLogo";
 import { supabase } from "@/app/lib/supabase";
@@ -122,6 +125,69 @@ const IDS_LIBRES = ["trustfarm", "trustinsta", "trustface"];
 const APPS_LIBRES = APPS.filter((a) => IDS_LIBRES.includes(a.id));
 const APPS_PRO = APPS.filter((a) => !IDS_LIBRES.includes(a.id));
 
+// Herramientas web Pro: corren dentro de trustmind.online (sin instalar nada).
+const WEB_TOOLS = [
+  {
+    id: "wa-trust",
+    name: "WA TRUST",
+    tagline: "Cobros y recordatorios por WhatsApp",
+    href: "/cobros",
+    icon: MessageCircle,
+    color: "#25D366",
+    description:
+      "Vincula varias líneas de WhatsApp por QR, importa tus deudores desde Excel y lanza campañas de recordatorio con límites anti-baneo, horarios y calentamiento de líneas.",
+    features: ["Multi-línea por código QR", "Importación Excel/CSV", "Campañas programadas", "Calentamiento de líneas"],
+  },
+  {
+    id: "trustnum",
+    name: "TrustNum",
+    tagline: "Números temporales para códigos SMS",
+    href: "/numeros",
+    icon: Hash,
+    color: "#00B4D8",
+    description:
+      "Recibe códigos de verificación de Google, Instagram, TikTok, Amazon y más sin usar tu número. Ideal para crear cuentas de tu granja.",
+    features: ["+100 países y servicios", "Código en segundos", "Saldo prepago", "Sin instalar nada"],
+  },
+];
+
+function WebToolCard({ tool }: { tool: (typeof WEB_TOOLS)[number] }) {
+  const Icon = tool.icon;
+  return (
+    <div style={{ border: "1px solid var(--border-2)", borderRadius: 20, background: "var(--surface)", overflow: "hidden" }}>
+      <div style={{ padding: "28px 28px 24px", display: "flex", flexDirection: "column", gap: 18 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: `${tool.color}22`, border: `1px solid ${tool.color}55`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Icon size={26} color={tool.color} />
+          </div>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: "white" }}>{tool.name}</h3>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6, background: "rgba(52, 211, 153, 0.12)", color: "#34d399", border: "1px solid rgba(52, 211, 153, 0.3)" }}>WEB · PRO</span>
+            </div>
+            <p style={{ fontSize: 13, color: "var(--text-2)", marginTop: 2 }}>{tool.tagline}</p>
+          </div>
+        </div>
+        <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.6 }}>{tool.description}</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8 }}>
+          {tool.features.map((f) => (
+            <div key={f} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <CheckCircle size={14} color={tool.color} style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: "var(--text-1)" }}>{f}</span>
+            </div>
+          ))}
+        </div>
+        <a
+          href={tool.href}
+          style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 22px", borderRadius: 12, background: tool.color, color: "#04121a", fontSize: 14, fontWeight: 800, textDecoration: "none" }}
+        >
+          Abrir {tool.name} <ExternalLink size={14} />
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function DownloadsPage() {
   const router = useRouter();
   const [os, setOs] = useState<"mac" | "windows" | "unknown">("unknown");
@@ -205,8 +271,8 @@ export default function DownloadsPage() {
           {APPS_LIBRES.map((app) => <AppCard key={app.id} app={app} detectedOs={os} />)}
         </div>
 
-        {/* PAYWALL: solo se renderiza si alguna app sigue siendo Pro (hoy: ninguna) */}
-        {APPS_PRO.length === 0 ? null : authChecking ? (
+        {/* PAYWALL: apps Pro + herramientas web Pro */}
+        {APPS_PRO.length === 0 && WEB_TOOLS.length === 0 ? null : authChecking ? (
           <div style={{ padding: "60px", textAlign: "center" }}>
             <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "2px solid var(--accent)", borderTopColor: "transparent", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
             <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -228,10 +294,10 @@ export default function DownloadsPage() {
                 <Lock size={28} color="#7dd3fc" />
               </div>
               <h2 style={{ fontSize: "clamp(24px, 4vw, 32px)", fontWeight: 800, color: "white", marginBottom: 12, letterSpacing: "-0.02em" }}>
-                Descargas exclusivas para usuarios <span style={{ color: "#7dd3fc" }}>TRUST MIND Pro</span>
+                Herramientas exclusivas para usuarios <span style={{ color: "#7dd3fc" }}>TRUST MIND Pro</span>
               </h2>
               <p style={{ fontSize: 15, color: "#94a3b8", maxWidth: 540, margin: "0 auto 28px", lineHeight: 1.6 }}>
-                TrustInsta y TrustFace Desktop están incluidos en tu suscripción Pro. Suscríbete una vez y desbloquea ambos para Mac y Windows.
+                WA TRUST (cobros por WhatsApp) y TrustNum (números para códigos SMS) corren dentro de la web, sin instalar nada. Activa Pro una vez y úsalos desde cualquier computadora.
               </p>
 
               {!isLogged ? (
@@ -265,9 +331,9 @@ export default function DownloadsPage() {
               {/* Beneficios incluidos */}
               <div style={{ marginTop: 28, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.06)", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, textAlign: "left" }}>
                 {[
-                  "TrustInsta Desktop (Instagram)",
-                  "TrustFace Desktop (Facebook)",
-                  "TrustFarm Desktop (celulares)",
+                  "WA TRUST · cobros por WhatsApp (web)",
+                  "TrustNum · números para códigos SMS (web)",
+                  "TrustInsta + TrustFace + TrustFarm",
                   "Soporte directo y prioritario",
                 ].map((b) => (
                   <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -282,7 +348,10 @@ export default function DownloadsPage() {
           <>
             <div style={{ marginBottom: 24, padding: "12px 18px", borderRadius: 12, background: "rgba(52, 211, 153, 0.08)", border: "1px solid rgba(52, 211, 153, 0.25)", display: "inline-flex", alignItems: "center", gap: 10 }}>
               <Crown size={16} color="#34d399" />
-              <span style={{ fontSize: 13, color: "#34d399", fontWeight: 600 }}>Pro activo · Descargas desbloqueadas</span>
+              <span style={{ fontSize: 13, color: "#34d399", fontWeight: 600 }}>Pro activo · Herramientas desbloqueadas</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 24, marginBottom: APPS_PRO.length ? 48 : 0 }}>
+              {WEB_TOOLS.map((tool) => <WebToolCard key={tool.id} tool={tool} />)}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
               {APPS_PRO.map((app) => <AppCard key={app.id} app={app} detectedOs={os} />)}

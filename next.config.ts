@@ -1,10 +1,28 @@
 import type { NextConfig } from "next";
 
+// Herramientas Pro alojadas fuera de Vercel (Railway) pero servidas dentro de
+// trustmind.online: WA TRUST en /cobros y TrustNum en /numeros. Si la variable
+// no está definida, la ruta simplemente no existe (404).
+const WA_TRUST_ORIGIN = (process.env.WA_TRUST_ORIGIN || "").replace(/\/$/, "");
+const TRUSTNUM_ORIGIN = (process.env.TRUSTNUM_ORIGIN || "").replace(/\/$/, "");
+
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",
     },
+  },
+  async rewrites() {
+    const rules: { source: string; destination: string }[] = [];
+    if (WA_TRUST_ORIGIN) {
+      rules.push({ source: "/cobros", destination: `${WA_TRUST_ORIGIN}/cobros` });
+      rules.push({ source: "/cobros/:path*", destination: `${WA_TRUST_ORIGIN}/cobros/:path*` });
+    }
+    if (TRUSTNUM_ORIGIN) {
+      rules.push({ source: "/numeros", destination: `${TRUSTNUM_ORIGIN}/numeros` });
+      rules.push({ source: "/numeros/:path*", destination: `${TRUSTNUM_ORIGIN}/numeros/:path*` });
+    }
+    return rules;
   },
   async headers() {
     const csp = [
