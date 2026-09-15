@@ -98,9 +98,9 @@ const APPS = [
     downloads: {
       mac: { label: "macOS (Apple Silicon)", size: "Proximamente", url: "#" },
       macIntel: { label: "macOS (Intel)", size: "Proximamente", url: "#" },
-      windows: { label: "Windows x64", size: "40 MB", url: "https://github.com/danteod99/trustfarm-releases/releases/download/v2.28.21/TrustFarm_2.28.21_x64-setup.exe" },
+      windows: { label: "Windows x64", size: "35 MB", url: "https://github.com/danteod99/trustfarm-releases/releases/download/v2.28.23/TrustFarm_2.28.23_x64-setup.exe" },
     },
-    version: "2.28.21",
+    version: "2.28.23",
     requirements: [
       "macOS 12+ o Windows 10+",
       "4 GB RAM minimo",
