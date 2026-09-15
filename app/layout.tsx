@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     default: "TrustMind — Software para Granjas de Bots y Redes Sociales",
     template: "%s | TrustMind",
   },
-  description: "Plataforma todo-en-uno para gestionar granjas de bots, cuentas de Instagram, Facebook y TikTok. Software antideteccion, automatizaciones y panel SMM con IA.",
+  description: "Plataforma todo-en-uno para gestionar granjas de bots, cuentas de Instagram, Facebook y TikTok. Software antideteccion, automatizaciones, marketplace de cuentas y herramientas de video con IA.",
   keywords: ["bot farm", "granja de bots", "instagram automation", "facebook automation", "tiktok automation", "SMM panel", "antidetect browser", "phone farm", "social media manager", "trustmind"],
   authors: [{ name: "TrustMind" }],
   creator: "TrustMind",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     url: "https://www.trustmind.online",
     siteName: "TrustMind",
     title: "TrustMind — Software para Granjas de Bots y Redes Sociales",
-    description: "Plataforma todo-en-uno para gestionar granjas de bots, cuentas de Instagram, Facebook y TikTok. Software antideteccion, automatizaciones y panel SMM con IA.",
+    description: "Plataforma todo-en-uno para gestionar granjas de bots, cuentas de Instagram, Facebook y TikTok. Software antideteccion, automatizaciones, marketplace de cuentas y herramientas de video con IA.",
   },
   twitter: {
     card: "summary_large_image",
@@ -119,7 +119,7 @@ export default function RootLayout({
               "alternateName": ["Scaling LATAM", "Scaling Tech Farm"],
               "url": "https://www.trustmind.online",
               "logo": "https://www.trustmind.online/trustmind-logo.png",
-              "description": "Plataforma todo-en-uno para gestionar granjas de bots, automatizaciones de redes sociales y panel SMM con IA.",
+              "description": "Plataforma todo-en-uno para gestionar granjas de bots, automatizaciones de redes sociales, marketplace de cuentas y herramientas de video con IA.",
               "founder": { "@type": "Person", "name": "Dante Oliveros" },
               "foundingDate": "2026",
               "address": { "@type": "PostalAddress", "addressCountry": "PE", "addressLocality": "Lima" },
@@ -150,7 +150,7 @@ export default function RootLayout({
                   "name": "¿Qué es TrustMind?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "TrustMind es una plataforma que combina granjas de bots físicas, software antidetección (TrustInsta, TrustFace, TrustFarm) y un panel SMM con +5,000 servicios para automatizar el crecimiento en Instagram, TikTok, YouTube, Facebook y Spotify. Operada por Scaling Tech Farm LLC desde Lima, Perú."
+                    "text": "TrustMind es una plataforma que combina granjas de bots físicas, software antidetección (TrustInsta, TrustFace, TrustFarm) y un marketplace de cuentas listas para usar para automatizar el crecimiento en Instagram, TikTok, YouTube, Facebook y Spotify. Operada por Scaling Tech Farm LLC desde Lima, Perú."
                   }
                 },
                 {
@@ -166,7 +166,7 @@ export default function RootLayout({
                   "name": "¿Cuánto cuesta usar TrustMind?",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Crear tu cuenta en TrustMind es gratis. Para activar y usar los servicios (panel SMM, software antidetección y cursos) te contactas por WhatsApp con un asesor, que te guía según lo que necesites. Las granjas físicas llave en mano se cotizan aparte."
+                    "text": "Crear tu cuenta en TrustMind es gratis. Para activar y usar los servicios (software Pro, cuentas y herramientas de video) te contactas por WhatsApp con un asesor, que te guía según lo que necesites. Las granjas físicas llave en mano se cotizan aparte."
                   }
                 },
                 {

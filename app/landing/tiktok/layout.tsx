@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Comprar Seguidores y Likes de TikTok — Panel SMM TrustMind",
-  description: "Compra seguidores, likes, views y comentarios de TikTok reales. Entrega rapida, precios desde $0.01. Panel SMM automatizado con soporte 24/7.",
+  title: "Cuentas y Software para TikTok — TrustMind",
+  description: "Cuentas de TikTok listas para usar, software de granjas de bots y herramientas de video con IA. Entrega rapida y soporte 24/7.",
   alternates: { canonical: "https://www.trustmind.online/landing/tiktok" },
   openGraph: {
-    title: "Comprar Seguidores TikTok — TrustMind",
-    description: "Compra seguidores, likes y views de TikTok. Entrega rapida y precios bajos.",
+    title: "Cuentas y Software para TikTok — TrustMind",
+    description: "Cuentas de TikTok, software antidetect y herramientas de video con IA.",
     url: "https://www.trustmind.online/landing/tiktok",
   },
 };

@@ -468,7 +468,7 @@ export default function OfertaPage() {
               color: "#64748b",
               marginTop: "20px",
             }}>
-              Y <strong style={{ color: "#7dd3fc" }}>+10 plataformas más</strong> · Más de 5,000 servicios disponibles
+              Y <strong style={{ color: "#7dd3fc" }}>+10 plataformas más</strong> · Cuentas listas para usar en todas
             </p>
           </div>
         </section>
@@ -511,7 +511,7 @@ export default function OfertaPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "16px" }}>
               {[
                 { icon: <Users size={22} />, title: "Seguidores reales en automático", desc: "Aumenta tu audiencia en Instagram, TikTok y Facebook con engagement orgánico real. Sin bots fake." },
-                { icon: <Zap size={22} />, title: "+5,000 servicios SMM", desc: "Likes, views, comments, saves en todas las plataformas — todo desde un solo panel con saldo." },
+                { icon: <Zap size={22} />, title: "Marketplace de cuentas", desc: "Cuentas Express y Premium de Instagram, TikTok y Facebook con entrega instantánea — todo desde un solo panel con saldo." },
                 { icon: <Shield size={22} />, title: "Proxies premium incluidos", desc: "Anti-detección configurada, proxies residenciales y móviles. Cero baneos en tus cuentas." },
                 { icon: <Sparkles size={22} />, title: "Agente IA 24/7", desc: "Le dices qué quieres y el agente lo ejecuta. Sin aprender herramientas técnicas." },
                 { icon: <TrendingUp size={22} />, title: "Growth Dashboard", desc: "Métricas en tiempo real de tus campañas. Sabes exactamente cuánto creces cada día." },
@@ -744,7 +744,7 @@ export default function OfertaPage() {
                     {[
                       "Mensajes ilimitados con el Agente IA",
                       "Crecimiento automático en IG, TikTok y FB",
-                      "+5,000 servicios SMM con descuento",
+                      "Marketplace de cuentas con descuento",
                       "Proxies premium + anti-detección",
                       "Growth Dashboard con métricas en vivo",
                       "Historial completo de conversaciones",
@@ -823,10 +823,10 @@ export default function OfertaPage() {
             </h2>
             <div style={{ display: "grid", gap: "10px" }}>
               {[
-                { q: "¿Realmente son seguidores reales?", a: "Sí. TRUST MIND Pro combina engagement orgánico real con servicios SMM de alta retención. No usamos bots fake que después caen — son cuentas con interacción humana real." },
+                { q: "¿Realmente son seguidores reales?", a: "Sí. TRUST MIND Pro combina engagement orgánico real con cuentas y automatizaciones propias. No usamos bots fake que después caen — son cuentas con interacción humana real." },
                 { q: "¿Puedo cancelar cuando quiera?", a: "Por supuesto. No hay permanencia. Si pagaste el anual y cancelas dentro de los primeros 30 días, te devolvemos el 100% del dinero." },
                 { q: "¿Necesito conocimientos técnicos?", a: "Cero. El agente IA hace todo. Le dices en español qué quieres lograr (ej: 'quiero +500 seguidores en Instagram esta semana') y él ejecuta los servicios necesarios." },
-                { q: "¿En qué plataformas funciona?", a: "Instagram, TikTok, Facebook, YouTube, Spotify, Twitter/X, Telegram, Twitch y +10 más. Más de 5,000 servicios distintos disponibles." },
+                { q: "¿En qué plataformas funciona?", a: "Instagram, TikTok, Facebook, YouTube, Spotify, Twitter/X, Telegram, Twitch y +10 más. Cuentas y automatizaciones para todas." },
                 { q: "¿Mi cuenta puede ser baneada?", a: "No. Usamos proxies residenciales y anti-detección de nivel enterprise. Llevamos +50M de servicios entregados con menos del 0.1% de incidencias." },
                 { q: "¿Qué pasa después del primer año?", a: "Se renueva automáticamente al mismo precio promocional ($240/año) mientras tu suscripción esté activa. Puedes cancelar cuando quieras desde tu cuenta." },
               ].map((f, i) => {

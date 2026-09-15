@@ -4,10 +4,10 @@ import { Check, Crown } from "lucide-react";
 import { whatsappUrl } from "@/app/lib/whatsapp";
 
 const FEATURES = [
-  "Agente IA ilimitado (sin límite de mensajes)",
-  "+5,000 servicios SMM (Instagram, TikTok, Facebook, etc.)",
+  "Herramientas de video con IA (editor, multiclipping, multiediting)",
+  "Marketplace de cuentas (Instagram, TikTok, Facebook, etc.)",
   "TrustInsta + TrustFace + TrustFarm (software desktop)",
-  "Curso completo de granjas de bots",
+  "Automatizaciones ilimitadas en el software",
   "Antidetect + proxies premium",
   "Historial completo y acceso prioritario",
   "Nuevas funciones primero",

@@ -39,7 +39,7 @@ export default function LandingArgentina() {
         { icon: "🎤", title: "Artistas de trap y urbano", desc: "Duki, Bizarrap... la movida argentina explota. Promocioná tu música con streams reales y views que te posicionen en las playlists." },
         { icon: "🛍️", title: "Emprendedores y marcas", desc: "Tiendas de ropa, gastronomía, servicios — crecé tu Instagram con seguidores argentinos que se convierten en ventas reales." },
         { icon: "📹", title: "Streamers y YouTubers", desc: "Más subs, más views, más watch time. Impulsá tu canal para monetizar más rápido y conseguir mejores sponsors." },
-        { icon: "📊", title: "Agencias de marketing digital", desc: "Usá nuestro panel de reseller para ofrecer servicios SMM a tus clientes. Precios mayoristas y soporte dedicado." },
+        { icon: "📊", title: "Agencias de marketing digital", desc: "Comprá cuentas al por mayor y operalas con TrustInsta, TrustFace y TrustFarm para tus clientes. Precios mayoristas y soporte dedicado." },
       ]}
       testimonials={[
         { name: "Nico F.", role: "Productor musical · Buenos Aires", text: "Metí 50K streams en un mes a mi último track. La IA me ayudó a elegir los mejores servicios. Una masa.", country: "🇦🇷" },

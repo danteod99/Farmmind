@@ -27,11 +27,11 @@ export default function LandingPeru() {
       featuresTitle="Hecho en Perú, para toda Latam"
       featuresSubtitle="Nuestra oficina está en Lima. Soporte local, precios accesibles, resultados garantizados."
       features={[
-        { emoji: "📱", title: "Redes sociales completas", desc: "Instagram, TikTok, YouTube, Facebook, Twitter y más. Seguidores, likes, views y engagement para todas las plataformas.", color: "#E1306C" },
+        { emoji: "📱", title: "Redes sociales completas", desc: "Instagram, TikTok, Facebook y más. Cuentas listas para operar con software antidetect y automatizaciones.", color: "#E1306C" },
         { emoji: "🇵🇪", title: "Soporte peruano", desc: "Nuestro equipo está en Lima. Atención por WhatsApp, soporte en español y conocemos el mercado local a la perfección.", color: "#D91023" },
         { emoji: "🤖", title: "Agente IA inteligente", desc: "Scaling Latam AI te asesora sobre estrategias, configuración de bots, proxies y optimización. Respuestas inmediatas.", color: "#007ABF" },
         { emoji: "💳", title: "Múltiples formas de pago", desc: "Crypto, tarjeta de crédito/débito, transferencia. Precios en USD accesibles para el mercado peruano.", color: "#F59E0B" },
-        { emoji: "📊", title: "Dashboard profesional", desc: "+5,000 servicios en un solo panel. Monitorea pedidos, historial completo y estadísticas en tiempo real.", color: "#8B5CF6" },
+        { emoji: "📊", title: "Dashboard profesional", desc: "Cuentas, software y herramientas de video en un solo lugar. Historial completo y saldo en tiempo real.", color: "#8B5CF6" },
         { emoji: "🏢", title: "Empresa formal", desc: "OLIVEROS MKT EIRL — RUC: 20605576550. Empresa registrada en Perú. Factura y todo en regla.", color: "#059669" },
       ]}
       useCasesTitle="¿Para quién es Scaling Latam en Perú?"
@@ -39,7 +39,7 @@ export default function LandingPeru() {
         { icon: "🏪", title: "Negocios locales", desc: "Restaurantes en Miraflores, tiendas en Gamarra, servicios en todo Lima — crece tu presencia digital con seguidores peruanos reales." },
         { icon: "🎵", title: "Artistas y músicos", desc: "Cumbia, salsa, reggaetón peruano — promociona tu música con streams y views. Llega a más oyentes sin gastar una millonada." },
         { icon: "📸", title: "Influencers peruanos", desc: "Mejora tus métricas para conseguir mejores deals con marcas. Engagement automatizado que te posiciona mejor." },
-        { icon: "🏢", title: "Agencias y resellers", desc: "Panel de reventa con marca blanca. Precios mayoristas para ofrecer servicios SMM a tus clientes. Soporte directo en Lima." },
+        { icon: "🏢", title: "Agencias y resellers", desc: "Compra cuentas al por mayor y opéralas con TrustInsta, TrustFace y TrustFarm. Soporte directo en Lima." },
       ]}
       testimonials={[
         { name: "Andrea C.", role: "Restaurante · Miraflores", text: "Mi Instagram pasó de 3K a 20K seguidores. Ahora tenemos reservas todos los días. El soporte por WhatsApp es increíble.", country: "🇵🇪" },

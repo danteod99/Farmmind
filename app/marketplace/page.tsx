@@ -387,7 +387,7 @@ export default function MarketplacePage() {
                       "Scraper de productos hot en tu ciudad",
                       "Templates personalizables por nicho",
                       "Soporte directo en menos de 1 hora",
-                      "TrustInsta + Panel SMM también incluidos",
+                      "TrustInsta + TrustFarm también incluidos",
                     ].map((b) => (
                       <div key={b} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                         <Check size={16} color={FB_CYAN} style={{ flexShrink: 0, marginTop: 2 }} />

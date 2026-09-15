@@ -68,9 +68,9 @@ export const DRIP_STEPS: DripStep[] = [
         <p style="margin:0 0 18px">Acabás de unirte a la red de emprendedores que comandan miles de cuentas sin invertir en hardware físico.</p>
         <p style="margin:0 0 18px">En los próximos minutos vas a poder:</p>
         <ul style="margin:0 0 18px;padding-left:18px;color:#cbd5e1">
-          <li style="margin-bottom:6px">Pedir tu primer servicio (likes, seguidores, views) desde el panel</li>
+          <li style="margin-bottom:6px">Conseguir tus primeras cuentas Express o Premium desde el panel</li>
           <li style="margin-bottom:6px">Explorar las cuentas premium con entrega instantánea</li>
-          <li style="margin-bottom:6px">Acceder a la academia (cursos, no solo videos sueltos)</li>
+          <li style="margin-bottom:6px">Descargar TrustInsta, TrustFace y TrustFarm gratis</li>
         </ul>
         <p style="margin:0 0 22px">Entrá ahora y dale el primer vistazo:</p>
         ${ctaButton("Entrar al panel →", c.panelUrl)}
@@ -146,7 +146,7 @@ export const DRIP_STEPS: DripStep[] = [
         </ul>
         <p style="margin:0 0 22px">Si todavía no probaste, andá ahora. El panel te muestra los <strong style="color:white">top 10 servicios</strong> ordenados por uso real.</p>
         ${ctaButton("Hacer mi primer pedido →", c.panelUrl, "#007ABF")}
-        <p style="margin:24px 0 0;font-size:13px;color:#94a3b8">El plan anual te baja todo a costo base y te incluye la academia completa. Pero antes: probá el panel.</p>
+        <p style="margin:24px 0 0;font-size:13px;color:#94a3b8">El plan anual te baja todo a costo base y te incluye las herramientas de video con IA. Pero antes: probá el panel.</p>
         <p style="margin:14px 0 0;font-size:13px;color:#94a3b8">— Dante</p>
       `, c),
       text: `El error #1 en TrustMind: no probar. Panel: ${c.panelUrl}`,
@@ -165,8 +165,8 @@ export const DRIP_STEPS: DripStep[] = [
         <p style="margin:0 0 14px">Comparado con el plan mensual ($50/mes = $600/año), te ahorrás <strong style="color:#10b981">$360 al año</strong>. Es 60% off.</p>
         <p style="margin:0 0 18px">Qué incluye el plan anual:</p>
         <ul style="margin:0 0 18px;padding-left:18px;color:#cbd5e1">
-          <li style="margin-bottom:6px"><strong style="color:white">Panel SMM</strong> con 5,000+ servicios a precio base</li>
-          <li style="margin-bottom:6px"><strong style="color:white">Academia completa</strong>: granjas, GenFarmer, monetización IG/TikTok/YT</li>
+          <li style="margin-bottom:6px"><strong style="color:white">Marketplace de cuentas</strong> a precio base</li>
+          <li style="margin-bottom:6px"><strong style="color:white">Herramientas de video con IA</strong>: editor de cortos, multiclipping, multiediting</li>
           <li style="margin-bottom:6px"><strong style="color:white">TrustInsta + TrustFace</strong> (apps desktop bundle)</li>
           <li style="margin-bottom:6px"><strong style="color:white">Cuentas Express</strong> con auto-entrega de credenciales</li>
           <li style="margin-bottom:6px">Soporte WhatsApp directo (no formularios)</li>

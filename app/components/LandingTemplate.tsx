@@ -342,7 +342,7 @@ export default function LandingTemplate({
                 o <strong>$20/mes</strong> facturado anual ($240/año, -60%)
               </p>
               <div style={{ borderTop: `1px solid ${accentColor}20`, paddingTop: "20px" }}>
-                {["Mensajes IA ilimitados", "+5,000 servicios SMM", "TrustInsta + TrustFace + TrustFarm", "Curso de granjas de bots", "Historial + acceso prioritario", "Soporte directo por WhatsApp"].map((f) => (
+                {["Herramientas de video con IA", "Marketplace de cuentas", "TrustInsta + TrustFace + TrustFarm", "Automatizaciones ilimitadas", "Historial + acceso prioritario", "Soporte directo por WhatsApp"].map((f) => (
                   <div key={f} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
                     <span style={{ color: secondaryColor, fontSize: "14px" }}>✓</span>
                     <span style={{ fontSize: "13px", color: `${secondaryColor}cc` }}>{f}</span>
