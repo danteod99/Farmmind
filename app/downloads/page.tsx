@@ -267,7 +267,7 @@ export default function DownloadsPage() {
                 {[
                   "TrustInsta Desktop (Instagram)",
                   "TrustFace Desktop (Facebook)",
-                  "Panel SMM con +5,000 servicios",
+                  "TrustFarm Desktop (celulares)",
                   "Soporte directo y prioritario",
                 ].map((b) => (
                   <div key={b} style={{ display: "flex", alignItems: "center", gap: 8 }}>
